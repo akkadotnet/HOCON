@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
     /// This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)

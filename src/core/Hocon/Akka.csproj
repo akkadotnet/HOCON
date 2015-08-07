@@ -7,8 +7,8 @@
     <ProjectGuid>{4A87AD05-BEF2-4B08-BD7E-A9866D88C439}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Hocon</RootNamespace>
-    <AssemblyName>Hocon</AssemblyName>
+    <RootNamespace>Akka.Configuration</RootNamespace>
+    <AssemblyName>Akka</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -49,21 +49,21 @@
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ConfigurationException.cs" />
     <Compile Include="Configuration\ConfigurationFactory.cs" />
-    <Compile Include="Hocon\AkkaConfigurationSection.cs" />
-    <Compile Include="Hocon\CDataConfigurationElement.cs" />
-    <Compile Include="Hocon\HoconArray.cs" />
-    <Compile Include="Hocon\HoconConfigurationElement.cs" />
-    <Compile Include="Hocon\HoconLiteral.cs" />
-    <Compile Include="Hocon\HoconObject.cs" />
-    <Compile Include="Hocon\HoconParserException.cs" />
-    <Compile Include="Hocon\HoconParser.cs" />
-    <Compile Include="Hocon\HoconRoot.cs" />
-    <Compile Include="Hocon\HoconSubstitution.cs" />
-    <Compile Include="Hocon\HoconToken.cs" />
-    <Compile Include="Hocon\HoconTokenizer.cs" />
-    <Compile Include="Hocon\HoconTokenizerException.cs" />
-    <Compile Include="Hocon\HoconValue.cs" />
-    <Compile Include="Hocon\IHoconElement.cs" />
+    <Compile Include="Configuration\Hocon\AkkaConfigurationSection.cs" />
+    <Compile Include="Configuration\Hocon\CDataConfigurationElement.cs" />
+    <Compile Include="Configuration\Hocon\HoconArray.cs" />
+    <Compile Include="Configuration\Hocon\HoconConfigurationElement.cs" />
+    <Compile Include="Configuration\Hocon\HoconLiteral.cs" />
+    <Compile Include="Configuration\Hocon\HoconObject.cs" />
+    <Compile Include="Configuration\Hocon\HoconParserException.cs" />
+    <Compile Include="Configuration\Hocon\HoconParser.cs" />
+    <Compile Include="Configuration\Hocon\HoconRoot.cs" />
+    <Compile Include="Configuration\Hocon\HoconSubstitution.cs" />
+    <Compile Include="Configuration\Hocon\HoconToken.cs" />
+    <Compile Include="Configuration\Hocon\HoconTokenizer.cs" />
+    <Compile Include="Configuration\Hocon\HoconTokenizerException.cs" />
+    <Compile Include="Configuration\Hocon\HoconValue.cs" />
+    <Compile Include="Configuration\Hocon\IHoconElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

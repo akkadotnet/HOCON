@@ -8,7 +8,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Configuration
+namespace Akka.Configuration
 {
     /// <summary>
     /// The exception that is thrown when a configuration is invalid.

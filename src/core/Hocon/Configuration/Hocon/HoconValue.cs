@@ -11,7 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
     /// This class represents the root type for a HOCON (Human-Optimized Config Object Notation)

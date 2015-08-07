@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
     /// This class represents a string literal element in a HOCON (Human-Optimized Config Object Notation)

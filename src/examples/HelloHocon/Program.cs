@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Configuration;
+using Akka.Configuration;
 using System;
 
 namespace HelloHocon
@@ -14,12 +14,7 @@ namespace HelloHocon
     {
         static void Main(string[] args)
         {
-            var hocon = @"
-root {
-  simple-string = ""Hello Hocon""  
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = ConfigurationFactory.Load();
             var val = config.GetString("root.simple-string");
             Console.WriteLine("Hocon says: " + val);
             Console.ReadKey();

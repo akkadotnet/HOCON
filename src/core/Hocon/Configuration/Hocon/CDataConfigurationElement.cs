@@ -8,7 +8,7 @@
 using System.Configuration;
 using System.Xml;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
     /// This class represents the base implementation for retrieving text from
@@ -18,7 +18,7 @@ namespace Configuration.Hocon
     /// <?xml version="1.0" encoding="utf-8" ?>
     /// <configuration>
     ///   <configSections>
-    ///     <section name="akka" type="Configuration.Hocon.AkkaConfigurationSection, Akka" />
+    ///     <section name="akka" type="Akka.Configuration.Hocon.AkkaConfigurationSection, Akka" />
     ///   </configSections>
     ///   <akka>
     ///     <hocon>

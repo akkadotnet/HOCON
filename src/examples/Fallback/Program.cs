@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Configuration;
+using Akka.Configuration;
 using System;
 
 namespace Fallback

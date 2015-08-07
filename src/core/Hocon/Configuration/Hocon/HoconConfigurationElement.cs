@@ -7,7 +7,7 @@
 
 using System.Configuration;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
     /// This class represents a custom HOCON (Human-Optimized Config Object Notation)
@@ -17,7 +17,7 @@ namespace Configuration.Hocon
     /// <?xml version="1.0" encoding="utf-8" ?>
     /// <configuration>
     ///   <configSections>
-    ///     <section name="akka" type="Configuration.Hocon.AkkaConfigurationSection, Akka" />
+    ///     <section name="akka" type="AkkaConfiguration.Hocon.AkkaConfigurationSection, Akka" />
     ///   </configSections>
     ///   <akka>
     ///     <hocon>
