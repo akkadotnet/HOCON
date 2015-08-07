@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hocon", "core\Hocon\Hocon.csproj", "{4A87AD05-BEF2-4B08-BD7E-A9866D88C439}"
 EndProject
@@ -12,6 +12,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{633E4227-A565-43B6-BEA8-0F027813FE33}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloHocon", "examples\HelloHocon\HelloHocon.csproj", "{C3CD2FC8-7381-45A6-9F6E-486A0DADA022}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fallback", "examples\Fallback\Fallback.csproj", "{E43F038F-4715-4BD8-9CEF-74F4CF469428}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectMerge", "examples\ObjectMerge\ObjectMerge.csproj", "{0228F9B6-394C-4D6E-A234-EF82C034FBFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSubstitutions", "examples\SimpleSubstitutions\SimpleSubstitutions.csproj", "{06845F4C-E608-4755-B6ED-5A6C775E4DD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +37,18 @@ Global
 		{C3CD2FC8-7381-45A6-9F6E-486A0DADA022}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3CD2FC8-7381-45A6-9F6E-486A0DADA022}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3CD2FC8-7381-45A6-9F6E-486A0DADA022}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E43F038F-4715-4BD8-9CEF-74F4CF469428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E43F038F-4715-4BD8-9CEF-74F4CF469428}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E43F038F-4715-4BD8-9CEF-74F4CF469428}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E43F038F-4715-4BD8-9CEF-74F4CF469428}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0228F9B6-394C-4D6E-A234-EF82C034FBFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0228F9B6-394C-4D6E-A234-EF82C034FBFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0228F9B6-394C-4D6E-A234-EF82C034FBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0228F9B6-394C-4D6E-A234-EF82C034FBFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06845F4C-E608-4755-B6ED-5A6C775E4DD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06845F4C-E608-4755-B6ED-5A6C775E4DD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06845F4C-E608-4755-B6ED-5A6C775E4DD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06845F4C-E608-4755-B6ED-5A6C775E4DD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -39,5 +57,8 @@ Global
 		{4A87AD05-BEF2-4B08-BD7E-A9866D88C439} = {54BBEF30-0912-4363-9589-9E628EC657F6}
 		{4FFD147E-6F27-45AA-B2ED-AD2DA599C532} = {54BBEF30-0912-4363-9589-9E628EC657F6}
 		{C3CD2FC8-7381-45A6-9F6E-486A0DADA022} = {633E4227-A565-43B6-BEA8-0F027813FE33}
+		{E43F038F-4715-4BD8-9CEF-74F4CF469428} = {633E4227-A565-43B6-BEA8-0F027813FE33}
+		{0228F9B6-394C-4D6E-A234-EF82C034FBFF} = {633E4227-A565-43B6-BEA8-0F027813FE33}
+		{06845F4C-E608-4755-B6ED-5A6C775E4DD5} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 	EndGlobalSection
 EndGlobal
