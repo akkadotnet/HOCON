@@ -155,6 +155,23 @@ namespace Configuration.Hocon
                 Take();
             }
         }
+
+        public string GetHelpTextAtIndex(int index, int length=0)
+        {
+            if (length == 0)
+                length = Length - index;
+
+            var l = Math.Min(20, length);
+
+            var snippet = _text.Substring(index, l);
+            if (length > l)
+                snippet = snippet + "...";
+
+            //escape snippet
+            snippet = snippet.Replace("\r", "\\r").Replace("\n", "\\n");
+
+            return string.Format("at index {0}: `{1}`", index, snippet);
+        }
     }
 
 
@@ -268,7 +285,7 @@ namespace Configuration.Hocon
             }
 
 
-            throw new FormatException("unknown token");
+            throw new HoconTokenizerException(string.Format("Unknown token ",GetHelpTextAtIndex(start)));
         }
 
         private bool IsStartOfQuotedKey()
@@ -602,13 +619,13 @@ namespace Configuration.Hocon
                     int j = Convert.ToInt32(hex, 16);
                     return ((char) j).ToString(CultureInfo.InvariantCulture);
                 default:
-                    throw new NotSupportedException(string.Format("Unknown escape code: {0}", escaped));
+                    throw new HoconTokenizerException(string.Format("Unknown escape code `{0}` {1}", escaped,GetHelpTextAtIndex(start)));
             }
         }
 
         public bool IsStartOfComment()
         {
-            return (Matches("#", "//"));
+            return Matches("#", "//");
         }
 
         /// <summary>
@@ -621,6 +638,7 @@ namespace Configuration.Hocon
         /// </exception>
         public Token PullValue()
         {
+            int start = Index;
             if (IsObjectStart())
             {
                 return PullStartOfObject();
@@ -653,8 +671,7 @@ namespace Configuration.Hocon
                 return PullSubstitution();
             }
 
-            throw new FormatException(
-                "Expected value: Null literal, Array, Quoted Text, Unquoted Text, Triple quoted Text, Object or End of array");
+            throw new HoconTokenizerException(string.Format("Expected value: Null literal, Array, Quoted Text, Unquoted Text, Triple quoted Text, Object or End of array {0}", GetHelpTextAtIndex(start)));
         }
 
         /// <summary>
@@ -783,7 +800,7 @@ namespace Configuration.Hocon
             if (IsUnquotedText())
                 return PullUnquotedText();
 
-            throw new FormatException("No simple value found");
+            throw new HoconTokenizerException(string.Format("No simple value found {0}",GetHelpTextAtIndex(start)));
         }
 
         /// <summary>
