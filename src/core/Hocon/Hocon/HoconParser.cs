@@ -68,7 +68,7 @@ namespace Configuration.Hocon
             {
                 HoconValue res = c.GetValue(sub.Path);
                 if (res == null)
-                    throw new FormatException("Unresolved substitution:" + sub.Path);
+                    throw new HoconParserException("Unresolved substitution:" + sub.Path);
 
                 sub.ResolvedValue = res;
             }
@@ -234,7 +234,7 @@ namespace Configuration.Hocon
                 //no value was found, tokenizer is still at the same position
                 if (_reader.Index == start)
                 {
-                    throw new FormatException(string.Format("Hocon syntax error {0}\r{1}",_reader.GetHelpTextAtIndex(start),GetDiagnosticsStackTrace()));
+                    throw new HoconParserException(string.Format("Hocon syntax error {0}\r{1}",_reader.GetHelpTextAtIndex(start),GetDiagnosticsStackTrace()));
                 }
             }
         }
