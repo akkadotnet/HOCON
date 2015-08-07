@@ -21,6 +21,23 @@ namespace Configuration.Hocon
         private HoconTokenizer _reader;
         private HoconValue _root;
         private Func<string, HoconRoot> _includeCallback;
+        private Stack<string> _diagnosticsStack = new Stack<string>();
+
+        private void PushDiagnostics(string message)
+        {
+            _diagnosticsStack.Push(message);
+        }
+
+        private void PopDiagnostics()
+        {
+            _diagnosticsStack.Pop();
+        }
+
+        public string GetDiagnosticsStackTrace()
+        {
+            var currentPath = string.Join("", _diagnosticsStack.Reverse());
+            return string.Format("Current path: {0}", currentPath);
+        }
 
         /// <summary>
         /// Parses the supplied HOCON configuration string into a root element.
@@ -51,7 +68,8 @@ namespace Configuration.Hocon
             {
                 HoconValue res = c.GetValue(sub.Path);
                 if (res == null)
-                    throw new FormatException("Unresolved substitution:" + sub.Path);
+                    throw new HoconParserException("Unresolved substitution:" + sub.Path);
+
                 sub.ResolvedValue = res;
             }
             return new HoconRoot(_root, _substitutions);
@@ -59,76 +77,94 @@ namespace Configuration.Hocon
 
         private void ParseObject(HoconValue owner, bool root,string currentPath)
         {
-            if (owner.IsObject())
+            try
             {
-                //the value of this KVP is already an object
-            }
-            else
-            {
-                //the value of this KVP is not an object, thus, we should add a new
-                owner.NewValue(new HoconObject());
-            }
+                PushDiagnostics("{");
 
-            HoconObject currentObject = owner.GetObject();
-
-            while (!_reader.EoF)
-            {
-                Token t = _reader.PullNext();
-                switch (t.Type)
+                if (owner.IsObject())
                 {
-                    case TokenType.Include:
-                        var included = _includeCallback(t.Value);
-                        var substitutions = included.Substitutions;
-                        foreach (var substitution in substitutions)
-                        {
-                            //fixup the substitution, add the current path as a prefix to the substitution path
-                            substitution.Path = currentPath + "." + substitution.Path;
-                        }
-                        _substitutions.AddRange(substitutions);
-                        var otherObj = included.Value.GetObject();
-                        owner.GetObject().Merge(otherObj);
-
-                        break;
-                    case TokenType.EoF:
-                        break;
-                    case TokenType.Key:
-                        HoconValue value = currentObject.GetOrCreateKey(t.Value);
-                        var nextPath = currentPath == "" ? t.Value : currentPath + "." + t.Value;
-                        ParseKeyContent(value, nextPath);
-                        if (!root)
-                            return;
-                        break;
-
-                    case TokenType.ObjectEnd:
-                        return;
+                    //the value of this KVP is already an object
                 }
+                else
+                {
+                    //the value of this KVP is not an object, thus, we should add a new
+                    owner.NewValue(new HoconObject());
+                }
+
+                HoconObject currentObject = owner.GetObject();
+
+                while (!_reader.EoF)
+                {
+                    Token t = _reader.PullNext();
+                    switch (t.Type)
+                    {
+                        case TokenType.Include:
+                            var included = _includeCallback(t.Value);
+                            var substitutions = included.Substitutions;
+                            foreach (var substitution in substitutions)
+                            {
+                                //fixup the substitution, add the current path as a prefix to the substitution path
+                                substitution.Path = currentPath + "." + substitution.Path;
+                            }
+                            _substitutions.AddRange(substitutions);
+                            var otherObj = included.Value.GetObject();
+                            owner.GetObject().Merge(otherObj);
+
+                            break;
+                        case TokenType.EoF:
+                            break;
+                        case TokenType.Key:
+                            HoconValue value = currentObject.GetOrCreateKey(t.Value);
+                            var nextPath = currentPath == "" ? t.Value : currentPath + "." + t.Value;
+                            ParseKeyContent(value, nextPath);
+                            if (!root)
+                                return;
+                            break;
+
+                        case TokenType.ObjectEnd:
+                            return;
+                    }
+                }
+            }
+            finally
+            {
+                PopDiagnostics();
             }
         }
 
         private void ParseKeyContent(HoconValue value,string currentPath)
         {
-            while (!_reader.EoF)
+            try
             {
-                Token t = _reader.PullNext();
-                switch (t.Type)
+                var last = currentPath.Split('.').Last();
+                PushDiagnostics(string.Format("{0} = ", last));
+                while (!_reader.EoF)
                 {
-                    case TokenType.Dot:
-                        ParseObject(value, false,currentPath);
-                        return;
-                    case TokenType.Assign:
-                        
-                        if (!value.IsObject())
-                        {
-                            //if not an object, then replace the value.
-                            //if object. value should be merged
-                            value.Clear();
-                        }
-                        ParseValue(value,currentPath);
-                        return;
-                    case TokenType.ObjectStart:
-                        ParseObject(value, true,currentPath);
-                        return;
+                    Token t = _reader.PullNext();
+                    switch (t.Type)
+                    {
+                        case TokenType.Dot:
+                            ParseObject(value, false, currentPath);
+                            return;
+                        case TokenType.Assign:
+
+                            if (!value.IsObject())
+                            {
+                                //if not an object, then replace the value.
+                                //if object. value should be merged
+                                value.Clear();
+                            }
+                            ParseValue(value, currentPath);
+                            return;
+                        case TokenType.ObjectStart:
+                            ParseObject(value, true, currentPath);
+                            return;
+                    }
                 }
+            }
+            finally
+            {
+                PopDiagnostics();
             }
         }
 
@@ -141,50 +177,66 @@ namespace Configuration.Hocon
         public void ParseValue(HoconValue owner,string currentPath)
         {
             if (_reader.EoF)
-                throw new Exception("End of file reached while trying to read a value");
+                throw new HoconParserException("End of file reached while trying to read a value");
 
             _reader.PullWhitespaceAndComments();
-            while (_reader.IsValue())
+            var start = _reader.Index;
+            try
             {
-                Token t = _reader.PullValue();
-
-                switch (t.Type)
+                while (_reader.IsValue())
                 {
-                    case TokenType.EoF:
-                        break;
-                    case TokenType.LiteralValue:
-                        if (owner.IsObject())
-                        {
-                            //needed to allow for override objects
-                            owner.Clear();
-                        }
-                        var lit = new HoconLiteral
-                        {
-                            Value = t.Value
-                        };
-                        owner.AppendValue(lit);
+                    Token t = _reader.PullValue();
 
-                        break;
-                    case TokenType.ObjectStart:
-                        ParseObject(owner, true,currentPath);
-                        break;
-                    case TokenType.ArrayStart:
-                        HoconArray arr = ParseArray(currentPath);
-                        owner.AppendValue(arr);
-                        break;
-                    case TokenType.Substitute:
-                        HoconSubstitution sub = ParseSubstitution(t.Value);
-                        _substitutions.Add(sub);
-                        owner.AppendValue(sub);
-                        break;
+                    switch (t.Type)
+                    {
+                        case TokenType.EoF:
+                            break;
+                        case TokenType.LiteralValue:
+                            if (owner.IsObject())
+                            {
+                                //needed to allow for override objects
+                                owner.Clear();
+                            }
+                            var lit = new HoconLiteral
+                            {
+                                Value = t.Value
+                            };
+                            owner.AppendValue(lit);
+
+                            break;
+                        case TokenType.ObjectStart:
+                            ParseObject(owner, true, currentPath);
+                            break;
+                        case TokenType.ArrayStart:
+                            HoconArray arr = ParseArray(currentPath);
+                            owner.AppendValue(arr);
+                            break;
+                        case TokenType.Substitute:
+                            HoconSubstitution sub = ParseSubstitution(t.Value);
+                            _substitutions.Add(sub);
+                            owner.AppendValue(sub);
+                            break;
+                    }
+                    if (_reader.IsSpaceOrTab())
+                    {
+                        ParseTrailingWhitespace(owner);
+                    }
                 }
-                if (_reader.IsSpaceOrTab())
+
+                IgnoreComma();
+            }
+            catch(HoconTokenizerException tokenizerException)
+            {
+                throw new HoconParserException(string.Format("{0}\r{1}", tokenizerException.Message, GetDiagnosticsStackTrace()),tokenizerException);
+            }
+            finally
+            {
+                //no value was found, tokenizer is still at the same position
+                if (_reader.Index == start)
                 {
-                    ParseTrailingWhitespace(owner);
+                    throw new HoconParserException(string.Format("Hocon syntax error {0}\r{1}",_reader.GetHelpTextAtIndex(start),GetDiagnosticsStackTrace()));
                 }
             }
-
-            IgnoreComma();
         }
 
         private void ParseTrailingWhitespace(HoconValue owner)
@@ -212,16 +264,25 @@ namespace Configuration.Hocon
         /// <returns>An array of elements retrieved from the token.</returns>
         public HoconArray ParseArray(string currentPath)
         {
-            var arr = new HoconArray();
-            while (!_reader.EoF && !_reader.IsArrayEnd())
+            try
             {
-                var v = new HoconValue();
-                ParseValue(v,currentPath);
-                arr.Add(v);
-                _reader.PullWhitespaceAndComments();
+                PushDiagnostics("[");
+
+                var arr = new HoconArray();
+                while (!_reader.EoF && !_reader.IsArrayEnd())
+                {
+                    var v = new HoconValue();
+                    ParseValue(v, currentPath);
+                    arr.Add(v);
+                    _reader.PullWhitespaceAndComments();
+                }
+                _reader.PullArrayEnd();
+                return arr;
             }
-            _reader.PullArrayEnd();
-            return arr;
+            finally
+            {
+                PopDiagnostics();
+            }
         }
 
         private void IgnoreComma()

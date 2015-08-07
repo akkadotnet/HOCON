@@ -81,30 +81,37 @@ namespace Configuration.Hocon
     /// </summary>
     public class Token
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
-        /// </summary>
-        protected Token()
+        public int SourceIndex { get; private set; }
+        public int Length { get;private set; }
+
+        //for serialization
+        private Token()
         {
+        }
+
+
+        public Token(string value, TokenType type, int sourceIndex, int sourceLength)
+        {
+            Type = type;
+            Value = value;
+            SourceIndex = sourceIndex;
+            Length = sourceLength;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Token"/> class.
         /// </summary>
         /// <param name="type">The type of token to associate with.</param>
-        public Token(TokenType type)
+        public Token(TokenType type, int sourceIndex, int sourceLength) : this(null,type, sourceIndex,sourceLength)
         {
-            Type = type;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Token"/> class.
         /// </summary>
         /// <param name="value">The string literal value to associate with this token.</param>
-        public Token(string value)
+        public Token(string value, int sourceIndex, int sourceLength) : this(value, TokenType.LiteralValue, sourceIndex, sourceLength)
         {
-            Type = TokenType.LiteralValue;
-            Value = value;
         }
 
         /// <summary>
@@ -112,25 +119,21 @@ namespace Configuration.Hocon
         /// a <see cref="TokenType.LiteralValue"/>, then this property
         /// holds the string literal.
         /// </summary>
-        public string Value { get; set; }
+        public string Value { get; private set; }
 
         /// <summary>
         /// The type that represents this token.
         /// </summary>
-        public TokenType Type { get; set; }
+        public TokenType Type { get; private set; }
 
         /// <summary>
         /// Creates a key token with a given <paramref name="key"/>.
         /// </summary>
         /// <param name="key">The key to associate with this token.</param>
         /// <returns>A key token with the given key.</returns>
-        public static Token Key(string key)
+        public static Token Key(string key, int sourceIndex, int sourceLength)
         {
-            return new Token
-            {
-                Type = TokenType.Key,
-                Value = key,
-            };
+            return new Token(key,TokenType.Key, sourceIndex, sourceLength);
         }
 
         /// <summary>
@@ -138,13 +141,9 @@ namespace Configuration.Hocon
         /// </summary>
         /// <param name="path">The path to associate with this token.</param>
         /// <returns>A substitution token with the given path.</returns>
-        public static Token Substitution(string path)
+        public static Token Substitution(string path, int sourceIndex, int sourceLength)
         {
-            return new Token
-            {
-                Type = TokenType.Substitute,
-                Value = path,
-            };
+            return new Token(path, TokenType.Substitute, sourceIndex, sourceLength);
         }
 
         /// <summary>
@@ -152,22 +151,14 @@ namespace Configuration.Hocon
         /// </summary>
         /// <param name="value">The value to associate with this token.</param>
         /// <returns>A string literal token with the given value.</returns>
-        public static Token LiteralValue(string value)
+        public static Token LiteralValue(string value, int sourceIndex, int sourceLength)
         {
-            return new Token
-            {
-                Type = TokenType.LiteralValue,
-                Value = value,
-            };
+            return new Token(value, TokenType.LiteralValue, sourceIndex, sourceLength);
         }
 
-        internal static Token Include(string path)
+        public static Token Include(string path, int sourceIndex, int sourceLength)
         {
-            return new Token
-            {
-                Value = path,
-                Type = TokenType.Include
-            };
+            return new Token(path, TokenType.Include, sourceIndex, sourceLength);
         }
     }
 }

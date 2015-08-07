@@ -55,11 +55,13 @@
     <Compile Include="Hocon\HoconConfigurationElement.cs" />
     <Compile Include="Hocon\HoconLiteral.cs" />
     <Compile Include="Hocon\HoconObject.cs" />
+    <Compile Include="Hocon\HoconParserException.cs" />
     <Compile Include="Hocon\HoconParser.cs" />
     <Compile Include="Hocon\HoconRoot.cs" />
     <Compile Include="Hocon\HoconSubstitution.cs" />
     <Compile Include="Hocon\HoconToken.cs" />
     <Compile Include="Hocon\HoconTokenizer.cs" />
+    <Compile Include="Hocon\HoconTokenizerException.cs" />
     <Compile Include="Hocon\HoconValue.cs" />
     <Compile Include="Hocon\IHoconElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
