@@ -22,6 +22,22 @@ namespace Configuration.Hocon
         private int _index;
         private readonly Stack<int> _indexStack = new Stack<int>();
 
+        public int Length
+        {
+            get
+            {
+                return _text.Length;
+            }
+        }
+
+        public int Index
+        {
+            get
+            {
+                return _index;
+            }
+        }
+
         public void Push()
         {
             _indexStack.Push(_index);
@@ -208,6 +224,7 @@ namespace Configuration.Hocon
         public Token PullNext()
         {
             PullWhitespaceAndComments();
+            int start = Index;
             if (IsDot())
             {
                 return PullDot();
@@ -246,8 +263,11 @@ namespace Configuration.Hocon
             }
             if (EoF)
             {
-                return new Token(TokenType.EoF);
+
+                return new Token(TokenType.EoF,Index,0);
             }
+
+
             throw new FormatException("unknown token");
         }
 
@@ -262,8 +282,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.ArrayEnd"/> token from the tokenizer's current position.</returns>
         public Token PullArrayEnd()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.ArrayEnd);
+            return new Token(TokenType.ArrayEnd,start,Index-start);
         }
 
         /// <summary>
@@ -290,8 +311,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.ArrayStart"/> token from the tokenizer's current position.</returns>
         public Token PullArrayStart()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.ArrayStart);
+            return new Token(TokenType.ArrayStart,Index, Index-start);
         }
 
         /// <summary>
@@ -300,8 +322,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Dot"/> token from the tokenizer's current position.</returns>
         public Token PullDot()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.Dot);
+            return new Token(TokenType.Dot,start, Index - start);
         }
 
         /// <summary>
@@ -310,8 +333,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Comma"/> token from the tokenizer's current position.</returns>
         public Token PullComma()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.Comma);
+            return new Token(TokenType.Comma,start, Index - start);
         }
 
         /// <summary>
@@ -320,8 +344,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.ObjectStart"/> token from the tokenizer's current position.</returns>
         public Token PullStartOfObject()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.ObjectStart);
+            return new Token(TokenType.ObjectStart, start, Index - start);
         }
 
         /// <summary>
@@ -330,8 +355,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.ObjectEnd"/> token from the tokenizer's current position.</returns>
         public Token PullEndOfObject()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.ObjectEnd);
+            return new Token(TokenType.ObjectEnd,start, Index - start);
         }
 
         /// <summary>
@@ -340,8 +366,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Assign"/> token from the tokenizer's current position.</returns>
         public Token PullAssignment()
         {
+            int start = Index;
             Take();
-            return new Token(TokenType.Assign);
+            return new Token(TokenType.Assign, start, Index - start);
         }
 
         /// <summary>
@@ -413,8 +440,9 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Comment"/> token from the tokenizer's current position.</returns>
         public Token PullComment()
         {
+            int start = Index;
             PullRestOfLine();
-            return new Token(TokenType.Comment);
+            return new Token(TokenType.Comment,start, Index-start);
         }
 
         /// <summary>
@@ -423,13 +451,14 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Key"/> token from the tokenizer's current position.</returns>
         public Token PullUnquotedKey()
         {
+            int start = Index;
             var sb = new StringBuilder();
             while (!EoF && IsUnquotedKey())
             {
                 sb.Append(Take());
             }
 
-            return Token.Key((sb.ToString().Trim()));
+            return Token.Key((sb.ToString().Trim()),start, Index - start);
         }
 
         /// <summary>
@@ -466,6 +495,7 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.</returns>
         public Token PullTripleQuotedText()
         {
+            int start = Index;
             var sb = new StringBuilder();
             Take(3);
             while (!EoF && !Matches("\"\"\""))
@@ -481,7 +511,7 @@ namespace Configuration.Hocon
                 }
             }
             Take(3);
-            return Token.LiteralValue(sb.ToString());
+            return Token.LiteralValue(sb.ToString(),start, Index - start);
         }
 
         /// <summary>
@@ -490,6 +520,7 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.</returns>
         public Token PullQuotedText()
         {
+            int start = Index;
             var sb = new StringBuilder();
             Take();
             while (!EoF && !Matches("\""))
@@ -505,7 +536,7 @@ namespace Configuration.Hocon
                 }
             }
             Take();
-            return Token.LiteralValue(sb.ToString());
+            return Token.LiteralValue(sb.ToString(),start, Index - start);
         }
 
         /// <summary>
@@ -514,6 +545,7 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Key"/> token from the tokenizer's current position.</returns>
         public Token PullQuotedKey()
         {
+            int start = Index;
             var sb = new StringBuilder();
             Take();
             while (!EoF && !Matches("\""))
@@ -529,20 +561,22 @@ namespace Configuration.Hocon
                 }
             }
             Take();
-            return Token.Key(sb.ToString());
+            return Token.Key(sb.ToString(),start, Index - start);
         }
 
         public Token PullInclude()
         {
+            int start = Index;
             Take("include".Length);
             PullWhitespaceAndComments();
             var rest = PullQuotedText();
             var unQuote = rest.Value;
-            return Token.Include(unQuote);
+            return Token.Include(unQuote,start, Index - start);
         }
 
         private string PullEscapeSequence()
         {
+            int start = Index;
             Take(); //consume "\"
             char escaped = Take();
             switch (escaped)
@@ -666,6 +700,7 @@ namespace Configuration.Hocon
         /// <returns>A <see cref="TokenType.Substitute"/> token from the tokenizer's current position.</returns>
         public Token PullSubstitution()
         {
+            int start = Index;
             var sb = new StringBuilder();
             Take(2);
             while (!EoF && IsUnquotedText())
@@ -673,7 +708,7 @@ namespace Configuration.Hocon
                 sb.Append(Take());
             }
             Take();
-            return Token.Substitution(sb.ToString());
+            return Token.Substitution(sb.ToString(),start, Index - start);
         }
 
         /// <summary>
@@ -706,23 +741,25 @@ namespace Configuration.Hocon
         /// <returns>A token that contains the string literal value.</returns>
         public Token PullSpaceOrTab()
         {
+            int start = Index;
             var sb = new StringBuilder();
             while (IsSpaceOrTab())
             {
                 sb.Append(Take());
             }
-            return Token.LiteralValue(sb.ToString());
+            return Token.LiteralValue(sb.ToString(),start,Index - start);
         }
 
         private Token PullUnquotedText()
         {
+            int start = Index;
             var sb = new StringBuilder();
             while (!EoF && IsUnquotedText())
             {
                 sb.Append(Take());
             }
 
-            return Token.LiteralValue(sb.ToString());
+            return Token.LiteralValue(sb.ToString(),start, Index - start);
         }
 
         private bool IsUnquotedText()
@@ -740,6 +777,7 @@ namespace Configuration.Hocon
         /// </exception>
         public Token PullSimpleValue()
         {
+            int start = Index;
             if (IsSpaceOrTab())
                 return PullSpaceOrTab();
             if (IsUnquotedText())
