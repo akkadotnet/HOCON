@@ -44,7 +44,7 @@ namespace Configuration.Hocon
         /// </exception>
         public string GetString()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         /// <summary>
