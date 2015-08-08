@@ -11,12 +11,92 @@ using NUnit.Framework;
 using Configuration.Hocon;
 using Configuration;
 using Hocon.Tests;
+using System.Collections.Generic;
 
 namespace Akka.Tests.Configuration
 {
     [TestFixture]
     public class HoconTests
     {
+        [TestCase]
+        public void CanUnwrapSubConfig() //undefined behavior in spec, this does not behave the same as JVM hocon.
+        {
+            var hocon = @"
+a {
+   b {
+     c = 1
+     d = true
+   }
+}";
+            var config = ConfigurationFactory.ParseString(hocon).Root.GetObject().Unwrapped;
+            var a = config["a"] as IDictionary<string, object>;
+            var b = a["b"] as IDictionary<string, object>;
+            (b["c"] as HoconValue).GetInt().ShouldBe(1);
+            (b["d"] as HoconValue).GetBoolean().ShouldBe(true);
+        }
+
+        [TestCase]
+        public void ThrowsParserExceptionOnUnterminatedObject() //undefined behavior in spec
+        {
+            var hocon = " root { string : \"hello\" ";
+            Assert.Throws<HoconParserException>(() => 
+                ConfigurationFactory.ParseString(hocon));
+        }
+
+        [TestCase]
+        public void ThrowsParserExceptionOnUnterminatedNestedObject() //undefined behavior in spec
+        {
+            var hocon = " root { bar { string : \"hello\" } ";
+            Assert.Throws<HoconParserException>(() =>
+                ConfigurationFactory.ParseString(hocon));
+        }
+
+        [TestCase]
+        public void ThrowsParserExceptionOnUnterminatedString() //undefined behavior in spec
+        {
+            var hocon = " string : \"hello";
+            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+        }
+
+        [TestCase]
+        public void ThrowsParserExceptionOnUnterminatedStringInObject() //undefined behavior in spec
+        {
+            var hocon = " root { string : \"hello }";
+            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+        }
+
+        [TestCase]
+        public void ThrowsParserExceptionOnUnterminatedArray() //undefined behavior in spec
+        {
+            var hocon = " array : [1,2,3";
+            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+        }
+
+        [TestCase]
+        public void ThrowsParserExceptionOnUnterminatedArrayInObject() //undefined behavior in spec
+        {
+            var hocon = " root { array : [1,2,3 }";
+            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+        }
+
+        [TestCase]
+        public void GettingStringFromArrayReturnsNull() //undefined behavior in spec
+        {
+            var hocon = " array : [1,2,3]";
+            ConfigurationFactory.ParseString(hocon).GetString("array").ShouldBe(null);
+        }
+
+
+        //TODO: not sure if this is the expected behavior but it is what we have established in Akka.NET
+        [TestCase]
+        public void GettingArrayFromLiteralsReturnsNull() //undefined behavior in spec
+        {
+            var hocon = " literal : a b c";
+            var res = ConfigurationFactory.ParseString(hocon).GetStringList("literal");
+
+            Assert.That(res, Is.Empty);
+        }
+
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
         [TestCase]
         public void CanUsePathsAsKeys_3_14()
@@ -370,6 +450,13 @@ a.b.e.f=3
         public void CanAssignQuotedStringToField()
         {
             var hocon = @"a=""hello""";
+            Assert.AreEqual("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
+        }
+
+        [TestCase]
+        public void CanAssignTrippleQuotedStringToField()
+        {
+            var hocon = @"a=""""""hello""""""";
             Assert.AreEqual("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
