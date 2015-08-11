@@ -250,9 +250,9 @@ namespace Akka.Configuration.Hocon
             {
                 return PullStartOfObject();
             }
-            if (IsEndOfObject())
+            if (IsObjectEnd())
             {
-                return PullEndOfObject();
+                return PullObjectEnd();
             }
             if (IsAssignment())
             {
@@ -300,6 +300,10 @@ namespace Akka.Configuration.Hocon
         public Token PullArrayEnd()
         {
             int start = Index;
+            if (!IsArrayEnd())
+            {
+                throw new HoconTokenizerException(string.Format("Expected end of array {0}", GetHelpTextAtIndex(start)));
+            }
             Take();
             return new Token(TokenType.ArrayEnd,start,Index-start);
         }
@@ -370,9 +374,14 @@ namespace Akka.Configuration.Hocon
         /// Retrieves a <see cref="TokenType.ObjectEnd"/> token from the tokenizer's current position.
         /// </summary>
         /// <returns>A <see cref="TokenType.ObjectEnd"/> token from the tokenizer's current position.</returns>
-        public Token PullEndOfObject()
+        public Token PullObjectEnd()
         {
             int start = Index;
+            if (!IsObjectEnd())
+            {
+                throw new HoconTokenizerException(string.Format("Expected end of object {0}", GetHelpTextAtIndex(Index)));
+            }
+
             Take();
             return new Token(TokenType.ObjectEnd,start, Index - start);
         }
@@ -419,7 +428,7 @@ namespace Akka.Configuration.Hocon
         /// Determines whether the current token matches an <see cref="TokenType.ObjectEnd"/> token.
         /// </summary>
         /// <returns><c>true</c> if the token matches; otherwise, <c>false</c>.</returns>
-        public bool IsEndOfObject()
+        public bool IsObjectEnd()
         {
             return Matches("}");
         }
@@ -527,6 +536,12 @@ namespace Akka.Configuration.Hocon
                     Take();
                 }
             }
+
+            if (!Matches("\""))
+            {
+                throw new HoconTokenizerException(string.Format("Expected end of tripple quoted string {0}", GetHelpTextAtIndex(Index)));
+            }
+
             Take(3);
             return Token.LiteralValue(sb.ToString(),start, Index - start);
         }
@@ -552,6 +567,12 @@ namespace Akka.Configuration.Hocon
                     Take();
                 }
             }
+
+            if (!Matches("\""))
+            {
+                throw new HoconTokenizerException(string.Format("Expected end of quoted string {0}", GetHelpTextAtIndex(Index)));
+            }
+            
             Take();
             return Token.LiteralValue(sb.ToString(),start, Index - start);
         }

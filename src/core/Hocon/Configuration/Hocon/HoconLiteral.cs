@@ -67,7 +67,7 @@ namespace Akka.Configuration.Hocon
         /// </exception>
         public IList<HoconValue> GetArray()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         /// <summary>

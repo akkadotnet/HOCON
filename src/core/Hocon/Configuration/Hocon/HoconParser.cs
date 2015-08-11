@@ -112,6 +112,10 @@ namespace Akka.Configuration.Hocon
 
                             break;
                         case TokenType.EoF:
+                            if (!string.IsNullOrEmpty(currentPath))
+                            {
+                                throw new HoconParserException(string.Format("Expected end of object but found EoF {0}",GetDiagnosticsStackTrace()));
+                            }
                             break;
                         case TokenType.Key:
                             HoconValue value = currentObject.GetOrCreateKey(t.Value);
