@@ -7,7 +7,7 @@
 
 using System;
 
-using Configuration;
+using Akka.Configuration;
 
 namespace SimpleSubstitutions
 {

@@ -10,10 +10,10 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using Configuration.Hocon;
 using Newtonsoft.Json;
+using Akka.Configuration.Hocon;
 
-namespace Configuration
+namespace Akka.Configuration
 {
     /// <summary>
     /// This class contains methods used to retrieve configuration information

@@ -54,7 +54,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hocon\Hocon.csproj">
+    <ProjectReference Include="..\Hocon\Akka.Hocon.csproj">
       <Project>{4a87ad05-bef2-4b08-bd7e-a9866d88c439}</Project>
       <Name>Hocon</Name>
     </ProjectReference>

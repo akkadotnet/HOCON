@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------
-// <copyright file="HoconLiteral.cs" company="Hocon Project">
+// <copyright file="HoconArray.cs" company="Hocon Project">
 //     Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
 //     Copyright (C) 2013-2015 Akka.NET project <https://github.com/akkadotnet/hocon>
 // </copyright>
@@ -8,51 +8,52 @@
 using System;
 using System.Collections.Generic;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
-    /// This class represents a string literal element in a HOCON (Human-Optimized Config Object Notation)
+    /// This class represents an array element in a HOCON (Human-Optimized Config Object Notation)
     /// configuration string.
     /// <code>
-    /// akka {  
-    ///   actor {
-    ///     provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"
-    ///   }
+    /// root {
+    ///     items = [
+    ///       "1",
+    ///       "2"]
     /// }
     /// </code>
     /// </summary>
-    public class HoconLiteral : IHoconElement
+    public class HoconArray : List<HoconValue>, IHoconElement
     {
-        /// <summary>
-        /// Gets or sets the value of this element.
-        /// </summary>
-        public string Value { get; set; }
-
         /// <summary>
         /// Determines whether this element is a string.
         /// </summary>
-        /// <returns><c>true</c></returns>
+        /// <returns><c>false</c></returns>
         public bool IsString()
         {
-            return true;
+            return false;
         }
 
         /// <summary>
         /// Retrieves the string representation of this element.
         /// </summary>
-        /// <returns>The value of this element.</returns>
+        /// <returns>
+        /// The string representation of this element.
+        /// </returns>
+        /// <exception cref="System.NotImplementedException">
+        /// This element is an array. It is not a string.
+        /// Therefore this method will throw an exception.
+        /// </exception>
         public string GetString()
         {
-            return Value;
+            throw new NotSupportedException();
         }
 
         /// <summary>
         /// Determines whether this element is an array.
         /// </summary>
-        /// <returns><c>false</c></returns>
+        /// <returns><c>true</c></returns>
         public bool IsArray()
         {
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -61,22 +62,18 @@ namespace Configuration.Hocon
         /// <returns>
         /// A list of elements associated with this element.
         /// </returns>
-        /// <exception cref="System.NotImplementedException">
-        /// This element is a string literal. It is not an array.
-        /// Therefore this method will throw an exception.
-        /// </exception>
         public IList<HoconValue> GetArray()
         {
-            throw new NotSupportedException();
+            return this;
         }
 
         /// <summary>
-        /// Returns the string representation of this element.
+        /// Returns a HOCON string representation of this element.
         /// </summary>
-        /// <returns>The value of this element.</returns>
+        /// <returns>A HOCON string representation of this element.</returns>
         public override string ToString()
         {
-            return Value;
+            return "[" + string.Join(",", this) + "]";
         }
     }
 }

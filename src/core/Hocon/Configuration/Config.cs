@@ -5,11 +5,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using Akka.Configuration.Hocon;
 using System;
 using System.Collections.Generic;
-using Configuration.Hocon;
 
-namespace Configuration
+namespace Akka.Configuration
 {
     /// <summary>
     /// This class represents the main configuration object used by a project

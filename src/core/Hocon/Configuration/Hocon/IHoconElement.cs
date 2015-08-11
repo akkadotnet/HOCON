@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 
-namespace Configuration.Hocon
+namespace Akka.Configuration.Hocon
 {
     /// <summary>
     /// Marker interface to make it easier to retrieve HOCON

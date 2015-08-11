@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
+<<<<<<< HEAD
+VisualStudioVersion = 14.0.23107.0
+=======
 VisualStudioVersion = 14.0.22823.1
+>>>>>>> master
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hocon", "core\Hocon\Hocon.csproj", "{4A87AD05-BEF2-4B08-BD7E-A9866D88C439}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Hocon", "core\Hocon\Akka.Hocon.csproj", "{4A87AD05-BEF2-4B08-BD7E-A9866D88C439}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hocon.Tests", "core\Hocon.Tests\Hocon.Tests.csproj", "{4FFD147E-6F27-45AA-B2ED-AD2DA599C532}"
 EndProject

@@ -5,10 +5,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Configuration;
 using System;
 using System.IO;
-using Configuration.Hocon;
+using Akka.Configuration;
+using Akka.Configuration.Hocon;
+
 namespace ExternalIncludes
 {
     class Program

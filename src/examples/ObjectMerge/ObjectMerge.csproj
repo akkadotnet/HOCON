@@ -49,9 +49,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Hocon\Hocon.csproj">
+    <ProjectReference Include="..\..\core\Hocon\Akka.Hocon.csproj">
       <Project>{4a87ad05-bef2-4b08-bd7e-a9866d88c439}</Project>
-      <Name>Hocon</Name>
+      <Name>Akka.Hocon</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

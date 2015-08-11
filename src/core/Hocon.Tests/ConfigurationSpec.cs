@@ -8,10 +8,10 @@
 using System;
 using System.Configuration;
 using System.Linq;
+using Akka.Configuration;
+using Akka.Configuration.Hocon;
 using NUnit;
 using NUnit.Framework;
-using Configuration.Hocon;
-using Configuration;
 
 namespace Akka.Tests.Configuration
 {
