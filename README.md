@@ -2,6 +2,8 @@
 
 C# implementation of Typesafe's HOCON (Human-Optimized Object Configuration Notation)
 
+[![Build Status](https://travis-ci.org/akkadotnet/HOCON.svg)](https://travis-ci.org/akkadotnet/HOCON)
+
 # Spec
 
 This is an informal spec, but hopefully it's clear.
