@@ -4,7 +4,12 @@
 //     Copyright (C) 2013-2015 Akka.NET project <https://github.com/akkadotnet/hocon>
 // </copyright>
 //-----------------------------------------------------------------------
+#if DNXCORE50
+using System;
+using Akka.Configuration.Hocon;
+using Newtonsoft.Json;
 
+#else
 using System;
 using System.Configuration;
 using System.Diagnostics;
@@ -12,6 +17,7 @@ using System.IO;
 using System.Reflection;
 using Newtonsoft.Json;
 using Akka.Configuration.Hocon;
+#endif
 
 namespace Akka.Configuration
 {
@@ -54,7 +60,7 @@ namespace Akka.Configuration
             //TODO: add default include resolver
             return ParseString(hocon, null);
         }
-
+#if !DNXCORE50
         /// <summary>
         /// Loads a configuration defined in the current application's
         /// configuration file, e.g. app.config or web.config
@@ -140,6 +146,7 @@ namespace Akka.Configuration
                 }
             }
         }
+#endif
 
         /// <summary>
         /// Creates a configuration based on the supplied source object

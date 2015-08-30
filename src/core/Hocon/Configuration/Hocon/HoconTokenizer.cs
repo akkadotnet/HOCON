@@ -638,7 +638,7 @@ namespace Akka.Configuration.Hocon
                 case 'u':
                     string hex = "0x" + Take(4);
                     int j = Convert.ToInt32(hex, 16);
-                    return ((char) j).ToString(CultureInfo.InvariantCulture);
+                    return ((char) j).ToString();
                 default:
                     throw new HoconTokenizerException(string.Format("Unknown escape code `{0}` {1}", escaped,GetHelpTextAtIndex(start)));
             }

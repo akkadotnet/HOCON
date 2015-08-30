@@ -1,0 +1,28 @@
+﻿{
+    "version": "1.0.0-*",
+    "description": "",
+    "authors": [ "" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
+
+    "dependencies": {
+        "Hocon": "1.0.0-*"
+    },
+
+    "commands": {
+        "run": "Fallback"
+    },
+
+    "frameworks": {
+        "net45": {
+        },
+        "dnx451": {
+        },
+        "dnxcore50": {
+            "dependencies": {
+                "System.Console": "4.0.0-beta-23109"
+            }
+        }
+    }
+}

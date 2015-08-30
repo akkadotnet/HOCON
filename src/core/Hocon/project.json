@@ -1,0 +1,34 @@
+﻿{
+    "version": "1.0.0-*",
+    "description": "",
+    "authors": [ "" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
+
+    "dependencies": {
+        "Newtonsoft.Json": "7.0.1"
+    },
+
+    "frameworks": {
+        "net45": {
+            "frameworkAssemblies": {
+                "System.Configuration": "4.0.0.0",
+                "System.Xml": "4.0.0.0"
+            }
+        },
+        "dnx451": {
+            "frameworkAssemblies": {
+                "System.Configuration": "4.0.0.0",
+                "System.Xml": "4.0.0.0"
+            }
+        },
+        "dnxcore50": {
+            "dependencies": {
+                "System.Collections": "4.0.10-beta-23109",
+                "System.Linq": "4.0.0-beta-23109",
+                "System.Reflection": "4.0.10-beta-23109"
+            }
+        }
+    }
+}

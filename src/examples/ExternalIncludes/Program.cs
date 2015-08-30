@@ -44,7 +44,7 @@ root {
             Console.WriteLine("root.some-property.foo: " + val1);
             Console.WriteLine("root.some-property.bar: " + val2);
             Console.WriteLine("root.some-property.baz: " + val3);
-            Console.ReadKey();
+            Console.ReadLine();
         }
     }
 }

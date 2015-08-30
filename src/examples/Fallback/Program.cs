@@ -39,7 +39,7 @@ root {
             Console.WriteLine("root.some-property2 = {0}", val2);
             Console.WriteLine("root.some-property3 = {0}", val3);
 
-            Console.ReadKey();
+            Console.ReadLine();
         }
     }
 }

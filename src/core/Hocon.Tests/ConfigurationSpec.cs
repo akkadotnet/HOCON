@@ -5,21 +5,17 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Configuration;
 using System.Linq;
 using Akka.Configuration;
 using Akka.Configuration.Hocon;
-using NUnit;
-using NUnit.Framework;
+using Xunit;
 
 namespace Akka.Tests.Configuration
 {
-    [TestFixture]
     public class ConfigurationSpec
     {
 
-        //[TestCase]
+        //[Fact]
         //public void DeserializesHoconConfigurationFromNetConfigFile()
         //{
         //    var section = (AkkaConfigurationSection)ConfigurationManager.GetSection("akka");
@@ -29,7 +25,7 @@ namespace Akka.Tests.Configuration
         //    Assert.NotNull(akkaConfig);
         //}
 
-        [TestCase]
+        [Fact]
         public void CanCreateConfigFromSourceObject()
         {
             var source = new MyObjectConfig
@@ -41,13 +37,13 @@ namespace Akka.Tests.Configuration
 
             var config = ConfigurationFactory.FromObject(source);
 
-            Assert.AreEqual("aaa", config.GetString("StringProperty"));
-            Assert.AreEqual(true, config.GetBoolean("BoolProperty"));
+            Assert.Equal("aaa", config.GetString("StringProperty"));
+            Assert.Equal(true, config.GetBoolean("BoolProperty"));
 
-            Assert.AreEqual(new[] { 1, 2, 3, 4 }, config.GetIntList("IntergerArray").ToArray());
+            Assert.Equal(new[] { 1, 2, 3, 4 }, config.GetIntList("IntergerArray").ToArray());
         }
 
-        [TestCase]
+        [Fact]
         public void CanMergeObjects()
         {
             var hocon1 = @"
@@ -80,13 +76,13 @@ a {
 
             var config = new Config(root1);
 
-            Assert.AreEqual(123, config.GetInt("a.b"));
-            Assert.AreEqual(456, config.GetInt("a.c"));
-            Assert.AreEqual(789, config.GetInt("a.d"));
-            Assert.AreEqual(888, config.GetInt("a.e"));
-            Assert.AreEqual(888, config.GetInt("a.e"));
-            Assert.AreEqual(123, config.GetInt("a.sub.aa"));
-            Assert.AreEqual(456, config.GetInt("a.sub.bb"));
+            Assert.Equal(123, config.GetInt("a.b"));
+            Assert.Equal(456, config.GetInt("a.c"));
+            Assert.Equal(789, config.GetInt("a.d"));
+            Assert.Equal(888, config.GetInt("a.e"));
+            Assert.Equal(888, config.GetInt("a.e"));
+            Assert.Equal(123, config.GetInt("a.sub.aa"));
+            Assert.Equal(456, config.GetInt("a.sub.bb"));
 
         }
 
