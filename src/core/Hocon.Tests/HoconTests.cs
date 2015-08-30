@@ -9,16 +9,15 @@ using System;
 using System.Linq;
 using Akka.Configuration;
 using Akka.Configuration.Hocon;
-using NUnit.Framework;
 using Hocon.Tests;
 using System.Collections.Generic;
+using Xunit;
 
 namespace Akka.Tests.Configuration
 {
-    [TestFixture]
     public class HoconTests
     {
-        [TestCase]
+        [Fact]
         public void CanUnwrapSubConfig() //undefined behavior in spec, this does not behave the same as JVM hocon.
         {
             var hocon = @"
@@ -35,7 +34,7 @@ a {
             (b["d"] as HoconValue).GetBoolean().ShouldBe(true);
         }
 
-        [TestCase]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedObject() //undefined behavior in spec
         {
             var hocon = " root { string : \"hello\" ";
@@ -43,7 +42,7 @@ a {
                 ConfigurationFactory.ParseString(hocon));
         }
 
-        [TestCase]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedNestedObject() //undefined behavior in spec
         {
             var hocon = " root { bar { string : \"hello\" } ";
@@ -51,35 +50,35 @@ a {
                 ConfigurationFactory.ParseString(hocon));
         }
 
-        [TestCase]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedString() //undefined behavior in spec
         {
             var hocon = " string : \"hello";
             Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
         }
 
-        [TestCase]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedStringInObject() //undefined behavior in spec
         {
             var hocon = " root { string : \"hello }";
             Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
         }
 
-        [TestCase]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedArray() //undefined behavior in spec
         {
             var hocon = " array : [1,2,3";
             Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
         }
 
-        [TestCase]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedArrayInObject() //undefined behavior in spec
         {
             var hocon = " root { array : [1,2,3 }";
             Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
         }
 
-        [TestCase]
+        [Fact]
         public void GettingStringFromArrayReturnsNull() //undefined behavior in spec
         {
             var hocon = " array : [1,2,3]";
@@ -88,93 +87,93 @@ a {
 
 
         //TODO: not sure if this is the expected behavior but it is what we have established in Akka.NET
-        [TestCase]
+        [Fact]
         public void GettingArrayFromLiteralsReturnsNull() //undefined behavior in spec
         {
             var hocon = " literal : a b c";
             var res = ConfigurationFactory.ParseString(hocon).GetStringList("literal");
 
-            Assert.That(res, Is.Empty);
+            Assert.False(res.Any());
         }
 
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_3_14()
         {
             var hocon1 = @"3.14 : 42";
             var hocon2 = @"3 { 14 : 42}";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("3.14"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("3.14"),
                 ConfigurationFactory.ParseString(hocon2).GetString("3.14"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_3()
         {
             var hocon1 = @"3 : 42";
             var hocon2 = @"""3"" : 42";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("3"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("3"),
                 ConfigurationFactory.ParseString(hocon2).GetString("3"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_true()
         {
             var hocon1 = @"true : 42";
             var hocon2 = @"""true"" : 42";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("true"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("true"),
                 ConfigurationFactory.ParseString(hocon2).GetString("true"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_FooBar()
         {
             var hocon1 = @"foo.bar : 42";
             var hocon2 = @"foo { bar : 42 }";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("foo.bar"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("foo.bar"),
                 ConfigurationFactory.ParseString(hocon2).GetString("foo.bar"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_FooBarBaz()
         {
             var hocon1 = @"foo.bar.baz : 42";
             var hocon2 = @"foo { bar { baz : 42 } }";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("foo.bar.baz"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("foo.bar.baz"),
                 ConfigurationFactory.ParseString(hocon2).GetString("foo.bar.baz"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_AX_AY()
         {
             var hocon1 = @"a.x : 42, a.y : 43";
             var hocon2 = @"a { x : 42, y : 43 }";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("a.x"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("a.x"),
                 ConfigurationFactory.ParseString(hocon2).GetString("a.x"));
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("a.y"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("a.y"),
                 ConfigurationFactory.ParseString(hocon2).GetString("a.y"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUsePathsAsKeys_A_B_C()
         {
             var hocon1 = @"a b c : 42";
             var hocon2 = @"""a b c"" : 42";
-            Assert.AreEqual(ConfigurationFactory.ParseString(hocon1).GetString("a b c"),
+            Assert.Equal(ConfigurationFactory.ParseString(hocon1).GetString("a b c"),
                 ConfigurationFactory.ParseString(hocon2).GetString("a b c"));
         }
 
 
-        [TestCase]
+        [Fact]
         public void CanConcatenateSubstitutedUnquotedString()
         {
             var hocon = @"a {
   name = Roger
   c = Hello my name is ${a.name}
 }";
-            Assert.AreEqual("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanConcatenateSubstitutedArray()
         {
             var hocon = @"a {
@@ -184,7 +183,7 @@ a {
             Assert.True(new[] {1, 2, 3, 4, 5, 6}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
         }
 
-        [TestCase]
+        [Fact]
         public void CanParseSubConfig()
         {
             var hocon = @"
@@ -196,12 +195,12 @@ a {
 }";
             var config = ConfigurationFactory.ParseString(hocon);
             var subConfig = config.GetConfig("a");
-            Assert.AreEqual(1, subConfig.GetInt("b.c"));
-            Assert.AreEqual(true, subConfig.GetBoolean("b.d"));
+            Assert.Equal(1, subConfig.GetInt("b.c"));
+            Assert.Equal(true, subConfig.GetBoolean("b.d"));
         }
 
 
-        [TestCase]
+        [Fact]
         public void CanParseHocon()
         {
             var hocon = @"
@@ -228,14 +227,14 @@ root {
 }
 ";
             var config = ConfigurationFactory.ParseString(hocon);
-            Assert.AreEqual("1", config.GetString("root.int"));
-            Assert.AreEqual("1.23", config.GetString("root.double"));
-            Assert.AreEqual(true, config.GetBoolean("root.bool"));
-            Assert.AreEqual(true, config.GetBoolean("root.object.hasContent"));
-            Assert.AreEqual(null, config.GetString("root.null"));
-            Assert.AreEqual("foo", config.GetString("root.quoted-string"));
-            Assert.AreEqual("bar", config.GetString("root.unquoted-string"));
-            Assert.AreEqual("foo bar", config.GetString("root.concat-string"));
+            Assert.Equal("1", config.GetString("root.int"));
+            Assert.Equal("1.23", config.GetString("root.double"));
+            Assert.Equal(true, config.GetBoolean("root.bool"));
+            Assert.Equal(true, config.GetBoolean("root.object.hasContent"));
+            Assert.Equal(null, config.GetString("root.null"));
+            Assert.Equal("foo", config.GetString("root.quoted-string"));
+            Assert.Equal("bar", config.GetString("root.unquoted-string"));
+            Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
                 new[] {1, 2, 3, 4}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
             Assert.True(
@@ -246,7 +245,7 @@ root {
                     ConfigurationFactory.ParseString(hocon).GetStringList("root.array-single-element")));
         }
 
-        [TestCase]
+        [Fact]
         public void CanParseJson()
         {
             var hocon = @"
@@ -263,16 +262,16 @@ root {
 }
 ";
             var config = ConfigurationFactory.ParseString(hocon);
-            Assert.AreEqual("1", config.GetString("root.int"));
-            Assert.AreEqual("1.23", config.GetString("root.double"));
-            Assert.AreEqual(true, config.GetBoolean("root.bool"));
-            Assert.AreEqual(true, config.GetBoolean("root.object.hasContent"));
-            Assert.AreEqual(null, config.GetString("root.null"));
-            Assert.AreEqual("foo", config.GetString("root.string"));
+            Assert.Equal("1", config.GetString("root.int"));
+            Assert.Equal("1.23", config.GetString("root.double"));
+            Assert.Equal(true, config.GetBoolean("root.bool"));
+            Assert.Equal(true, config.GetBoolean("root.object.hasContent"));
+            Assert.Equal(null, config.GetString("root.null"));
+            Assert.Equal("foo", config.GetString("root.string"));
             Assert.True(new[] {1, 2, 3}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
         }
 
-        [TestCase]
+        [Fact]
         public void CanMergeObject()
         {
             var hocon = @"
@@ -285,12 +284,12 @@ a.b.c = {
     }
 ";
             var config = ConfigurationFactory.ParseString(hocon);
-            Assert.AreEqual("1", config.GetString("a.b.c.x"));
-            Assert.AreEqual("2", config.GetString("a.b.c.y"));
-            Assert.AreEqual("3", config.GetString("a.b.c.z"));
+            Assert.Equal("1", config.GetString("a.b.c.x"));
+            Assert.Equal("2", config.GetString("a.b.c.y"));
+            Assert.Equal("3", config.GetString("a.b.c.z"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanOverrideObject()
         {
             var hocon = @"
@@ -299,11 +298,11 @@ a = null
 a.c = 3
 ";
             var config = ConfigurationFactory.ParseString(hocon);
-            Assert.AreEqual(null, config.GetString("a.b"));
-            Assert.AreEqual("3", config.GetString("a.c"));
+            Assert.Equal(null, config.GetString("a.b"));
+            Assert.Equal("3", config.GetString("a.c"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanParseObject()
         {
             var hocon = @"
@@ -311,59 +310,59 @@ a {
   b = 1
 }
 ";
-            Assert.AreEqual("1", ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+            Assert.Equal("1", ConfigurationFactory.ParseString(hocon).GetString("a.b"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanTrimValue()
         {
             var hocon = "a= \t \t 1 \t \t,";
-            Assert.AreEqual("1", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("1", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanTrimConcatenatedValue()
         {
             var hocon = "a= \t \t 1 2 3 \t \t,";
-            Assert.AreEqual("1 2 3", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("1 2 3", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanConsumeCommaAfterValue()
         {
             var hocon = "a=1,";
-            Assert.AreEqual("1", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("1", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignIpAddressToField()
         {
             var hocon = @"a=127.0.0.1";
-            Assert.AreEqual("127.0.0.1", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("127.0.0.1", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignConcatenatedValueToField()
         {
             var hocon = @"a=1 2 3";
-            Assert.AreEqual("1 2 3", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("1 2 3", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignValueToQuotedField()
         {
             var hocon = @"""a""=1";
-            Assert.AreEqual(1L, ConfigurationFactory.ParseString(hocon).GetLong("a"));
+            Assert.Equal(1L, ConfigurationFactory.ParseString(hocon).GetLong("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignValueToPathExpression()
         {
             var hocon = @"a.b.c=1";
-            Assert.AreEqual(1L, ConfigurationFactory.ParseString(hocon).GetLong("a.b.c"));
+            Assert.Equal(1L, ConfigurationFactory.ParseString(hocon).GetLong("a.b.c"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignValuesToPathExpressions()
         {
             var hocon = @"
@@ -372,19 +371,19 @@ a.b.d=2
 a.b.e.f=3
 ";
             var config = ConfigurationFactory.ParseString(hocon);
-            Assert.AreEqual(1L, config.GetLong("a.b.c"));
-            Assert.AreEqual(2L, config.GetLong("a.b.d"));
-            Assert.AreEqual(3L, config.GetLong("a.b.e.f"));
+            Assert.Equal(1L, config.GetLong("a.b.c"));
+            Assert.Equal(2L, config.GetLong("a.b.d"));
+            Assert.Equal(3L, config.GetLong("a.b.e.f"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignLongToField()
         {
             var hocon = @"a=1";
-            Assert.AreEqual(1L, ConfigurationFactory.ParseString(hocon).GetLong("a"));
+            Assert.Equal(1L, ConfigurationFactory.ParseString(hocon).GetLong("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignArrayToField()
         {
             var hocon = @"a=
@@ -399,14 +398,14 @@ a.b.e.f=3
             //Assert.True(new[] { 1, 2, 3 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a")));
         }
 
-        [TestCase]
+        [Fact]
         public void CanConcatenateArray()
         {
             var hocon = @"a=[1,2] [3,4]";
             Assert.True(new[] {1, 2, 3, 4}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a")));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignSubstitutionToField()
         {
             var hocon = @"a{
@@ -414,67 +413,67 @@ a.b.e.f=3
     c = ${a.b}
     d = ${a.c}23
 }";
-            Assert.AreEqual(1, ConfigurationFactory.ParseString(hocon).GetInt("a.c"));
-            Assert.AreEqual(123, ConfigurationFactory.ParseString(hocon).GetInt("a.d"));
+            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.c"));
+            Assert.Equal(123, ConfigurationFactory.ParseString(hocon).GetInt("a.d"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignDoubleToField()
         {
             var hocon = @"a=1.1";
-            Assert.AreEqual(1.1, ConfigurationFactory.ParseString(hocon).GetDouble("a"));
+            Assert.Equal(1.1, ConfigurationFactory.ParseString(hocon).GetDouble("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignNullToField()
         {
             var hocon = @"a=null";
             Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignBooleanToField()
         {
             var hocon = @"a=true";
-            Assert.AreEqual(true, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+            Assert.Equal(true, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
             hocon = @"a=false";
-            Assert.AreEqual(false, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+            Assert.Equal(false, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
 
             hocon = @"a=on";
-            Assert.AreEqual(true, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+            Assert.Equal(true, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
             hocon = @"a=off";
-            Assert.AreEqual(false, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+            Assert.Equal(false, ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignQuotedStringToField()
         {
             var hocon = @"a=""hello""";
-            Assert.AreEqual("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignTrippleQuotedStringToField()
         {
             var hocon = @"a=""""""hello""""""";
-            Assert.AreEqual("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignUnQuotedStringToField()
         {
             var hocon = @"a=hello";
-            Assert.AreEqual("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignTripleQuotedStringToField()
         {
             var hocon = @"a=""""""hello""""""";
-            Assert.AreEqual("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal("hello", ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUseFallback()
         {
             var hocon1 = @"
@@ -497,12 +496,12 @@ foo {
 
             var config = config1.WithFallback(config2);
 
-            Assert.AreEqual(123, config.GetInt("foo.bar.a"));
-            Assert.AreEqual(2, config.GetInt("foo.bar.b"));
-            Assert.AreEqual(3, config.GetInt("foo.bar.c"));
+            Assert.Equal(123, config.GetInt("foo.bar.a"));
+            Assert.Equal(2, config.GetInt("foo.bar.b"));
+            Assert.Equal(3, config.GetInt("foo.bar.c"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUseFallbackInSubConfig()
         {
             var hocon1 = @"
@@ -525,12 +524,12 @@ foo {
 
             var config = config1.WithFallback(config2).GetConfig("foo.bar");
 
-            Assert.AreEqual(123, config.GetInt("a"));
-            Assert.AreEqual(2, config.GetInt("b"));
-            Assert.AreEqual(3, config.GetInt("c"));
+            Assert.Equal(123, config.GetInt("a"));
+            Assert.Equal(2, config.GetInt("b"));
+            Assert.Equal(3, config.GetInt("c"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanUseMultiLevelFallback()
         {
             var hocon1 = @"
@@ -575,7 +574,7 @@ foo {
             config.GetInt("foo.bar.borkbork").ShouldBe(-1);
         }
 
-        [TestCase]
+        [Fact]
         public void CanUseFluentMultiLevelFallback()
         {
             var hocon1 = @"
@@ -620,7 +619,7 @@ foo {
             config.GetInt("foo.bar.borkbork").ShouldBe(-1);
         }
 
-        [TestCase]
+        [Fact]
         public void CanParseQuotedKeys()
         {
             var hocon = @"
@@ -632,7 +631,7 @@ a {
             config.GetInt("a.some quoted, key").ShouldBe(123);
         }
 
-        [TestCase]
+        [Fact]
         public void CanEnumerateQuotedKeys()
         {
             var hocon = @"
@@ -647,7 +646,7 @@ a {
             enumerable.Select(kvp => kvp.Key).First().ShouldBe("some quoted, key");
         }
 
-        [TestCase]
+        [Fact]
         public void CanParseSerializersAndBindings()
         {
             var hocon = @"
@@ -680,7 +679,7 @@ akka.actor {
             serializerBindingConfig.Select(kvp => kvp.Key).Last().ShouldBe("Akka.Remote.DaemonMsgCreate, Akka.Remote");
         }
 
-        [TestCase]
+        [Fact]
         public void CanOverwriteValue()
         {
             var hocon = @"
@@ -693,7 +692,7 @@ test.value = 456
             config.GetInt("test.value").ShouldBe(456);
         }
 
-        [TestCase]
+        [Fact]
         public void CanCSubstituteObject()
         {
             var hocon = @"a {
@@ -707,25 +706,25 @@ test.value = 456
   }  
 }";
             var ace = ConfigurationFactory.ParseString(hocon).GetConfig("a.c.e");
-            Assert.AreEqual("hello", ace.GetString("foo"));
-            Assert.AreEqual(123, ace.GetInt("bar"));
+            Assert.Equal("hello", ace.GetString("foo"));
+            Assert.Equal(123, ace.GetInt("bar"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanAssignNullStringToField()
         {
             var hocon = @"a=null";
-            Assert.AreEqual(null, ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Equal(null, ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
-        [TestCase(Ignore = "we currently do not make any destinction between quoted and unquoted strings once parsed")]
-        public void CanAssignQuotedNullStringToField()
-        {
-            var hocon = @"a=""null""";
-            Assert.AreEqual("null", ConfigurationFactory.ParseString(hocon).GetString("a"));
-        }
+        //[Fact(Ignore = "we currently do not make any destinction between quoted and unquoted strings once parsed")]
+        //public void CanAssignQuotedNullStringToField()
+        //{
+        //    var hocon = @"a=""null""";
+        //    Assert.Equal("null", ConfigurationFactory.ParseString(hocon).GetString("a"));
+        //}
 
-        [TestCase]
+        [Fact]
         public void CanParseInclude()
         {
             var hocon = @"a {
@@ -739,11 +738,11 @@ y = hello
             Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
             var config = ConfigurationFactory.ParseString(hocon,include);
 
-            Assert.AreEqual(123,config.GetInt("a.b.x"));
-            Assert.AreEqual("hello", config.GetString("a.b.y"));
+            Assert.Equal(123,config.GetInt("a.b.x"));
+            Assert.Equal("hello", config.GetString("a.b.y"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanResolveSubstitutesInInclude()
         {
             var hocon = @"a {
@@ -757,11 +756,11 @@ y = ${x}
             Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
             var config = ConfigurationFactory.ParseString(hocon, include);
 
-            Assert.AreEqual(123, config.GetInt("a.b.x"));
-            Assert.AreEqual(123, config.GetInt("a.b.y"));
+            Assert.Equal(123, config.GetInt("a.b.x"));
+            Assert.Equal(123, config.GetInt("a.b.y"));
         }
 
-        [TestCase]
+        [Fact]
         public void CanResolveSubstitutesInNestedIncludes()
         {
             var hocon = @"a.b.c {
@@ -784,8 +783,8 @@ y = ${x}
             Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, include2);
             var config = ConfigurationFactory.ParseString(hocon, include);
 
-            Assert.AreEqual(123, config.GetInt("a.b.c.d.e.x"));
-            Assert.AreEqual(123, config.GetInt("a.b.c.d.e.y"));
+            Assert.Equal(123, config.GetInt("a.b.c.d.e.x"));
+            Assert.Equal(123, config.GetInt("a.b.c.d.e.y"));
         }
     }
 }

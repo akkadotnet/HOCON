@@ -24,7 +24,7 @@ root {
             var config = ConfigurationFactory.ParseString(hocon);
             var val = config.GetString("root.simple-string");
             Console.WriteLine("Hocon says: " + val);
-            Console.ReadKey();
+            Console.ReadLine();
         }
     }
 }

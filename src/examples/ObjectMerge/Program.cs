@@ -30,7 +30,7 @@ root {
             Console.WriteLine("root.some-object.property1 = {0}", val1);
             Console.WriteLine("root.some-object.property2 = {0}", val2);
             Console.WriteLine("root.some-object.property3 = {0}", val3);
-            Console.ReadKey();
+            Console.ReadLine();
         }
     }
 }
