@@ -26,6 +26,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ObjectMerge", "examples\Obj
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SimpleSubstitutions", "examples\SimpleSubstitutions\SimpleSubstitutions.xproj", "{533E8A6C-79AE-4BC6-B310-96B6E3CB3ED2}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "HelloMFHocon", "examples\HelloMFHocon\HelloMFHocon.xproj", "{0638AC8A-010F-4AB1-9749-8FB423950A7B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{533E8A6C-79AE-4BC6-B310-96B6E3CB3ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{533E8A6C-79AE-4BC6-B310-96B6E3CB3ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{533E8A6C-79AE-4BC6-B310-96B6E3CB3ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0638AC8A-010F-4AB1-9749-8FB423950A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0638AC8A-010F-4AB1-9749-8FB423950A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0638AC8A-010F-4AB1-9749-8FB423950A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0638AC8A-010F-4AB1-9749-8FB423950A7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,5 +78,6 @@ Global
 		{4C8822F7-1D46-4B70-9D51-F82633D4BF6A} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 		{5964BCF3-3BE3-4E89-A401-79E10ACC40A1} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 		{533E8A6C-79AE-4BC6-B310-96B6E3CB3ED2} = {633E4227-A565-43B6-BEA8-0F027813FE33}
+		{0638AC8A-010F-4AB1-9749-8FB423950A7B} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 	EndGlobalSection
 EndGlobal
