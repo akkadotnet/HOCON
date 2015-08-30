@@ -18,6 +18,9 @@
             }
         },
         "dnx451": {
+            "dependencies": {
+                "Microsoft.Framework.Configuration": "1.0.0-beta6"
+            },
             "frameworkAssemblies": {
                 "System.Configuration": "4.0.0.0",
                 "System.Xml": "4.0.0.0"
@@ -25,6 +28,7 @@
         },
         "dnxcore50": {
             "dependencies": {
+                "Microsoft.Framework.Configuration": "1.0.0-beta6",
                 "System.Collections": "4.0.10-beta-23109",
                 "System.Linq": "4.0.0-beta-23109",
                 "System.Reflection": "4.0.10-beta-23109"
