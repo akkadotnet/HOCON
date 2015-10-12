@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>@project@</id>
+    <title>@project@@title@</title>
+    <version>@build.number@</version>
+    <authors>@authors@</authors>
+    <owners>@authors@</owners>
+    <description>C# implementation of Typesafe's HOCON (Human-Optimized Object Configuration Notation)</description>
+    <licenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/akkadotnet/HOCON</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <releaseNotes>@releaseNotes@</releaseNotes>
+    <copyright>@copyright@</copyright>
+    <tags>@tags@</tags>
+    @dependencies@
+    @references@
+  </metadata>
+</package>
