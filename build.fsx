@@ -116,7 +116,7 @@ let createNugetPackages _ =
             not (directoryExists dir)
         runWithRetries del 3 |> ignore
 
-    CleanDir nugetDir
+    CleanDir workingDir
                
     let nuspec = "src/core/Hocon/Akka.Hocon.nuspec"
 
@@ -163,10 +163,6 @@ let createNugetPackages _ =
             WorkingDir = workingDir
              }) 
         nuspec
-
-    trace "remove working dir"
-    removeDir workingDir
-
 
 
 let publishNugetPackages _ = 
