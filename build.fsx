@@ -97,7 +97,7 @@ Target "RunTests" (fun _ ->
 
 module Nuget = 
     // add Akka dependency for other projects
-    let getAkkaDependency project =
+    let getAkkaDependency =
         ["Newtonsoft.Json", GetPackageVersion "./packages/" "Newtonsoft.Json"]
 
 open Nuget
@@ -161,6 +161,7 @@ let createNugetPackages _ =
             SymbolPackage = NugetSymbolPackage.Nuspec
             Summary = "summary"
             WorkingDir = workingDir
+            Dependencies = getAkkaDependency
              }) 
         nuspec
 
