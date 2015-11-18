@@ -1,11 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-<<<<<<< HEAD
 VisualStudioVersion = 14.0.23107.0
-=======
-VisualStudioVersion = 14.0.22823.1
->>>>>>> master
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Akka.Hocon", "core\Hocon\Akka.Hocon.csproj", "{4A87AD05-BEF2-4B08-BD7E-A9866D88C439}"
 EndProject
@@ -24,6 +20,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleSubstitutions", "examples\SimpleSubstitutions\SimpleSubstitutions.csproj", "{06845F4C-E608-4755-B6ED-5A6C775E4DD5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalIncludes", "examples\ExternalIncludes\ExternalIncludes.csproj", "{8ABBD17A-692F-4F21-8945-A4919A86925B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationFile", "examples\ConfigurationFile\ConfigurationFile.csproj", "{CAD9B41D-D7CF-4D1E-89A4-5721AEBA374F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebConfigTransforms", "examples\WebConfigTransforms\WebConfigTransforms.csproj", "{0136FC6B-BFBC-4D51-8F0C-035867055979}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +59,14 @@ Global
 		{8ABBD17A-692F-4F21-8945-A4919A86925B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8ABBD17A-692F-4F21-8945-A4919A86925B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8ABBD17A-692F-4F21-8945-A4919A86925B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAD9B41D-D7CF-4D1E-89A4-5721AEBA374F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAD9B41D-D7CF-4D1E-89A4-5721AEBA374F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAD9B41D-D7CF-4D1E-89A4-5721AEBA374F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAD9B41D-D7CF-4D1E-89A4-5721AEBA374F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0136FC6B-BFBC-4D51-8F0C-035867055979}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0136FC6B-BFBC-4D51-8F0C-035867055979}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0136FC6B-BFBC-4D51-8F0C-035867055979}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0136FC6B-BFBC-4D51-8F0C-035867055979}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -71,5 +79,7 @@ Global
 		{0228F9B6-394C-4D6E-A234-EF82C034FBFF} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 		{06845F4C-E608-4755-B6ED-5A6C775E4DD5} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 		{8ABBD17A-692F-4F21-8945-A4919A86925B} = {633E4227-A565-43B6-BEA8-0F027813FE33}
+		{CAD9B41D-D7CF-4D1E-89A4-5721AEBA374F} = {633E4227-A565-43B6-BEA8-0F027813FE33}
+		{0136FC6B-BFBC-4D51-8F0C-035867055979} = {633E4227-A565-43B6-BEA8-0F027813FE33}
 	EndGlobalSection
 EndGlobal
