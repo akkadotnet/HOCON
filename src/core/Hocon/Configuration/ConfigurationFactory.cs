@@ -139,6 +139,26 @@ namespace Akka.Configuration
             var config = ParseString(json);
             return config;
         }
+
+        /// <summary>
+        /// Creates a configuration based on the supplied source configuration section
+        /// </summary>
+        /// <param name="source">The configuration section</param>
+        /// <returns>The configuration defined in the configuration section.</returns>
+        public static Config FromConfigurationElementCollection(HoconListConfigurationElementCollection source)
+        {
+            if (source == null)
+                throw new ArgumentNullException("source");
+
+            Config result = null;
+
+            foreach (HoconConfigurationElement item in source)
+            {
+                result = new Config(ParseString(item.Content), result);
+            }
+
+            return result ?? Empty;
+        }
     }
 }
 
