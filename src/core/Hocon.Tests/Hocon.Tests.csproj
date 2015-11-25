@@ -46,11 +46,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssertionExtensions.cs" />
+    <Compile Include="ConfigurationElementSpec.cs" />
     <Compile Include="ConfigurationSpec.cs" />
     <Compile Include="HoconTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ConfigurationElementTestData1.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
