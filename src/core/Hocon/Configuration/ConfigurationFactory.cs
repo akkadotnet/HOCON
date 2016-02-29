@@ -56,6 +56,19 @@ namespace Akka.Configuration
         }
 
         /// <summary>
+        /// Loads a configuration defined in the current application's
+        /// configuration file, e.g. app.config or web.config
+        /// </summary>
+        /// <returns>The configuration defined in the configuration file.</returns>
+        public static Config Load()
+        {
+           var section = (HoconConfigurationSection)ConfigurationManager.GetSection("akka") ?? new HoconConfigurationSection();
+           var config = section.Config;
+   
+           return config;
+        }
+   
+        /// <summary>
         /// Retrieves the default configuration that Akka.NET uses
         /// when no configuration has been defined.
         /// </summary>

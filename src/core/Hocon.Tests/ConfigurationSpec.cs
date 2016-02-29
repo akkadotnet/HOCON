@@ -5,12 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
 using System.Configuration;
 using System.Linq;
 using Akka.Configuration;
 using Akka.Configuration.Hocon;
-using NUnit;
 using NUnit.Framework;
 
 namespace Akka.Tests.Configuration
@@ -19,15 +17,15 @@ namespace Akka.Tests.Configuration
     public class ConfigurationSpec
     {
 
-        //[TestCase]
-        //public void DeserializesHoconConfigurationFromNetConfigFile()
-        //{
-        //    var section = (AkkaConfigurationSection)ConfigurationManager.GetSection("akka");
-        //    Assert.NotNull(section);
-        //    Assert.False(string.IsNullOrEmpty(section.Hocon.Content));
-        //    var akkaConfig = section.AkkaConfig;
-        //    Assert.NotNull(akkaConfig);
-        //}
+        [TestCase]
+        public void DeserializesHoconConfigurationFromNetConfigFile()
+        {
+            var section = (HoconConfigurationSection)ConfigurationManager.GetSection("akka");
+            Assert.NotNull(section);
+            Assert.False(string.IsNullOrEmpty(section.Hocon.Content));
+            var config = section.Config;
+            Assert.NotNull(config);
+        }
 
         [TestCase]
         public void CanCreateConfigFromSourceObject()
