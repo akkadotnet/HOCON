@@ -17,7 +17,7 @@ namespace Akka.Configuration.Hocon
     /// <?xml version="1.0" encoding="utf-8" ?>
     /// <configuration>
     ///   <configSections>
-    ///     <section name="akka" type="AkkaConfiguration.Hocon.AkkaConfigurationSection, Akka" />
+    ///     <section name="akka" type="Akka.Configuration.Hocon.HoconConfigurationSection, Akka.Hocon" />
     ///   </configSections>
     ///   <akka>
     ///     <hocon>

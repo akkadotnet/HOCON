@@ -49,6 +49,7 @@
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ConfigurationException.cs" />
     <Compile Include="Configuration\ConfigurationFactory.cs" />
+    <Compile Include="Configuration\Hocon\HoconConfigurationSection.cs" />
     <Compile Include="Configuration\Hocon\CDataConfigurationElement.cs" />
     <Compile Include="Configuration\Hocon\HoconArray.cs" />
     <Compile Include="Configuration\Hocon\HoconConfigurationElement.cs" />

@@ -7,8 +7,6 @@
 
 using Akka.Configuration;
 using System;
-using System.Configuration;
-using ExternalIncludes;
 
 namespace HelloHocon
 {
@@ -16,8 +14,7 @@ namespace HelloHocon
     {
         static void Main(string[] args)
         {
-            var section = (AkkaConfigurationSection)ConfigurationManager.GetSection("akka") ?? new AkkaConfigurationSection();
-            var config = section.AkkaConfig;
+            var config = ConfigurationFactory.Load();
             var val = config.GetString("root.simple-string");
             Console.WriteLine("Hocon says: " + val);
             Console.ReadKey();
