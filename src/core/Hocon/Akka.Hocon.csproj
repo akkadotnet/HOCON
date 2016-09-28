@@ -49,6 +49,7 @@
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ConfigurationException.cs" />
     <Compile Include="Configuration\ConfigurationFactory.cs" />
+    <Compile Include="Configuration\Hocon\DotSeparatedListParser.g.cs" />
     <Compile Include="Configuration\Hocon\HoconConfigurationSection.cs" />
     <Compile Include="Configuration\Hocon\CDataConfigurationElement.cs" />
     <Compile Include="Configuration\Hocon\HoconArray.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Configuration\Hocon\HoconObject.cs" />
     <Compile Include="Configuration\Hocon\HoconParserException.cs" />
     <Compile Include="Configuration\Hocon\HoconParser.cs" />
+    <Compile Include="Configuration\Hocon\HoconPath.cs" />
     <Compile Include="Configuration\Hocon\HoconRoot.cs" />
     <Compile Include="Configuration\Hocon\HoconSubstitution.cs" />
     <Compile Include="Configuration\Hocon\HoconToken.cs" />
@@ -67,6 +69,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Configuration\Hocon\DotSeparatedListParser.rl" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

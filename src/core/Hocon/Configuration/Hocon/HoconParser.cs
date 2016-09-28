@@ -119,7 +119,9 @@ namespace Akka.Configuration.Hocon
                             break;
                         case TokenType.Key:
                             HoconValue value = currentObject.GetOrCreateKey(t.Value);
-                            var nextPath = currentPath == "" ? t.Value : currentPath + "." + t.Value;
+                            var currentKey = t.Value;
+                            if (currentKey.IndexOf('.') >= 0) currentKey = "\"" + currentKey + "\"";
+                            var nextPath = currentPath == "" ? currentKey : currentPath + "." + currentKey;
                             ParseKeyContent(value, nextPath);
                             if (!root)
                                 return;
@@ -140,7 +142,7 @@ namespace Akka.Configuration.Hocon
         {
             try
             {
-                var last = currentPath.Split('.').Last();
+                var last = new HoconPath(currentPath).AsArray().Last();
                 PushDiagnostics(string.Format("{0} = ", last));
                 while (!_reader.EoF)
                 {

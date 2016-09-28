@@ -95,7 +95,7 @@ namespace Akka.Configuration
 
         private HoconValue GetNode(string path)
         {
-            string[] elements = path.Split('.');
+            string[] elements = new HoconPath(path).AsArray();
             HoconValue currentNode = Root;
             if (currentNode == null)
             {

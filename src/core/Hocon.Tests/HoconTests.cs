@@ -633,6 +633,18 @@ a {
         }
 
         [TestCase]
+        public void CanParseQuotedKeysWithPeriodsInside()
+        {
+            var hocon = @"
+a {
+   ""some quoted, key. Also with periods."": 123
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            config.GetInt(@"a.""some quoted, key. Also with periods.""").ShouldBe(123);
+        }
+
+        [TestCase]
         public void CanEnumerateQuotedKeys()
         {
             var hocon = @"
@@ -645,6 +657,21 @@ a {
             var enumerable = config2.AsEnumerable();
 
             enumerable.Select(kvp => kvp.Key).First().ShouldBe("some quoted, key");
+        }
+
+        [TestCase]
+        public void CanEnumerateQuotedKeysWithPeriodsInside()
+        {
+            var hocon = @"
+a {
+   ""some quoted, key. Also with periods."": 123
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            var config2 = config.GetConfig("a");
+            var enumerable = config2.AsEnumerable();
+
+            enumerable.Select(kvp => kvp.Key).First().ShouldBe("some quoted, key. Also with periods.");
         }
 
         [TestCase]
