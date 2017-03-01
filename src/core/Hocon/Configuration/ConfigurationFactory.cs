@@ -56,13 +56,30 @@ namespace Akka.Configuration
         }
 
         /// <summary>
-        /// Loads a configuration defined in the current application's
-        /// configuration file, e.g. app.config or web.config
+        /// Loads a configuration named "akka" defined in the current application's
+        /// configuration file, e.g. app.config or web.config.
         /// </summary>
-        /// <returns>The configuration defined in the configuration file.</returns>
+        /// <returns>
+        /// The configuration defined in the configuration file. If the section
+        /// "akka" is not found, this returns an empty Config.
+        /// </returns>
         public static Config Load()
         {
-           var section = (HoconConfigurationSection)ConfigurationManager.GetSection("akka") ?? new HoconConfigurationSection();
+           return Load("akka");
+        }
+
+        /// <summary>
+        /// Loads a configuration with the given `sectionName` defined in the current application's
+        /// configuration file, e.g. app.config or web.config.
+        /// </summary>
+        /// <param name="sectionName">The name of the section to load.</param>
+        /// <returns>
+        /// The configuration defined in the configuration file. If the section
+        /// is not found, this returns an empty Config.
+        /// </returns>
+        public static Config Load(string sectionName)
+        {
+           var section = (HoconConfigurationSection)ConfigurationManager.GetSection(sectionName) ?? new HoconConfigurationSection();
            var config = section.Config;
    
            return config;
