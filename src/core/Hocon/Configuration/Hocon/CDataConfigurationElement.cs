@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+#if DNX45
 using System.Configuration;
 using System.Xml;
 
@@ -60,3 +61,4 @@ namespace Akka.Configuration.Hocon
         }
     }
 }
+#endif
