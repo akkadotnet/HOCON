@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if DNX45
+#if NET45
 using System.Configuration;
 using System.Xml;
 

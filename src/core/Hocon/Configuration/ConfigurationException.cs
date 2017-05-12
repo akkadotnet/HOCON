@@ -32,7 +32,7 @@ namespace Akka.Configuration
         {
         }
 
-#if DNX45
+#if NET45
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigurationException"/> class.
         /// </summary>

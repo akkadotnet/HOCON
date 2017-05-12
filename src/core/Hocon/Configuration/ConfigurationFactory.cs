@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-#if DNX45
+#if NET45
 using System.Configuration;
 #endif
 using System.Diagnostics;
@@ -57,7 +57,7 @@ namespace Akka.Configuration
             return ParseString(hocon, null);
         }
 
-#if DNX45
+#if NET45
         /// <summary>
         /// Loads a configuration named "akka" defined in the current application's
         /// configuration file, e.g. app.config or web.config.
@@ -88,7 +88,7 @@ namespace Akka.Configuration
            return config;
         }
 #endif
-   
+
         /// <summary>
         /// Retrieves the default configuration that Akka.NET uses
         /// when no configuration has been defined.
