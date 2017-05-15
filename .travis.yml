@@ -1,2 +1,5 @@
 language: csharp
 solution: src/Hocon.sln
+dotnet: 1.1.1
+mono: latest
+dist: trusty
