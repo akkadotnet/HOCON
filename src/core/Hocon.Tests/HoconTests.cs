@@ -650,8 +650,8 @@ a {
         [TestCase]
         public void CanEnumerateEmptySection()
         {
-            var nonExistingSection = new Config();
-            nonExistingSection.AsEnumerable().Any().ShouldBe(false);
+            var config = new Config();
+            config.AsEnumerable().Any().ShouldBe(false);
         }
 
         [TestCase]
