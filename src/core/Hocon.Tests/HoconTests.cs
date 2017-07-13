@@ -648,6 +648,13 @@ a {
         }
 
         [TestCase]
+        public void CanEnumerateEmptySection()
+        {
+            var nonExistingSection = new Config();
+            nonExistingSection.AsEnumerable().Any().ShouldBe(false);
+        }
+
+        [TestCase]
         public void CanParseSerializersAndBindings()
         {
             var hocon = @"
