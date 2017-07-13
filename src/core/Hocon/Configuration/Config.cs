@@ -470,7 +470,7 @@ namespace Akka.Configuration
         {
             var used = new HashSet<string>();
             Config current = this;
-            while (current != null)
+            while (current?.Root != null)
             {
                 foreach (var kvp in current.Root.GetObject().Items)
                 {
