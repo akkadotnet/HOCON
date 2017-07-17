@@ -633,6 +633,30 @@ a {
         }
 
         [TestCase]
+        public void StringElementIsNotArray()
+        {
+            var hocon = @"
+{
+   ""bla"": ""bla""
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            config.AsEnumerable().First().Value.IsArray().ShouldBe(false);
+        }
+
+        [TestCase]
+        public void ArrayElementIsArray()
+        {
+            var hocon = @"
+{
+   ""bla"": [""bla""]
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            config.AsEnumerable().First().Value.IsArray().ShouldBe(true);
+        }
+
+        [TestCase]
         public void CanEnumerateQuotedKeys()
         {
             var hocon = @"

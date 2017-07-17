@@ -326,7 +326,7 @@ namespace Akka.Configuration.Hocon
         /// </returns>
         public bool IsArray()
         {
-            return GetArray() != null;
+            return Values.Any(s => s.IsArray());
         }
 
 
