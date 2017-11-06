@@ -1,3 +1,2 @@
-
-#### 0.1.0 TBD
-* Initial commit of project. Bring over Hocon from akka.net
+#### 0.1.0 August 14 2017 ####
+First release
