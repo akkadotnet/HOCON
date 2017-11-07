@@ -5,7 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if NET45
+#if CONFIGURATION
 using System.Configuration;
 
 namespace Hocon

@@ -6,21 +6,21 @@
 //-----------------------------------------------------------------------
 
 
+using System;
+using System.Linq;
+using FluentAssertions;
 using Xunit;
-#if NET45
-using System.Configuration;
-#endif
 
 namespace Hocon.Tests
 {
     public class ConfigurationSpec
     {
 
-#if NET45
+#if CONFIGURATION
         [Fact]
         public void DeserializesHoconConfigurationFromNetConfigFile()
         {
-            var raw = ConfigurationManager.GetSection("akka");
+            var raw = System.Configuration.ConfigurationManager.GetSection("akka");
             var section = (HoconConfigurationSection)raw;
             Assert.NotNull(section);
             Assert.False(string.IsNullOrEmpty(section.Hocon.Content));

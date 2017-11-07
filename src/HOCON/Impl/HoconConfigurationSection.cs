@@ -5,25 +5,23 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if NET45
+#if CONFIGURATION
 using System.Configuration;
 
 namespace Hocon
 {
    /// <summary>
-   /// This class represents a custom akka node within a configuration file.
+   /// This class represents a custom HOCON node within a configuration file.
    /// <code>
-   /// <![CDATA[
    /// <?xml version="1.0" encoding="utf-8" ?>
    /// <configuration>
    ///   <configSections>
    ///     <section name="hocon" type="Hocon.HoconConfigurationSection, Hocon" />
    ///   </configSections>
-   ///   <akka>
+   ///   <hocon>
    ///   ...
-   ///   </akka>
+   ///   </hocon>
    /// </configuration>
-   /// ]]>
    /// </code>
    /// </summary>
    public class HoconConfigurationSection : ConfigurationSection
@@ -42,26 +40,32 @@ namespace Hocon
 
       /// <summary>
       /// Retrieves the HOCON (Human-Optimized Config Object Notation)
-      /// configuration string from the custom akka node.
+      /// configuration string from the custom HOCON node.
       /// <code>
       /// <?xml version="1.0" encoding="utf-8" ?>
       /// <configuration>
       ///   <configSections>
       ///     <section name="hocon" type="Hocon.HoconConfigurationSection, Hocon" />
       ///   </configSections>
-      ///   <akka>
+      ///   <hocon>
       ///      <hocon>
       ///      ...
       ///      </hocon>
-      ///   </akka>
+      ///   </hocon>
       /// </configuration>
       /// </code>
       /// </summary>
       [ConfigurationProperty(ConfigurationPropertyName, IsRequired = true)]
       public HoconConfigurationElement Hocon
       {
-         get { return (HoconConfigurationElement)base[ConfigurationPropertyName]; }
-         set { base[ConfigurationPropertyName] = value; }
+          get
+          {
+              return (HoconConfigurationElement)base[ConfigurationPropertyName];
+          }
+          set
+          {
+              base[ConfigurationPropertyName] = value;
+          }
       }
    }
 }
