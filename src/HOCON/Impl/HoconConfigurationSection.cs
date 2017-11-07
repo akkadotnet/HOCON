@@ -17,7 +17,7 @@ namespace Hocon
    /// <?xml version="1.0" encoding="utf-8" ?>
    /// <configuration>
    ///   <configSections>
-   ///     <section name="akka" type="Akka.Configuration.Hocon.HoconConfigurationSection, Akka.Hocon" />
+   ///     <section name="hocon" type="Hocon.HoconConfigurationSection, Hocon" />
    ///   </configSections>
    ///   <akka>
    ///   ...
@@ -47,7 +47,7 @@ namespace Hocon
       /// <?xml version="1.0" encoding="utf-8" ?>
       /// <configuration>
       ///   <configSections>
-      ///     <section name="akka" type="AkkaConfiguration.Hocon.HoconConfigurationSection, Akka.Hocon" />
+      ///     <section name="hocon" type="Hocon.HoconConfigurationSection, Hocon" />
       ///   </configSections>
       ///   <akka>
       ///      <hocon>
