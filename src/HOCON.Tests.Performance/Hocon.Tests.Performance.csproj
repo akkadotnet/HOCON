@@ -3,7 +3,7 @@
 
 
   <PropertyGroup>    
-    <TargetFrameworks>net461</TargetFrameworks>
+    <TargetFrameworks>net452;netcoreapp1.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
