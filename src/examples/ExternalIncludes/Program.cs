@@ -7,8 +7,7 @@
 
 using System;
 using System.IO;
-using Akka.Configuration;
-using Akka.Configuration.Hocon;
+using Hocon;
 
 namespace ExternalIncludes
 {
