@@ -5,8 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Akka.Configuration;
 using System;
+using Hocon;
 
 namespace HelloHocon
 {
