@@ -10,12 +10,6 @@ open Fake.DotNetCli
 open Fake.DocFxHelper
 
 // Information about the project for Nuget and Assembly info files
-let product = "Hocon"
-let authors = [ "Your name here" ]
-let copyright = "Copyright © 2017"
-let company = "Your name here"
-let description = "Your description here"
-let tags = ["";]
 let configuration = "Release"
 
 // Read release notes and version
