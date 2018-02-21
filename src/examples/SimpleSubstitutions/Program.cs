@@ -6,8 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-
-using Akka.Configuration;
+using Hocon;
 
 namespace SimpleSubstitutions
 {
