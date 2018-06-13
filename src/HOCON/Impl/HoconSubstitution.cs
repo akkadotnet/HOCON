@@ -5,7 +5,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Hocon
 {
@@ -36,15 +38,40 @@ namespace Hocon
         ///     Initializes a new instance of the <see cref="HoconSubstitution" /> class.
         /// </summary>
         /// <param name="path">The path.</param>
-        public HoconSubstitution(string path)
+        public HoconSubstitution(HoconValue parent, string path)
         {
+            Parent = parent ?? throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
+
+            if (path.StartsWith("?"))
+            {
+                IsQuestionMark = true;
+                path = path.Substring(1);
+            }
+
+            Debug.WriteLine($"Path = {path}");
             Path = path;
         }
 
+        public bool IsQuestionMark { get; }
+
+        /// <summary>
+        ///     The Hocon node that owned this substitution node
+        /// </summary>
+        public HoconValue Parent { get; }
+
+        private string _path;
         /// <summary>
         ///     The full path to the value which should substitute this instance.
         /// </summary>
-        public string Path { get; set; }
+        public string Path
+        {
+            get => _path;
+            set
+            {
+                _path = value;
+                Debug.WriteLine($"New path value = {_path}");
+            } 
+        }
 
         /// <summary>
         ///     The evaluated value from the Path property

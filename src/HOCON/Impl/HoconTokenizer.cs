@@ -740,6 +740,11 @@ namespace Hocon
             int start = Index;
             var sb = new StringBuilder();
             Take(2);
+
+            // Special case for ${?
+            if (Peek() == '?')
+                sb.Append(Take());
+
             while (!EoF && IsUnquotedText())
             {
                 sb.Append(Take());

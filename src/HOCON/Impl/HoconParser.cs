@@ -67,9 +67,29 @@ namespace Hocon
             foreach (HoconSubstitution sub in _substitutions)
             {
                 HoconValue res = c.GetValue(sub.Path);
-                if (res == null)
-                    throw new HoconParserException("Unresolved substitution:" + sub.Path);
-
+                if (res == HoconValue.Undefined)
+                {
+                    if (sub.IsQuestionMark)
+                    {
+                        try
+                        {
+                            // Try to pull value from environment
+                            var envValue = Environment.GetEnvironmentVariable(sub.Path);
+                            res = new HoconValue();
+                            res.AppendValue(new HoconLiteral
+                            {
+                                Value = envValue
+                            });
+                        }
+                        catch
+                        {
+                            sub.Parent.Values.Remove(sub);
+                            continue;
+                        }
+                    }
+                    else
+                        throw new HoconParserException($"Unresolved substitution:{sub.Path}");
+                }
                 sub.ResolvedValue = res;
             }
             return new HoconRoot(_root, _substitutions);
@@ -178,7 +198,7 @@ namespace Hocon
         /// </summary>
         /// <param name="owner">The element to append the next token.</param>
         /// <exception cref="System.Exception">End of file reached while trying to read a value</exception>
-        public void ParseValue(HoconValue owner,string currentPath)
+        public void ParseValue(HoconValue owner, string currentPath)
         {
             if (_reader.EoF)
                 throw new HoconParserException("End of file reached while trying to read a value");
@@ -216,7 +236,7 @@ namespace Hocon
                             owner.AppendValue(arr);
                             break;
                         case TokenType.Substitute:
-                            HoconSubstitution sub = ParseSubstitution(t.Value);
+                            HoconSubstitution sub = ParseSubstitution(owner, t.Value);
                             _substitutions.Add(sub);
                             owner.AppendValue(sub);
                             break;
@@ -257,9 +277,9 @@ namespace Hocon
             }
         }
 
-        private static HoconSubstitution ParseSubstitution(string value)
+        private static HoconSubstitution ParseSubstitution(HoconValue owner, string value)
         {
-            return new HoconSubstitution(value);
+            return new HoconSubstitution(owner, value);
         }
 
         /// <summary>

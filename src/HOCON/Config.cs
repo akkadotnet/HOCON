@@ -108,7 +108,7 @@ namespace Hocon
                     if (Fallback != null)
                         return Fallback.GetNode(path);
 
-                    return null;
+                    return HoconValue.Undefined;
                 }
             }
             return currentNode;
