@@ -33,22 +33,6 @@ a {
         }
 
         [Fact]
-        public void ThrowsParserExceptionOnUnterminatedObject() //undefined behavior in spec
-        {
-            var hocon = " root { string : \"hello\" ";
-            Assert.Throws<HoconParserException>(() => 
-                ConfigurationFactory.ParseString(hocon));
-        }
-
-        [Fact]
-        public void ThrowsParserExceptionOnUnterminatedNestedObject() //undefined behavior in spec
-        {
-            var hocon = " root { bar { string : \"hello\" } ";
-            Assert.Throws<HoconParserException>(() =>
-                ConfigurationFactory.ParseString(hocon));
-        }
-
-        [Fact]
         public void ThrowsParserExceptionOnUnterminatedString() //undefined behavior in spec
         {
             var hocon = " string : \"hello";
@@ -161,62 +145,6 @@ a {
 
 
         [Fact]
-        public void CanConcatenateSubstitutedUnquotedString()
-        {
-            var hocon = @"a {
-  name = Roger
-  c = Hello my name is ${a.name}
-}";
-            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
-        }
-
-        [Fact]
-        public void CanConcatenateSubstitutedArray()
-        {
-            var hocon = @"a {
-  b = [1,2,3]
-  c = ${a.b} [4,5,6]
-}";
-            Assert.True(new[] {1, 2, 3, 4, 5, 6}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
-        }
-
-        [Fact]
-        public void SubtitutedArrayWithQuestionMarkShouldFailSilently()
-        {
-            var hocon = @"a {
-  c = ${?a.b} [4,5,6]
-}";
-            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
-        }
-
-        [Fact]
-        public void SubstitutionWithQuestionMarkShouldFailSilently()
-        {
-            var hocon = @"a {
-  b = ${?a.c}
-}";
-            ConfigurationFactory.ParseString(hocon);
-        }
-
-        [Fact]
-        public void SubstitutionWithQuestionMarkShouldFallbackToEnvironmentVariables()
-        {
-            var hocon = @"a {
-  b = ${?MY_ENV_VAR}
-}";
-            var value = "Environment_Var";
-            Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
-            try
-            {
-                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("MY_ENV_VAR", null);
-            }
-        }
-
-        [Fact]
         public void CanParseSubConfig()
         {
             var hocon = @"
@@ -230,77 +158,6 @@ a {
             var subConfig = config.GetConfig("a");
             Assert.Equal(1, subConfig.GetInt("b.c"));
             Assert.True(subConfig.GetBoolean("b.d"));
-        }
-
-        [Fact]
-        public void CanParseHocon()
-        {
-            var hocon = @"
-root {
-  int = 1
-  quoted-string = ""foo""
-  unquoted-string = bar
-  concat-string = foo bar
-  object {
-    hasContent = true
-  }
-  array = [1,2,3,4]
-  array-concat = [[1,2] [3,4]]
-  array-single-element = [1 2 3 4]
-  array-newline-element = [
-    1
-    2
-    3
-    4
-  ]
-  null = null
-  double = 1.23
-  bool = true
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal("1", config.GetString("root.int"));
-            Assert.Equal("1.23", config.GetString("root.double"));
-            Assert.Equal(true, config.GetBoolean("root.bool"));
-            Assert.Equal(true, config.GetBoolean("root.object.hasContent"));
-            Assert.Equal(null, config.GetString("root.null"));
-            Assert.Equal("foo", config.GetString("root.quoted-string"));
-            Assert.Equal("bar", config.GetString("root.unquoted-string"));
-            Assert.Equal("foo bar", config.GetString("root.concat-string"));
-            Assert.True(
-                new[] {1, 2, 3, 4}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
-            Assert.True(
-                new[] {1, 2, 3, 4}.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetIntList("root.array-newline-element")));
-            Assert.True(
-                new[] {"1 2 3 4"}.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetStringList("root.array-single-element")));
-        }
-
-        [Fact]
-        public void CanParseJson()
-        {
-            var hocon = @"
-""root"" : {
-  ""int"" : 1,
-  ""string"" : ""foo"",
-  ""object"" : {
-        ""hasContent"" : true
-    },
-  ""array"" : [1,2,3],
-  ""null"" : null,
-  ""double"" : 1.23,
-  ""bool"" : true
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal("1", config.GetString("root.int"));
-            Assert.Equal("1.23", config.GetString("root.double"));
-            Assert.Equal(true, config.GetBoolean("root.bool"));
-            Assert.Equal(true, config.GetBoolean("root.object.hasContent"));
-            Assert.Equal(null, config.GetString("root.null"));
-            Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] {1, 2, 3}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
         }
 
         [Fact]
@@ -474,6 +331,11 @@ a.b.e.f=3
             hocon = @"a=on";
             Assert.True(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
             hocon = @"a=off";
+            Assert.False(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+
+            hocon = @"a=yes";
+            Assert.True(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+            hocon = @"a=no";
             Assert.False(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
         }
 
@@ -746,7 +608,7 @@ test.value = 456
         public void CanAssignNullStringToField()
         {
             var hocon = @"a=null";
-            Assert.Equal(null, ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
         [Fact(Skip = "we currently do not make any destinction between quoted and unquoted strings once parsed")]
