@@ -83,7 +83,6 @@ a {
             ConfigurationFactory.ParseString(hocon).GetString("array").Should().Be(null);
         }
 
-
         //TODO: not sure if this is the expected behavior but it is what we have established in Akka.NET
         [Fact]
         public void GettingArrayFromLiteralsReturnsNull() //undefined behavior in spec
@@ -182,6 +181,42 @@ a {
         }
 
         [Fact]
+        public void SubtitutedArrayWithQuestionMarkShouldFailSilently()
+        {
+            var hocon = @"a {
+  c = ${?a.b} [4,5,6]
+}";
+            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
+        }
+
+        [Fact]
+        public void SubstitutionWithQuestionMarkShouldFailSilently()
+        {
+            var hocon = @"a {
+  b = ${?a.c}
+}";
+            ConfigurationFactory.ParseString(hocon);
+        }
+
+        [Fact]
+        public void SubstitutionWithQuestionMarkShouldFallbackToEnvironmentVariables()
+        {
+            var hocon = @"a {
+  b = ${?MY_ENV_VAR}
+}";
+            var value = "Environment_Var";
+            Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
+            try
+            {
+                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("MY_ENV_VAR", null);
+            }
+        }
+
+        [Fact]
         public void CanParseSubConfig()
         {
             var hocon = @"
@@ -194,9 +229,8 @@ a {
             var config = ConfigurationFactory.ParseString(hocon);
             var subConfig = config.GetConfig("a");
             Assert.Equal(1, subConfig.GetInt("b.c"));
-            Assert.Equal(true, subConfig.GetBoolean("b.d"));
+            Assert.True(subConfig.GetBoolean("b.d"));
         }
-
 
         [Fact]
         public void CanParseHocon()

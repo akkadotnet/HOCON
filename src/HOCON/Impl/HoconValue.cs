@@ -19,6 +19,13 @@ namespace Hocon
     /// </summary>
     public class HoconValue : IMightBeAHoconObject
     {
+        public static readonly HoconValue Undefined;
+
+        static HoconValue()
+        {
+            Undefined = new HoconValue();
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconValue"/> class.
         /// </summary>
@@ -153,12 +160,12 @@ namespace Hocon
             switch (v)
             {
                 case "on":
+                case "true":
+                case "yes":
                     return true;
                 case "off":
-                    return false;
-                case "true":
-                    return true;
                 case "false":
+                case "no":
                     return false;
                 default:
                     throw new NotSupportedException("Unknown boolean format: " + v);
