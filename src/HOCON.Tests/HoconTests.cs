@@ -295,18 +295,6 @@ a.b.e.f=3
         }
 
         [Fact]
-        public void CanAssignSubstitutionToField()
-        {
-            var hocon = @"a{
-    b = 1
-    c = ${a.b}
-    d = ${a.c}23
-}";
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.c"));
-            Assert.Equal(123, ConfigurationFactory.ParseString(hocon).GetInt("a.d"));
-        }
-
-        [Fact]
         public void CanAssignDoubleToField()
         {
             var hocon = @"a=1.1";
@@ -587,24 +575,6 @@ test.value = 456
         }
 
         [Fact]
-        public void CanCSubstituteObject()
-        {
-            var hocon = @"a {
-  b {
-      foo = hello
-      bar = 123
-  }
-  c {
-     d = xyz
-     e = ${a.b}
-  }  
-}";
-            var ace = ConfigurationFactory.ParseString(hocon).GetConfig("a.c.e");
-            Assert.Equal("hello", ace.GetString("foo"));
-            Assert.Equal(123, ace.GetInt("bar"));
-        }
-
-        [Fact]
         public void CanAssignNullStringToField()
         {
             var hocon = @"a=null";
@@ -630,55 +600,10 @@ x = 123
 y = hello
 ";
             Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
-            var config = ConfigurationFactory.ParseString(hocon,include);
-
-            Assert.Equal(123,config.GetInt("a.b.x"));
-            Assert.Equal("hello", config.GetString("a.b.y"));
-        }
-
-        [Fact]
-        public void CanResolveSubstitutesInInclude()
-        {
-            var hocon = @"a {
-  b { 
-       include ""foo""
-  }";
-            var includeHocon = @"
-x = 123
-y = ${x}
-";
-            Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
             var config = ConfigurationFactory.ParseString(hocon, include);
 
             Assert.Equal(123, config.GetInt("a.b.x"));
-            Assert.Equal(123, config.GetInt("a.b.y"));
-        }
-
-        [Fact]
-        public void CanResolveSubstitutesInNestedIncludes()
-        {
-            var hocon = @"a.b.c {
-  d { 
-       include ""foo""
-  }";
-            var includeHocon = @"
-f = 123
-e {
-      include ""foo""
-}
-";
-
-            var includeHocon2 = @"
-x = 123
-y = ${x}
-";
-
-            Func<string, HoconRoot> include2 = s => Parser.Parse(includeHocon2, null);
-            Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, include2);
-            var config = ConfigurationFactory.ParseString(hocon, include);
-
-            Assert.Equal(123, config.GetInt("a.b.c.d.e.x"));
-            Assert.Equal(123, config.GetInt("a.b.c.d.e.y"));
+            Assert.Equal("hello", config.GetString("a.b.y"));
         }
     }
 }
