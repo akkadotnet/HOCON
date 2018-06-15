@@ -33,22 +33,6 @@ a {
         }
 
         [Fact]
-        public void ThrowsParserExceptionOnUnterminatedObject() //undefined behavior in spec
-        {
-            var hocon = " root { string : \"hello\" ";
-            Assert.Throws<HoconParserException>(() => 
-                ConfigurationFactory.ParseString(hocon));
-        }
-
-        [Fact]
-        public void ThrowsParserExceptionOnUnterminatedNestedObject() //undefined behavior in spec
-        {
-            var hocon = " root { bar { string : \"hello\" } ";
-            Assert.Throws<HoconParserException>(() =>
-                ConfigurationFactory.ParseString(hocon));
-        }
-
-        [Fact]
         public void ThrowsParserExceptionOnUnterminatedString() //undefined behavior in spec
         {
             var hocon = " string : \"hello";
@@ -161,62 +145,6 @@ a {
 
 
         [Fact]
-        public void CanConcatenateSubstitutedUnquotedString()
-        {
-            var hocon = @"a {
-  name = Roger
-  c = Hello my name is ${a.name}
-}";
-            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
-        }
-
-        [Fact]
-        public void CanConcatenateSubstitutedArray()
-        {
-            var hocon = @"a {
-  b = [1,2,3]
-  c = ${a.b} [4,5,6]
-}";
-            Assert.True(new[] {1, 2, 3, 4, 5, 6}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
-        }
-
-        [Fact]
-        public void SubtitutedArrayWithQuestionMarkShouldFailSilently()
-        {
-            var hocon = @"a {
-  c = ${?a.b} [4,5,6]
-}";
-            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
-        }
-
-        [Fact]
-        public void SubstitutionWithQuestionMarkShouldFailSilently()
-        {
-            var hocon = @"a {
-  b = ${?a.c}
-}";
-            ConfigurationFactory.ParseString(hocon);
-        }
-
-        [Fact]
-        public void SubstitutionWithQuestionMarkShouldFallbackToEnvironmentVariables()
-        {
-            var hocon = @"a {
-  b = ${?MY_ENV_VAR}
-}";
-            var value = "Environment_Var";
-            Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
-            try
-            {
-                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable("MY_ENV_VAR", null);
-            }
-        }
-
-        [Fact]
         public void CanParseSubConfig()
         {
             var hocon = @"
@@ -230,77 +158,6 @@ a {
             var subConfig = config.GetConfig("a");
             Assert.Equal(1, subConfig.GetInt("b.c"));
             Assert.True(subConfig.GetBoolean("b.d"));
-        }
-
-        [Fact]
-        public void CanParseHocon()
-        {
-            var hocon = @"
-root {
-  int = 1
-  quoted-string = ""foo""
-  unquoted-string = bar
-  concat-string = foo bar
-  object {
-    hasContent = true
-  }
-  array = [1,2,3,4]
-  array-concat = [[1,2] [3,4]]
-  array-single-element = [1 2 3 4]
-  array-newline-element = [
-    1
-    2
-    3
-    4
-  ]
-  null = null
-  double = 1.23
-  bool = true
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal("1", config.GetString("root.int"));
-            Assert.Equal("1.23", config.GetString("root.double"));
-            Assert.Equal(true, config.GetBoolean("root.bool"));
-            Assert.Equal(true, config.GetBoolean("root.object.hasContent"));
-            Assert.Equal(null, config.GetString("root.null"));
-            Assert.Equal("foo", config.GetString("root.quoted-string"));
-            Assert.Equal("bar", config.GetString("root.unquoted-string"));
-            Assert.Equal("foo bar", config.GetString("root.concat-string"));
-            Assert.True(
-                new[] {1, 2, 3, 4}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
-            Assert.True(
-                new[] {1, 2, 3, 4}.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetIntList("root.array-newline-element")));
-            Assert.True(
-                new[] {"1 2 3 4"}.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetStringList("root.array-single-element")));
-        }
-
-        [Fact]
-        public void CanParseJson()
-        {
-            var hocon = @"
-""root"" : {
-  ""int"" : 1,
-  ""string"" : ""foo"",
-  ""object"" : {
-        ""hasContent"" : true
-    },
-  ""array"" : [1,2,3],
-  ""null"" : null,
-  ""double"" : 1.23,
-  ""bool"" : true
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal("1", config.GetString("root.int"));
-            Assert.Equal("1.23", config.GetString("root.double"));
-            Assert.Equal(true, config.GetBoolean("root.bool"));
-            Assert.Equal(true, config.GetBoolean("root.object.hasContent"));
-            Assert.Equal(null, config.GetString("root.null"));
-            Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] {1, 2, 3}.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
         }
 
         [Fact]
@@ -438,18 +295,6 @@ a.b.e.f=3
         }
 
         [Fact]
-        public void CanAssignSubstitutionToField()
-        {
-            var hocon = @"a{
-    b = 1
-    c = ${a.b}
-    d = ${a.c}23
-}";
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.c"));
-            Assert.Equal(123, ConfigurationFactory.ParseString(hocon).GetInt("a.d"));
-        }
-
-        [Fact]
         public void CanAssignDoubleToField()
         {
             var hocon = @"a=1.1";
@@ -474,6 +319,11 @@ a.b.e.f=3
             hocon = @"a=on";
             Assert.True(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
             hocon = @"a=off";
+            Assert.False(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+
+            hocon = @"a=yes";
+            Assert.True(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
+            hocon = @"a=no";
             Assert.False(ConfigurationFactory.ParseString(hocon).GetBoolean("a"));
         }
 
@@ -725,28 +575,10 @@ test.value = 456
         }
 
         [Fact]
-        public void CanCSubstituteObject()
-        {
-            var hocon = @"a {
-  b {
-      foo = hello
-      bar = 123
-  }
-  c {
-     d = xyz
-     e = ${a.b}
-  }  
-}";
-            var ace = ConfigurationFactory.ParseString(hocon).GetConfig("a.c.e");
-            Assert.Equal("hello", ace.GetString("foo"));
-            Assert.Equal(123, ace.GetInt("bar"));
-        }
-
-        [Fact]
         public void CanAssignNullStringToField()
         {
             var hocon = @"a=null";
-            Assert.Equal(null, ConfigurationFactory.ParseString(hocon).GetString("a"));
+            Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a"));
         }
 
         [Fact(Skip = "we currently do not make any destinction between quoted and unquoted strings once parsed")]
@@ -768,55 +600,10 @@ x = 123
 y = hello
 ";
             Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
-            var config = ConfigurationFactory.ParseString(hocon,include);
-
-            Assert.Equal(123,config.GetInt("a.b.x"));
-            Assert.Equal("hello", config.GetString("a.b.y"));
-        }
-
-        [Fact]
-        public void CanResolveSubstitutesInInclude()
-        {
-            var hocon = @"a {
-  b { 
-       include ""foo""
-  }";
-            var includeHocon = @"
-x = 123
-y = ${x}
-";
-            Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
             var config = ConfigurationFactory.ParseString(hocon, include);
 
             Assert.Equal(123, config.GetInt("a.b.x"));
-            Assert.Equal(123, config.GetInt("a.b.y"));
-        }
-
-        [Fact]
-        public void CanResolveSubstitutesInNestedIncludes()
-        {
-            var hocon = @"a.b.c {
-  d { 
-       include ""foo""
-  }";
-            var includeHocon = @"
-f = 123
-e {
-      include ""foo""
-}
-";
-
-            var includeHocon2 = @"
-x = 123
-y = ${x}
-";
-
-            Func<string, HoconRoot> include2 = s => Parser.Parse(includeHocon2, null);
-            Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, include2);
-            var config = ConfigurationFactory.ParseString(hocon, include);
-
-            Assert.Equal(123, config.GetInt("a.b.c.d.e.x"));
-            Assert.Equal(123, config.GetInt("a.b.c.d.e.y"));
+            Assert.Equal("hello", config.GetString("a.b.y"));
         }
     }
 }
