@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Hocon.Tests
 {
@@ -10,45 +11,45 @@ namespace Hocon.Tests
     {
         // These are all the characters defined as whitespace by Hocon spec 
         // Unicode space separator (Zs category)
-        private const char Space = '\u0020';
-        private const char NoBreakSpace = '\u00A0';
-        private const char OghamSpaceMark = '\u1680';
-        private const char EnQuad = '\u2000';
-        private const char EmQuad = '\u2001';
-        private const char EnSpace = '\u2002';
-        private const char EmSpace = '\u2003';
-        private const char ThreePerEmSpace = '\u2004';
-        private const char FourPerEmSpace = '\u2005';
-        private const char SixPerEmSpace = '\u2006';
-        private const char FigureSpace = '\u2007';
-        private const char PunctuationSpace = '\u2008';
-        private const char ThinSpace = '\u2009';
-        private const char HairSpace = '\u200A';
-        private const char NarrowNoBreakSpace = '\u202F';
-        private const char MediumMathematicalSpace = '\u205F';
-        private const char IdeographicSpace = '\u3000';
+        public static readonly char Space = '\u0020';
+        public static readonly char NoBreakSpace = '\u00A0';
+        public static readonly char OghamSpaceMark = '\u1680';
+        public static readonly char EnQuad = '\u2000';
+        public static readonly char EmQuad = '\u2001';
+        public static readonly char EnSpace = '\u2002';
+        public static readonly char EmSpace = '\u2003';
+        public static readonly char ThreePerEmSpace = '\u2004';
+        public static readonly char FourPerEmSpace = '\u2005';
+        public static readonly char SixPerEmSpace = '\u2006';
+        public static readonly char FigureSpace = '\u2007';
+        public static readonly char PunctuationSpace = '\u2008';
+        public static readonly char ThinSpace = '\u2009';
+        public static readonly char HairSpace = '\u200A';
+        public static readonly char NarrowNoBreakSpace = '\u202F';
+        public static readonly char MediumMathematicalSpace = '\u205F';
+        public static readonly char IdeographicSpace = '\u3000';
 
         // Unicode line separator(Zl category)
-        private const char LineSeparator = '\u2028';
+        public static readonly char LineSeparator = '\u2028';
 
         // Unicode paragraph separator (Zp category)
-        private const char ParagraphSeparator = '\u2029';
+        public static readonly char ParagraphSeparator = '\u2029';
 
         // Unicode BOM
-        private const char BOM = '\uFEFF';
+        public static readonly char BOM = '\uFEFF';
 
         // Other Unicode whitespaces
-        private const char Tab = '\u0009';              // \t
-        private const char NewLine = '\u000A';          // \n
-        private const char VerticalTab = '\u000B';      // \v
-        private const char FormFeed = '\u000C';         // \f
-        private const char CarriageReturn = '\u000D';   // \r
-        private const char FileSeparator = '\u001C';
-        private const char GroupSeparator = '\u001D';
-        private const char RecordSeparator = '\u001E';
-        private const char UnitSeparator = '\u001F';
+        public static readonly char Tab = '\u0009';              // \t
+        public static readonly char NewLine = '\u000A';          // \n
+        public static readonly char VerticalTab = '\u000B';      // \v
+        public static readonly char FormFeed = '\u000C';         // \f
+        public static readonly char CarriageReturn = '\u000D';   // \r
+        public static readonly char FileSeparator = '\u001C';
+        public static readonly char GroupSeparator = '\u001D';
+        public static readonly char RecordSeparator = '\u001E';
+        public static readonly char UnitSeparator = '\u001F';
 
-        private readonly string Whitespaces = new string(new [] {
+        public static readonly string Whitespaces = new string(new [] {
             Space, NoBreakSpace, OghamSpaceMark, EnQuad, EmQuad,
             EnSpace, EmSpace, ThreePerEmSpace, FourPerEmSpace, SixPerEmSpace,
             FigureSpace, PunctuationSpace, ThinSpace, HairSpace, NarrowNoBreakSpace,
