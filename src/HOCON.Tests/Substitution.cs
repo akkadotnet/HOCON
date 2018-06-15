@@ -19,12 +19,12 @@ namespace Hocon.Tests
             Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
         }
 
-        [Fact(Skip = "Currently not working as spec.")]
+        [Fact]
         public void CanConcatenateQuotedString()
         {
             var hocon = @"a {
   name = Roger
-  c = ""Hello my name is "" ${a.name}
+  c = ""Hello my name is ""${a.name}
 }";
             Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
         }
