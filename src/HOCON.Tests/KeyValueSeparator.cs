@@ -10,18 +10,19 @@ namespace Hocon.Tests
     public class KeyValueSeparator
     {
         /*
+         * FACT:
          * The = character can be used anywhere JSON allows :, i.e. to separate keys from values.
          */
         [Fact]
         public void CanParseHoconWithEqualsOrColonSeparator()
         {
             var hocon = @"
-root {
+root = {
   int = 1
   quoted-string = ""foo""
   unquoted-string = bar
   concat-string = foo bar
-  object {
+  object = {
     hasContent = true
   }
   array = [1,2,3,4]
@@ -60,16 +61,17 @@ root_2 : 1234
         }
 
         /*
+         * FACT:
          * If a key is followed by {, the : or = may be omitted. So "foo" {} means "foo" : {}
          */
         [Fact]
         public void CanParseHoconWithSeparatorForObjectFieldAssignment()
         {
             var hocon = @"
-root = {
+root {
   int = 1
 }
-root_2 : {
+root_2 {
   unquoted-string = bar
 }
 ";
