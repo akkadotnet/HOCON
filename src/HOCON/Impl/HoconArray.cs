@@ -24,6 +24,15 @@ namespace Hocon
     public class HoconArray : List<HoconValue>, IHoconElement
     {
         /// <summary>
+        /// Determines whether this element is a string and all of its characters are whitespace characters.
+        /// </summary>
+        /// <returns><c>false</c>.</returns>
+        public bool IsWhitespace()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Determines whether this element is a string.
         /// </summary>
         /// <returns><c>false</c></returns>

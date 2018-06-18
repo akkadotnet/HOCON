@@ -36,6 +36,12 @@ namespace Hocon
     public interface IHoconElement
     {
         /// <summary>
+        /// Determines whether this element is a string and all of its characters are whitespace characters.
+        /// </summary>
+        /// <returns><c>true</c> if every characters in value is whitespace characters; otherwise <c>false</c>.</returns>
+        bool IsWhitespace();
+
+        /// <summary>
         /// Determines whether this element is a string.
         /// </summary>
         /// <returns><c>true</c> if this element is a string; otherwise <c>false</c></returns>
