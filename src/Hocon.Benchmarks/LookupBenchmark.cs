@@ -31,19 +31,19 @@ namespace Hocon.Benchmarks
         }
 
         [Benchmark]
-        public Config LookupShallowlyNestedConfigPath()
+        public Config LookupPathNest1()
         {
             return config.GetConfig("akka");
         }
 
         [Benchmark]
-        public Config LookupMildlyNestedConfigPath()
+        public Config LookupPathNest3()
         {
             return config.GetConfig("akka.actor.deployment");
         }
 
         [Benchmark]
-        public Config LookupDeeplyNestedConfigPath()
+        public Config LookupPathNest5()
         {
             return config.GetConfig("akka.actor.deployment.default.resizer");
         }
