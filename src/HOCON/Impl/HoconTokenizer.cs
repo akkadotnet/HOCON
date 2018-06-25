@@ -17,25 +17,73 @@ namespace Hocon
     /// </summary>
     public class Tokenizer
     {
+        // These are all the characters defined as whitespace by Hocon spec 
+        // Unicode space separator (Zs category)
+        public static readonly char Space = '\u0020';
+        public static readonly char NoBreakSpace = '\u00A0';
+        public static readonly char OghamSpaceMark = '\u1680';
+        public static readonly char EnQuad = '\u2000';
+        public static readonly char EmQuad = '\u2001';
+        public static readonly char EnSpace = '\u2002';
+        public static readonly char EmSpace = '\u2003';
+        public static readonly char ThreePerEmSpace = '\u2004';
+        public static readonly char FourPerEmSpace = '\u2005';
+        public static readonly char SixPerEmSpace = '\u2006';
+        public static readonly char FigureSpace = '\u2007';
+        public static readonly char PunctuationSpace = '\u2008';
+        public static readonly char ThinSpace = '\u2009';
+        public static readonly char HairSpace = '\u200A';
+        public static readonly char NarrowNoBreakSpace = '\u202F';
+        public static readonly char MediumMathematicalSpace = '\u205F';
+        public static readonly char IdeographicSpace = '\u3000';
+
+        // Unicode line separator(Zl category)
+        public static readonly char LineSeparator = '\u2028';
+
+        // Unicode paragraph separator (Zp category)
+        public static readonly char ParagraphSeparator = '\u2029';
+
+        // Unicode BOM
+        public static readonly char BOM = '\uFEFF';
+
+        // Other Unicode whitespaces
+        public static readonly char Tab = '\u0009';              // \t
+        public static readonly char NewLine = '\u000A';          // \n
+        public static readonly char VerticalTab = '\u000B';      // \v
+        public static readonly char FormFeed = '\u000C';         // \f
+        public static readonly char CarriageReturn = '\u000D';   // \r
+        public static readonly char FileSeparator = '\u001C';
+        public static readonly char GroupSeparator = '\u001D';
+        public static readonly char RecordSeparator = '\u001E';
+        public static readonly char UnitSeparator = '\u001F';
+
+        public static readonly string Whitespaces = new string(new[] {
+            Space, NoBreakSpace, OghamSpaceMark, EnQuad, EmQuad,
+            EnSpace, EmSpace, ThreePerEmSpace, FourPerEmSpace, SixPerEmSpace,
+            FigureSpace, PunctuationSpace, ThinSpace, HairSpace, NarrowNoBreakSpace,
+            MediumMathematicalSpace, IdeographicSpace,
+
+            // Unicode line separator(Zl category)
+            LineSeparator,
+
+            // Unicode paragraph separator (Zp category)
+            ParagraphSeparator,
+
+            // Unicode BOM
+            BOM,
+
+            // Other Unicode whitespaces
+            Tab, NewLine, VerticalTab, FormFeed, CarriageReturn,
+            FileSeparator, GroupSeparator, RecordSeparator, UnitSeparator,
+        });
+
         private readonly string _text;
         private int _index;
         private readonly Stack<int> _indexStack = new Stack<int>();
 
-        public int Length
-        {
-            get
-            {
-                return _text.Length;
-            }
-        }
+        public int Length => _text.Length;
 
-        public int Index
-        {
-            get
-            {
-                return _index;
-            }
-        }
+        public int Index => _index;
 
         public void Push()
         {
@@ -59,10 +107,7 @@ namespace Hocon
         /// <summary>
         /// A value indicating whether the tokenizer has reached the end of the string.
         /// </summary>
-        public bool EoF
-        {
-            get { return _index >= _text.Length; }
-        }
+        public bool EoF => _index >= _text.Length;
 
         /// <summary>
         /// Determines whether the given pattern matches the value at the current
@@ -149,9 +194,16 @@ namespace Hocon
         /// </summary>
         public void PullWhitespace()
         {
-            while (!EoF && char.IsWhiteSpace(Peek()))
+            while (!EoF && Whitespaces.Contains(Peek()))
             {
-                Take();
+                if (Take() == '\n')
+                {
+                    foreach (var hoconObject in HoconObject.FloatingObjects)
+                    {
+                        hoconObject.Unscope();
+                    }
+                    HoconObject.FloatingObjects.Clear();
+                }
             }
         }
 
@@ -182,6 +234,12 @@ namespace Hocon
     {
         private const string NotInUnquotedKey = "$\"{}[]:=,#`^?!@*&\\.";
         private const string NotInUnquotedText = "$\"{}[]:=,#`^?!@*&\\";
+
+        /// <summary>
+        /// Determines whether the parser is currently within an array declaration in the source text
+        /// </summary>
+        /// <returns><c>true</c> if the parser is parsing an array declaration; otherwise <c>false</c>.</returns>
+        public bool IsParsingArray { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconTokenizer"/> class.
@@ -219,11 +277,17 @@ namespace Hocon
             {
                 char c = Take();
                 if (c == '\n')
+                {
+                    foreach (var hoconObject in HoconObject.FloatingObjects)
+                    {
+                        hoconObject.Unscope();
+                    }
+                    HoconObject.FloatingObjects.Clear();
                     break;
+                }
 
                 //ignore
-                if (c == '\r')
-                    continue;
+                if (c == '\r') continue;
 
                 sb.Append(c);
             }
@@ -279,7 +343,6 @@ namespace Hocon
             }
             if (EoF)
             {
-
                 return new Token(TokenType.EoF,Index,0);
             }
 
@@ -304,6 +367,7 @@ namespace Hocon
                 throw new HoconTokenizerException(string.Format("Expected end of array {0}", GetHelpTextAtIndex(start)));
             }
             Take();
+            IsParsingArray = false;
             return new Token(TokenType.ArrayEnd,start,Index-start);
         }
 
@@ -333,6 +397,7 @@ namespace Hocon
         {
             int start = Index;
             Take();
+            IsParsingArray = true;
             return new Token(TokenType.ArrayStart,Index, Index-start);
         }
 
@@ -506,7 +571,7 @@ namespace Hocon
 
         public bool IsWhitespace()
         {
-            return char.IsWhiteSpace(Peek());
+            return Whitespaces.Contains(Peek());
         }
 
         public bool IsWhitespaceOrComment()

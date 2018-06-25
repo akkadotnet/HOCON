@@ -29,13 +29,58 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : IHoconElement
+    public class HoconObject : IHoconElement, IMightBeAHoconObject
     {
+        public static List<HoconObject> FloatingObjects = new List<HoconObject>();
+
+        /// <summary>
+        /// Determines whether this object is still within the source text line it is declared in, 
+        /// used in value concatenation error detection.
+        /// </summary>
+        /// <returns><c>true</c> if the parser is still on the same line as the object declaration; <c>false</c> otherwise.</returns>
+        public bool IsOutOfScope { get; private set; }
+
+        /// <summary>
+        /// Sets the object out of scope of the delaring source text line.
+        /// </summary>
+        public void Unscope()
+        {
+            IsOutOfScope = true;
+        }
+
+        /// <summary>
+        /// Determines whether this element is a HOCON object.
+        /// </summary>
+        /// <returns><c>true</c>.</returns>
+        public bool IsObject()
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Retrieves the HOCON object representation of this element.
+        /// </summary>
+        /// <returns>The HOCON object representation of this element.</returns>
+        public HoconObject GetObject()
+        {
+            return this;
+        }
+
+        /// <summary>
+        /// Determines whether this element is a string and all of its characters are whitespace characters.
+        /// </summary>
+        /// <returns><c>false</c>.</returns>
+        public bool IsWhitespace()
+        {
+            return false;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconObject"/> class.
         /// </summary>
         public HoconObject()
         {
+            FloatingObjects.Add(this);
             Items = new Dictionary<string, HoconValue>();
         }
 
@@ -60,7 +105,7 @@ namespace Hocon
         /// <summary>
         /// Retrieves the underlying map that this element is based on.
         /// </summary>
-        public Dictionary<string, HoconValue> Items { get; private set; }
+        public Dictionary<string, HoconValue> Items { get; }
 
         /// <summary>
         /// Determines whether this element is a string.

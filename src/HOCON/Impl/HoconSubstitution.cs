@@ -40,7 +40,7 @@ namespace Hocon
         /// <param name="path">The path.</param>
         public HoconSubstitution(HoconValue parent, string path)
         {
-            Parent = parent ?? throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
+            Owner = parent ?? throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
 
             if (path.StartsWith("?"))
             {
@@ -53,25 +53,17 @@ namespace Hocon
         }
 
         public bool IsQuestionMark { get; }
+        public bool IsResolved => ResolvedValue != null;
 
         /// <summary>
         ///     The Hocon node that owned this substitution node
         /// </summary>
-        public HoconValue Parent { get; }
+        public HoconValue Owner { get; }
 
-        private string _path;
         /// <summary>
         ///     The full path to the value which should substitute this instance.
         /// </summary>
-        public string Path
-        {
-            get => _path;
-            set
-            {
-                _path = value;
-                Debug.WriteLine($"New path value = {_path}");
-            } 
-        }
+        public string Path { get; set; }
 
         /// <summary>
         ///     The evaluated value from the Path property
@@ -79,12 +71,21 @@ namespace Hocon
         public HoconValue ResolvedValue { get; set; }
 
         /// <summary>
+        /// Determines whether this element is a string and all of its characters are whitespace characters.
+        /// </summary>
+        /// <returns><c>false</c>.</returns>
+        public bool IsWhitespace()
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Determines whether this element is a string.
         /// </summary>
         /// <returns><c>true</c> if this element is a string; otherwise <c>false</c></returns>
         public bool IsString()
         {
-            return ResolvedValue.IsString();
+            return ResolvedValue != null && ResolvedValue.IsString();
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace Hocon
         /// <returns><c>true</c> if this element is aan array; otherwise <c>false</c></returns>
         public bool IsArray()
         {
-            return ResolvedValue.IsArray();
+            return ResolvedValue != null && ResolvedValue.IsArray();
         }
 
         /// <summary>

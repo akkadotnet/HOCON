@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Hocon.Impl;
 
 namespace Hocon
 {
@@ -37,15 +38,12 @@ namespace Hocon
         /// <summary>
         /// Returns true if this HOCON value doesn't contain any elements
         /// </summary>
-        public bool IsEmpty
-        {
-            get { return Values.Count == 0; }
-        }
+        public bool IsEmpty => Values.Count == 0;
 
         /// <summary>
         /// The list of elements inside this HOCON value
         /// </summary>
-        public List<IHoconElement> Values { get; private set; }
+        public List<IHoconElement> Values { get; }
 
         /// <summary>
         /// Wraps this <see cref="HoconValue"/> into a new <see cref="Config"/> object at the specified key.
@@ -68,13 +66,23 @@ namespace Hocon
         /// <returns>The <see cref="HoconObject"/> that represents this <see cref="HoconValue"/>.</returns>
         public HoconObject GetObject()
         {
-            //TODO: merge objects?
-            IHoconElement raw = Values.FirstOrDefault();
-            var o = raw as HoconObject;
-            var sub = raw as IMightBeAHoconObject;
-            if (o != null) return o;
-            if (sub != null && sub.IsObject()) return sub.GetObject();
-            return null;
+            List<HoconObject> objects = new List<HoconObject>();
+            foreach (var value in Values)
+            {
+                if (!(value is IMightBeAHoconObject o))
+                    continue;
+
+                if (o.IsObject())
+                    objects.Add(o.GetObject());
+            }
+
+            if (objects.Count == 0)
+                return null;
+
+            if (objects.Count == 1)
+                return objects[0];
+
+            return new HoconMergedObject(objects);
         }
 
         /// <summary>
@@ -333,7 +341,7 @@ namespace Hocon
         /// </returns>
         public bool IsArray()
         {
-            return GetArray() != null;
+            return Values.Any() && Values.All(v => v.IsArray() || v.IsWhitespace());
         }
 
 
