@@ -29,24 +29,9 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : IHoconElement, IMightBeAHoconObject
+    public class HoconObject : IHoconElement
     {
-        public static List<HoconObject> FloatingObjects = new List<HoconObject>();
-
-        /// <summary>
-        /// Determines whether this object is still within the source text line it is declared in, 
-        /// used in value concatenation error detection.
-        /// </summary>
-        /// <returns><c>true</c> if the parser is still on the same line as the object declaration; <c>false</c> otherwise.</returns>
-        public bool IsOutOfScope { get; private set; }
-
-        /// <summary>
-        /// Sets the object out of scope of the delaring source text line.
-        /// </summary>
-        public void Unscope()
-        {
-            IsOutOfScope = true;
-        }
+        public IHoconElement Owner { get; }
 
         /// <summary>
         /// Determines whether this element is a HOCON object.
@@ -78,9 +63,10 @@ namespace Hocon
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconObject"/> class.
         /// </summary>
-        public HoconObject()
+        public HoconObject(IHoconElement owner)
         {
-            FloatingObjects.Add(this);
+            Owner = owner;
+
             Items = new Dictionary<string, HoconValue>();
         }
 
@@ -181,7 +167,7 @@ namespace Hocon
             {
                 return Items[key];
             }
-            var child = new HoconValue();
+            var child = new HoconValue(this);
             Items.Add(key, child);
             return child;
         }

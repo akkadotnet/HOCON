@@ -72,6 +72,7 @@ namespace Hocon
         /// This token type represents a replacement variable, <c>$foo</c> .
         /// </summary>
         Substitute,
+        SubstituteWithQuestionMark,
         Include
     }
 
@@ -141,9 +142,9 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path to associate with this token.</param>
         /// <returns>A substitution token with the given path.</returns>
-        public static Token Substitution(string path, int sourceIndex, int sourceLength)
+        public static Token Substitution(string path, int sourceIndex, int sourceLength, bool questionMarked)
         {
-            return new Token(path, TokenType.Substitute, sourceIndex, sourceLength);
+            return new Token(path, questionMarked ? TokenType.SubstituteWithQuestionMark : TokenType.Substitute, sourceIndex, sourceLength);
         }
 
         /// <summary>

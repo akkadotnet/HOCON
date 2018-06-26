@@ -24,13 +24,30 @@ namespace Hocon
     /// </summary>
     public class HoconLiteral : IHoconElement
     {
+        public HoconLiteral(IHoconElement owner)
+        {
+            Owner = owner;
+        }
+
+        public IHoconElement Owner { get; }
+
+        public bool IsObject()
+        {
+            return false;
+        }
+
+        public HoconObject GetObject()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Determines whether this element is a string and all of its characters are whitespace characters.
         /// </summary>
         /// <returns><c>true</c> if every characters in value is whitespace characters; otherwise <c>false</c>.</returns>
         public bool IsWhitespace()
         {
-            return Value != null && Value.All(c => Tokenizer.Whitespaces.Contains(c));
+            return Value != null && Value.All(c => StringUtil.Whitespaces.Contains(c));
         }
 
         /// <summary>

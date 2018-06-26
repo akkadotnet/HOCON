@@ -10,12 +10,19 @@ using System.Collections.Generic;
 namespace Hocon
 {
     /// <summary>
-    /// Marker interface to make it easier to retrieve HOCON
-    /// (Human-Optimized Config Object Notation) objects for
-    /// substitutions.
+    /// This interface defines the contract needed to implement
+    /// a HOCON (Human-Optimized Config Object Notation) element.
     /// </summary>
-    public interface IMightBeAHoconObject
+    public interface IHoconElement
     {
+        IHoconElement Owner { get; }
+
+        /// <summary>
+        /// Determines whether this element is a string and all of its characters are whitespace characters.
+        /// </summary>
+        /// <returns><c>true</c> if every characters in value is whitespace characters; otherwise <c>false</c>.</returns>
+        bool IsWhitespace();
+
         /// <summary>
         /// Determines whether this element is a HOCON object.
         /// </summary>
@@ -27,35 +34,25 @@ namespace Hocon
         /// </summary>
         /// <returns>The HOCON object representation of this element.</returns>
         HoconObject GetObject();
-    }
-
-    /// <summary>
-    /// This interface defines the contract needed to implement
-    /// a HOCON (Human-Optimized Config Object Notation) element.
-    /// </summary>
-    public interface IHoconElement
-    {
-        /// <summary>
-        /// Determines whether this element is a string and all of its characters are whitespace characters.
-        /// </summary>
-        /// <returns><c>true</c> if every characters in value is whitespace characters; otherwise <c>false</c>.</returns>
-        bool IsWhitespace();
 
         /// <summary>
         /// Determines whether this element is a string.
         /// </summary>
         /// <returns><c>true</c> if this element is a string; otherwise <c>false</c></returns>
         bool IsString();
+
         /// <summary>
         /// Retrieves the string representation of this element.
         /// </summary>
         /// <returns>The string representation of this element.</returns>
         string GetString();
+
         /// <summary>
         /// Determines whether this element is an array.
         /// </summary>
         /// <returns><c>true</c> if this element is aan array; otherwise <c>false</c></returns>
         bool IsArray();
+
         /// <summary>
         /// Retrieves a list of elements associated with this element.
         /// </summary>

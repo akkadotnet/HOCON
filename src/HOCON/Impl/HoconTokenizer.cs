@@ -17,73 +17,28 @@ namespace Hocon
     /// </summary>
     public class Tokenizer
     {
-        // These are all the characters defined as whitespace by Hocon spec 
-        // Unicode space separator (Zs category)
-        public static readonly char Space = '\u0020';
-        public static readonly char NoBreakSpace = '\u00A0';
-        public static readonly char OghamSpaceMark = '\u1680';
-        public static readonly char EnQuad = '\u2000';
-        public static readonly char EmQuad = '\u2001';
-        public static readonly char EnSpace = '\u2002';
-        public static readonly char EmSpace = '\u2003';
-        public static readonly char ThreePerEmSpace = '\u2004';
-        public static readonly char FourPerEmSpace = '\u2005';
-        public static readonly char SixPerEmSpace = '\u2006';
-        public static readonly char FigureSpace = '\u2007';
-        public static readonly char PunctuationSpace = '\u2008';
-        public static readonly char ThinSpace = '\u2009';
-        public static readonly char HairSpace = '\u200A';
-        public static readonly char NarrowNoBreakSpace = '\u202F';
-        public static readonly char MediumMathematicalSpace = '\u205F';
-        public static readonly char IdeographicSpace = '\u3000';
-
-        // Unicode line separator(Zl category)
-        public static readonly char LineSeparator = '\u2028';
-
-        // Unicode paragraph separator (Zp category)
-        public static readonly char ParagraphSeparator = '\u2029';
-
-        // Unicode BOM
-        public static readonly char BOM = '\uFEFF';
-
-        // Other Unicode whitespaces
-        public static readonly char Tab = '\u0009';              // \t
-        public static readonly char NewLine = '\u000A';          // \n
-        public static readonly char VerticalTab = '\u000B';      // \v
-        public static readonly char FormFeed = '\u000C';         // \f
-        public static readonly char CarriageReturn = '\u000D';   // \r
-        public static readonly char FileSeparator = '\u001C';
-        public static readonly char GroupSeparator = '\u001D';
-        public static readonly char RecordSeparator = '\u001E';
-        public static readonly char UnitSeparator = '\u001F';
-
-        public static readonly string Whitespaces = new string(new[] {
-            Space, NoBreakSpace, OghamSpaceMark, EnQuad, EmQuad,
-            EnSpace, EmSpace, ThreePerEmSpace, FourPerEmSpace, SixPerEmSpace,
-            FigureSpace, PunctuationSpace, ThinSpace, HairSpace, NarrowNoBreakSpace,
-            MediumMathematicalSpace, IdeographicSpace,
-
-            // Unicode line separator(Zl category)
-            LineSeparator,
-
-            // Unicode paragraph separator (Zp category)
-            ParagraphSeparator,
-
-            // Unicode BOM
-            BOM,
-
-            // Other Unicode whitespaces
-            Tab, NewLine, VerticalTab, FormFeed, CarriageReturn,
-            FileSeparator, GroupSeparator, RecordSeparator, UnitSeparator,
-        });
 
         private readonly string _text;
         private int _index;
         private readonly Stack<int> _indexStack = new Stack<int>();
 
         public int Length => _text.Length;
-
         public int Index => _index;
+
+        public int LineNumber { get; private set; }
+        public int LinePosition { get; private set; }
+
+        /// <summary>
+        /// Determines whether the parser is currently within an array declaration in the source text
+        /// </summary>
+        /// <returns><c>true</c> if the parser is parsing an array declaration; otherwise <c>false</c>.</returns>
+        public bool IsParsingArray { get; protected set; }
+
+        /// <summary>
+        /// Determines whether the parser has parsed an object within the same line in the source text
+        /// </summary>
+        /// <returns><c>true</c> if the parser parsed an object within this line; otherwise <c>false</c>.</returns>
+        public bool IsParsingObject { get; set; }
 
         public void Push()
         {
@@ -101,7 +56,7 @@ namespace Hocon
         /// <param name="text">The string that contains the text to tokenize.</param>
         public Tokenizer(string text)
         {
-            this._text = text;
+            _text = text;
         }
 
         /// <summary>
@@ -138,11 +93,23 @@ namespace Hocon
         /// </returns>
         public string Take(int length)
         {
-            if (_index + length > _text.Length)
+            if (Index + length > _text.Length)
                 return null;
 
-            string s = _text.Substring(_index, length);
+            string s = _text.Substring(Index, length);
             _index += length;
+            foreach (var c in s)
+            {
+                if (c == StringUtil.NewLine)
+                {
+                    LineNumber++;
+                    LinePosition = 1;
+                    if (!IsParsingArray)
+                    {
+                        IsParsingObject = false;
+                    }
+                }
+            }
             return s;
         }
 
@@ -185,8 +152,17 @@ namespace Hocon
         {
             if (EoF)
                 return (char) 0;
-
-            return _text[_index++];
+            var c = _text[_index++];
+            if (c == StringUtil.NewLine)
+            {
+                LineNumber++;
+                LinePosition = 1;
+                if (!IsParsingArray)
+                {
+                    IsParsingObject = false;
+                }
+            }
+            return c;
         }
 
         /// <summary>
@@ -194,20 +170,21 @@ namespace Hocon
         /// </summary>
         public void PullWhitespace()
         {
-            while (!EoF && Whitespaces.Contains(Peek()))
+            while (!EoF && StringUtil.Whitespaces.Contains(Peek()))
             {
-                if (Take() == '\n')
+                if (Take() == StringUtil.NewLine)
                 {
-                    foreach (var hoconObject in HoconObject.FloatingObjects)
+                    LineNumber++;
+                    LinePosition = 1;
+                    if (!IsParsingArray)
                     {
-                        hoconObject.Unscope();
+                        IsParsingObject = false;
                     }
-                    HoconObject.FloatingObjects.Clear();
                 }
             }
         }
 
-        public string GetHelpTextAtIndex(int index, int length=0)
+        public string GetHelpTextAtIndex(int index, int length = 0)
         {
             if (length == 0)
                 length = Length - index;
@@ -235,20 +212,14 @@ namespace Hocon
         private const string NotInUnquotedKey = "$\"{}[]:=,#`^?!@*&\\.";
         private const string NotInUnquotedText = "$\"{}[]:=,#`^?!@*&\\";
 
-        /// <summary>
-        /// Determines whether the parser is currently within an array declaration in the source text
-        /// </summary>
-        /// <returns><c>true</c> if the parser is parsing an array declaration; otherwise <c>false</c>.</returns>
-        public bool IsParsingArray { get; private set; }
+        public int BraceCount { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconTokenizer"/> class.
         /// </summary>
         /// <param name="text">The string that contains the text to tokenize.</param>
         public HoconTokenizer(string text)
-            : base(text)
-        {
-        }
+            : base(text) { }
 
         /// <summary>
         /// Advances the tokenizer to the next non-whitespace, non-comment token.
@@ -276,18 +247,14 @@ namespace Hocon
             while (!EoF)
             {
                 char c = Take();
-                if (c == '\n')
+                if (c == StringUtil.NewLine)
                 {
-                    foreach (var hoconObject in HoconObject.FloatingObjects)
-                    {
-                        hoconObject.Unscope();
-                    }
-                    HoconObject.FloatingObjects.Clear();
+                    IsParsingObject = false;
                     break;
                 }
 
                 //ignore
-                if (c == '\r') continue;
+                //if (c == CarriageReturn) continue;
 
                 sb.Append(c);
             }
@@ -343,11 +310,11 @@ namespace Hocon
             }
             if (EoF)
             {
-                return new Token(TokenType.EoF,Index,0);
+                return new Token(TokenType.EoF, Index, 0);
             }
 
 
-            throw new HoconTokenizerException(string.Format("Unknown token ",GetHelpTextAtIndex(start)));
+            throw new HoconTokenizerException(string.Format("Unknown token ", GetHelpTextAtIndex(start)));
         }
 
         private bool IsStartOfQuotedKey()
@@ -368,7 +335,7 @@ namespace Hocon
             }
             Take();
             IsParsingArray = false;
-            return new Token(TokenType.ArrayEnd,start,Index-start);
+            return new Token(TokenType.ArrayEnd, start, Index - start);
         }
 
         /// <summary>
@@ -398,7 +365,7 @@ namespace Hocon
             int start = Index;
             Take();
             IsParsingArray = true;
-            return new Token(TokenType.ArrayStart,Index, Index-start);
+            return new Token(TokenType.ArrayStart, Index, Index - start);
         }
 
         /// <summary>
@@ -409,7 +376,7 @@ namespace Hocon
         {
             int start = Index;
             Take();
-            return new Token(TokenType.Dot,start, Index - start);
+            return new Token(TokenType.Dot, start, Index - start);
         }
 
         /// <summary>
@@ -420,7 +387,7 @@ namespace Hocon
         {
             int start = Index;
             Take();
-            return new Token(TokenType.Comma,start, Index - start);
+            return new Token(TokenType.Comma, start, Index - start);
         }
 
         /// <summary>
@@ -430,6 +397,11 @@ namespace Hocon
         public Token PullStartOfObject()
         {
             int start = Index;
+            if (!IsObjectStart())
+            {
+                throw new HoconTokenizerException(string.Format("Expected start of object {0}", GetHelpTextAtIndex(Index)));
+            }
+            BraceCount++;
             Take();
             return new Token(TokenType.ObjectStart, start, Index - start);
         }
@@ -445,9 +417,9 @@ namespace Hocon
             {
                 throw new HoconTokenizerException(string.Format("Expected end of object {0}", GetHelpTextAtIndex(Index)));
             }
-
+            BraceCount--;
             Take();
-            return new Token(TokenType.ObjectEnd,start, Index - start);
+            return new Token(TokenType.ObjectEnd, start, Index - start);
         }
 
         /// <summary>
@@ -524,6 +496,12 @@ namespace Hocon
             return Matches("\"\"\"");
         }
 
+        public bool IsValidSubstitutionPath(string path)
+        {
+            var a = path.Intersect(NotInUnquotedText);
+            return !a.Any();
+        }
+
         /// <summary>
         /// Retrieves a <see cref="TokenType.Comment"/> token from the tokenizer's current position.
         /// </summary>
@@ -532,7 +510,7 @@ namespace Hocon
         {
             int start = Index;
             PullRestOfLine();
-            return new Token(TokenType.Comment,start, Index-start);
+            return new Token(TokenType.Comment, start, Index - start);
         }
 
         /// <summary>
@@ -548,7 +526,7 @@ namespace Hocon
                 sb.Append(Take());
             }
 
-            return Token.Key((sb.ToString().Trim()),start, Index - start);
+            return Token.Key((sb.ToString().Trim()), start, Index - start);
         }
 
         /// <summary>
@@ -571,7 +549,12 @@ namespace Hocon
 
         public bool IsWhitespace()
         {
-            return Whitespaces.Contains(Peek());
+            return StringUtil.Whitespaces.Contains(Peek());
+        }
+
+        public bool IsWhitespaceWithNoNewLine()
+        {
+            return StringUtil.WhitespaceWithoutNewLine.Contains(Peek());
         }
 
         public bool IsWhitespaceOrComment()
@@ -607,7 +590,7 @@ namespace Hocon
             }
 
             Take(3);
-            return Token.LiteralValue(sb.ToString(),start, Index - start);
+            return Token.LiteralValue(sb.ToString(), start, Index - start);
         }
 
         /// <summary>
@@ -636,9 +619,9 @@ namespace Hocon
             {
                 throw new HoconTokenizerException(string.Format("Expected end of quoted string {0}", GetHelpTextAtIndex(Index)));
             }
-            
+
             Take();
-            return Token.LiteralValue(sb.ToString(),start, Index - start);
+            return Token.LiteralValue(sb.ToString(), start, Index - start);
         }
 
         /// <summary>
@@ -663,7 +646,7 @@ namespace Hocon
                 }
             }
             Take();
-            return Token.Key(sb.ToString(),start, Index - start);
+            return Token.Key(sb.ToString(), start, Index - start);
         }
 
         public Token PullInclude()
@@ -673,7 +656,7 @@ namespace Hocon
             PullWhitespaceAndComments();
             var rest = PullQuotedText();
             var unQuote = rest.Value;
-            return Token.Include(unQuote,start, Index - start);
+            return Token.Include(unQuote, start, Index - start);
         }
 
         private string PullEscapeSequence()
@@ -704,7 +687,7 @@ namespace Hocon
                     int j = Convert.ToInt32(hex, 16);
                     return ((char) j).ToString();
                 default:
-                    throw new HoconTokenizerException(string.Format("Unknown escape code `{0}` {1}", escaped,GetHelpTextAtIndex(start)));
+                    throw new HoconTokenizerException(string.Format("Unknown escape code `{0}` {1}", escaped, GetHelpTextAtIndex(start)));
             }
         }
 
@@ -751,12 +734,25 @@ namespace Hocon
             {
                 return PullArrayEnd();
             }
+            if (IsSubstitutionQuestionMarkStart())
+            {
+                return PullSubstitution(true);
+            }
             if (IsSubstitutionStart())
             {
-                return PullSubstitution();
+                return PullSubstitution(false);
             }
 
             throw new HoconTokenizerException(string.Format("Expected value: Null literal, Array, Quoted Text, Unquoted Text, Triple quoted Text, Object or End of array {0}", GetHelpTextAtIndex(start)));
+        }
+
+        /// <summary>
+        /// Determines whether the current token is the start of a substitution.
+        /// </summary>
+        /// <returns><c>true</c> if token is the start of a substitution; otherwise, <c>false</c>.</returns>
+        public bool IsSubstitutionQuestionMarkStart()
+        {
+            return Matches("${?");
         }
 
         /// <summary>
@@ -800,29 +796,36 @@ namespace Hocon
         /// Retrieves a <see cref="TokenType.Substitute"/> token from the tokenizer's current position.
         /// </summary>
         /// <returns>A <see cref="TokenType.Substitute"/> token from the tokenizer's current position.</returns>
-        public Token PullSubstitution()
+        public Token PullSubstitution(bool questionMarked)
         {
             int start = Index;
             var sb = new StringBuilder();
             Take(2);
 
             // Special case for ${?
-            if (Peek() == '?')
-                sb.Append(Take());
+            if (questionMarked)
+                Take();
 
-            while (!EoF && IsUnquotedText())
+            char c = (char)0;
+            while (!EoF)
             {
-                sb.Append(Take());
+                c = Take();
+                if (c == '}') break;
+                sb.Append(c);
             }
-            Take();
-            return Token.Substitution(sb.ToString(),start, Index - start);
+
+            if (EoF && c != '}')
+                throw new HoconTokenizerException("Expected end of substitution but found EoF");
+
+            var subPath = sb.ToString().Trim();
+            return Token.Substitution(subPath, start, Index - start, questionMarked);
         }
 
         /// <summary>
         /// Determines whether the current token is a space or a tab.
         /// </summary>
         /// <returns><c>true</c> if token is the start of a space or a tab; otherwise, <c>false</c>.</returns>
-        public bool IsSpaceOrTab()
+        private bool IsSpaceOrTab()
         {
             return Matches(" ", "\t");
         }
@@ -831,7 +834,7 @@ namespace Hocon
         /// Determines whether the current token is the start of an unquoted string literal.
         /// </summary>
         /// <returns><c>true</c> if token is the start of an unquoted string literal; otherwise, <c>false</c>.</returns>
-        public bool IsStartSimpleValue()
+        private bool IsStartSimpleValue()
         {
             if (IsSpaceOrTab())
                 return true;
@@ -854,7 +857,18 @@ namespace Hocon
             {
                 sb.Append(Take());
             }
-            return Token.LiteralValue(sb.ToString(),start,Index - start);
+            return Token.LiteralValue(sb.ToString(), start, Index - start);
+        }
+
+        public Token PullNonNewLineWhitespace()
+        {
+            int start = Index;
+            var sb = new StringBuilder();
+            while (IsWhitespaceWithNoNewLine())
+            {
+                sb.Append(Take());
+            }
+            return Token.LiteralValue(sb.ToString(), start, Index - start);
         }
 
         private Token PullUnquotedText()
@@ -866,7 +880,7 @@ namespace Hocon
                 sb.Append(Take());
             }
 
-            return Token.LiteralValue(sb.ToString(),start, Index - start);
+            return Token.LiteralValue(sb.ToString(), start, Index - start);
         }
 
         private bool IsUnquotedText()
@@ -885,12 +899,17 @@ namespace Hocon
         public Token PullSimpleValue()
         {
             int start = Index;
+
+            /*
             if (IsSpaceOrTab())
                 return PullSpaceOrTab();
+            */
+            if (IsWhitespaceWithNoNewLine())
+                return PullNonNewLineWhitespace();
             if (IsUnquotedText())
                 return PullUnquotedText();
 
-            throw new HoconTokenizerException(string.Format("No simple value found {0}",GetHelpTextAtIndex(start)));
+            throw new HoconTokenizerException(string.Format("No simple value found {0}", GetHelpTextAtIndex(start)));
         }
 
         /// <summary>

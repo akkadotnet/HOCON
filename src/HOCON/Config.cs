@@ -423,7 +423,7 @@ namespace Hocon
         public virtual bool HasPath(string path)
         {
             HoconValue value = GetNode(path);
-            return value != null;
+            return !ReferenceEquals(value, HoconValue.Undefined);
         }
 
         /// <summary>

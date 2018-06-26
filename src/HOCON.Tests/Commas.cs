@@ -94,22 +94,31 @@ array_2 : [1, 2, 3]
          * FACT:
          * {a:1, b:2, c:3,} and {a:1, b:2, c:3} are the same object.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ExtraCommaAtTheEndIgnored()
         {
             var hocon_1 = @"a:1, b:2, c:3,";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            var config_1 = ConfigurationFactory.ParseString(hocon_1);
-            var config_2 = ConfigurationFactory.ParseString(hocon_2);
-            Assert.True(config_1.AsEnumerable().SequenceEqual(config_2.AsEnumerable()));
+            using (var config_1 = ConfigurationFactory.ParseString(hocon_1).AsEnumerable().GetEnumerator())
+            {
+                using (var config_2 = ConfigurationFactory.ParseString(hocon_2).AsEnumerable().GetEnumerator())
+                {
+                    while (config_1.MoveNext())
+                    {
+                        config_2.MoveNext();
+                        Assert.Equal(config_1.Current.Key, config_2.Current.Key);
+                        Assert.Equal(config_1.Current.Value.GetInt(), config_2.Current.Value.GetInt());
+                    }
+                }
+            }
         }
 
         /*
          * FACT:
          * {a:1\nb:2\nc:3} and {a:1, b:2, c:3} are the same object.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void NewLineCanReplaceComma()
         {
             var hocon_1 = @"
@@ -118,9 +127,18 @@ b:2
 c:3";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            var config_1 = ConfigurationFactory.ParseString(hocon_1);
-            var config_2 = ConfigurationFactory.ParseString(hocon_2);
-            Assert.True(config_1.AsEnumerable().SequenceEqual(config_2.AsEnumerable()));
+            using (var config_1 = ConfigurationFactory.ParseString(hocon_1).AsEnumerable().GetEnumerator())
+            {
+                using (var config_2 = ConfigurationFactory.ParseString(hocon_2).AsEnumerable().GetEnumerator())
+                {
+                    while (config_1.MoveNext())
+                    {
+                        config_2.MoveNext();
+                        Assert.Equal(config_1.Current.Key, config_2.Current.Key);
+                        Assert.Equal(config_1.Current.Value.GetInt(), config_2.Current.Value.GetInt());
+                    }
+                }
+            }
         }
 
         /*

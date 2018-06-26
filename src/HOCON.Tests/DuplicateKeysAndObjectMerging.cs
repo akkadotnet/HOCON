@@ -102,7 +102,7 @@ foo
          * FACT:
          * Assigning an object field to a literal and then to another object would prevent merging
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void CanOverrideObject()
         {
             var hocon = @"

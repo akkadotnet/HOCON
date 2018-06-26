@@ -23,6 +23,23 @@ namespace Hocon
     /// </summary>
     public class HoconArray : List<HoconValue>, IHoconElement
     {
+        public HoconArray(IHoconElement owner)
+        {
+            Owner = owner;
+        }
+
+        public IHoconElement Owner { get; }
+
+        public bool IsObject()
+        {
+            return false;
+        }
+
+        public HoconObject GetObject()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Determines whether this element is a string and all of its characters are whitespace characters.
         /// </summary>

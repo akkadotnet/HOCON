@@ -29,8 +29,6 @@ namespace Hocon.Tests
         [Fact]
         public void CanConcatenateObjectsViaValueConcatenation_2()
         {
-            //Debugger.Launch();
-
             var hocon = @"
 data-center-generic = { cluster-size = 6 }
 data-center-east = ${data-center-generic} { name = ""east"" }";
@@ -46,8 +44,6 @@ data-center-east = ${data-center-generic} { name = ""east"" }";
         [Fact]
         public void CanConcatenateObjectsViaValueConcatenation_3()
         {
-            //Debugger.Launch();
-
             var hocon = @"
 data-center-generic = { cluster-size = 6 }
 data-center-east = { name = ""east"" } ${data-center-generic}";
@@ -72,7 +68,7 @@ a : { c : 2 }";
             Assert.Equal(2, config.GetInt("a.c"));
         }
 
-#region Array and object concatenation exception spec
+        #region Array and object concatenation exception spec
         [Fact]
         public void ThrowsWhenArrayAndObjectAreConcatenated_1()
         {
@@ -124,7 +120,7 @@ b : ${a} { c : 2 }";
         }
         #endregion
 
-#region String  and object concatenation exception spec
+        #region String  and object concatenation exception spec
         [Fact]
         public void ThrowsWhenStringAndObjectAreConcatenated_1()
         {

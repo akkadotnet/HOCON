@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,22 +19,25 @@ namespace Hocon
     /// This class represents the root type for a HOCON (Human-Optimized Config Object Notation)
     /// configuration object.
     /// </summary>
-    public class HoconValue : IMightBeAHoconObject
+    public class HoconValue : IHoconElement
     {
         public static readonly HoconValue Undefined;
 
         static HoconValue()
         {
-            Undefined = new HoconValue();
+            Undefined = new HoconValue(null);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconValue"/> class.
         /// </summary>
-        public HoconValue()
+        public HoconValue(IHoconElement owner)
         {
+            Owner = owner;
             Values = new List<IHoconElement>();
         }
+
+        public IHoconElement Owner { get; }
 
         /// <summary>
         /// Returns true if this HOCON value doesn't contain any elements
@@ -43,7 +47,8 @@ namespace Hocon
         /// <summary>
         /// The list of elements inside this HOCON value
         /// </summary>
-        public List<IHoconElement> Values { get; }
+        public List<IHoconElement> Values { get; private set; }
+        internal List<IHoconElement> OldValues { get; private set; }
 
         /// <summary>
         /// Wraps this <see cref="HoconValue"/> into a new <see cref="Config"/> object at the specified key.
@@ -52,11 +57,13 @@ namespace Hocon
         /// <returns>A <see cref="Config"/> with the given key as the root element.</returns>
         public Config AtKey(string key)
         {
-            var o = new HoconObject();
+            var r = new HoconValue(null);
+
+            var o = new HoconObject(r);
             o.GetOrCreateKey(key);
             o.Items[key] = this;
-            var r = new HoconValue();
             r.Values.Add(o);
+
             return new Config(new HoconRoot(r));
         }
 
@@ -69,20 +76,24 @@ namespace Hocon
             List<HoconObject> objects = new List<HoconObject>();
             foreach (var value in Values)
             {
-                if (!(value is IMightBeAHoconObject o))
-                    continue;
-
-                if (o.IsObject())
-                    objects.Add(o.GetObject());
+                if (value.IsObject())
+                    objects.Add(value.GetObject());
             }
 
-            if (objects.Count == 0)
-                return null;
+            switch (objects.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return objects[0];
+                default:
+                    return new HoconMergedObject(Owner, objects);
+            }
+        }
 
-            if (objects.Count == 1)
-                return objects[0];
-
-            return new HoconMergedObject(objects);
+        public bool IsWhitespace()
+        {
+            return false;
         }
 
         /// <summary>
@@ -108,7 +119,15 @@ namespace Hocon
         /// </summary>
         public void Clear()
         {
-            Values.Clear();
+            // save old values because it might need to be restored later.
+            OldValues = Values;
+            Values = new List<IHoconElement>();
+        }
+
+        public void RestoreOldValues()
+        {
+            Values = OldValues;
+            OldValues = null;
         }
 
         /// <summary>
@@ -136,7 +155,15 @@ namespace Hocon
 
         private string ConcatString()
         {
-            string concat = string.Join("", Values.Select(l => l.GetString())).Trim();
+            var array = Values.Select(l => l.GetString()).ToArray();
+            foreach (var value in array)
+            {
+                if (value != null)
+                    break;
+                return null;
+            }
+
+            string concat = string.Join("", array).TrimWhitespace();
 
             if (concat == "null")
                 return null;
@@ -459,6 +486,21 @@ namespace Hocon
             }
             return text;
         }
+
+        public bool Equals(HoconValue other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Values.Count != other.Values.Count) return false;
+
+            for (int i = 0; i < Values.Count; ++i)
+            {
+                if (!Values[i].Equals(other.Values[i]))
+                    return false;
+            }
+            return true;
+        }
+
     }
 }
 

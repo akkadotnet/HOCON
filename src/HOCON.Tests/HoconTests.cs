@@ -593,9 +593,10 @@ test.value = 456
         public void CanParseInclude()
         {
             var hocon = @"a {
-  b { 
-       include ""foo""
-  }";
+    b { 
+        include ""foo""
+    }
+}";
             var includeHocon = @"
 x = 123
 y = hello

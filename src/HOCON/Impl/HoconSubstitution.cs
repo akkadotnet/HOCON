@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Hocon
 {
@@ -25,30 +26,31 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconSubstitution : IHoconElement, IMightBeAHoconObject
+    public class HoconSubstitution : IHoconElement
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconSubstitution"/> class.
         /// </summary>
+        protected HoconSubstitution(IHoconElement owner)
+        {
+            Owner = owner;
+        }
+
+        /*
         protected HoconSubstitution()
         {
         }
+        */
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconSubstitution" /> class.
         /// </summary>
         /// <param name="path">The path.</param>
-        public HoconSubstitution(HoconValue parent, string path)
+        public HoconSubstitution(IHoconElement parent, string path, bool isQuestionMarked)
         {
             Owner = parent ?? throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
 
-            if (path.StartsWith("?"))
-            {
-                IsQuestionMark = true;
-                path = path.Substring(1);
-            }
-
-            Debug.WriteLine($"Path = {path}");
+            IsQuestionMark = isQuestionMarked;
             Path = path;
         }
 
@@ -58,7 +60,8 @@ namespace Hocon
         /// <summary>
         ///     The Hocon node that owned this substitution node
         /// </summary>
-        public HoconValue Owner { get; }
+        public IHoconElement Owner { get; }
+        //public HoconValue Owner { get; }
 
         /// <summary>
         ///     The full path to the value which should substitute this instance.

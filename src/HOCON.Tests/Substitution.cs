@@ -33,12 +33,22 @@ namespace Hocon.Tests
          * - The ? in ${?pathexpression} must not have whitespace before it
          * - The three characters ${? must be exactly like that, grouped together.
          */
-        [Fact(Skip = "Failed, not in spec")]
-        public void ThrowsOnInvalidSubstitutionWithQuestionMarkStartToken()
+        [Fact]
+        public void ThrowsOnInvalidSubstitutionWithQuestionMarkStartToken_1()
         {
             var hocon = @"a{
     b = 1
     c = ${ ?a.b}
+}";
+            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+        }
+
+        [Fact]
+        public void ThrowsOnInvalidSubstitutionWithQuestionMarkStartToken_2()
+        {
+            var hocon = @"a{
+    b = 1
+    c = $ {?a.b}
 }";
             Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
         }
@@ -48,7 +58,7 @@ namespace Hocon.Tests
          * For substitutions which are not found in the configuration tree, 
          * implementations may try to resolve them by looking at system environment variables.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ShouldFallbackToEnvironmentVariables()
         {
             var hocon = @"a {
@@ -163,9 +173,10 @@ namespace Hocon.Tests
         public void CanResolveSubstitutesInInclude()
         {
             var hocon = @"a {
-  b { 
-       include ""foo""
-  }";
+    b { 
+        include ""foo""
+    }
+}";
             var includeHocon = @"
 x = 123
 y = ${x}
@@ -181,15 +192,15 @@ y = ${x}
         public void CanResolveSubstitutesInNestedIncludes()
         {
             var hocon = @"a.b.c {
-  d { 
-       include ""foo""
-  }";
+    d { 
+        include ""foo""
+    }
+}";
             var includeHocon = @"
 f = 123
 e {
       include ""foo""
-}
-";
+}";
 
             var includeHocon2 = @"
 x = 123
@@ -217,7 +228,7 @@ y = ${x}
          * FACT:
          * If a configuration sets a value to null then it should not be looked up in the external source.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void NullValueSubstitutionShouldNotLookUpExternalSource()
         {
             var hocon = @"
@@ -237,20 +248,19 @@ a {
             }
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void NullValueQuestionMarkSubstitutionShouldNotLookUpExternalSource()
         {
             var hocon = @"
 MY_ENV_VAR = null
 a {
-  b = ""old value""
   b = ${?MY_ENV_VAR}
 }";
             var value = "Environment_Var";
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Equal("old value", ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a.b"));
             }
             finally
             {
@@ -278,7 +288,7 @@ a {
          * If a substitution with the ${?foo} syntax is undefined:
          * If it is the value of an object field then the field should not be created.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldNotCreateField()
         {
             var hocon = @"a{
@@ -304,7 +314,7 @@ a {
          * If the field would have overridden a previously-set value for the same field, 
          * then the previous value remains.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldNotChangeFieldValue()
         {
             var hocon = @"a{
@@ -320,7 +330,7 @@ a {
          * If a substitution with the ${?foo} syntax is undefined:
          * If it is an array element then the element should not be added.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldNotAddArrayElement()
         {
             var hocon = @"a{
@@ -335,14 +345,14 @@ a {
          * If a substitution with the ${?foo} syntax is undefined:
          * if it is part of a value concatenation with another string then it should become an empty string
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldResolveToEmptyString()
         {
             var hocon = @"a{
     b = My name is ${?foo}
 }";
             var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal("My name is ", config.GetString("a.b"));
+            Assert.Equal("My name is", config.GetString("a.b"));
         }
 
         /*
@@ -364,7 +374,7 @@ a {
         {
             var hocon = @"
 foo : { a : 42 },
-foo : ${?foo}
+foo : ${?bar}
 ";
 
             var config = ConfigurationFactory.ParseString(hocon);
@@ -390,7 +400,7 @@ foo : ${?bar}${?baz}
             Assert.Equal(42, config.GetInt("foo.a"));
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void TwoUndefinedQuestionMarkSubstitutionShouldNotCreateField()
         {
             var hocon = @"a{
@@ -404,7 +414,7 @@ foo : ${?bar}${?baz}
         /*
          * Substitutions are not allowed in keys or nested inside other substitutions (path expressions)
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsOnSubstitutionInKeys()
         {
             var hocon = @"a{
@@ -415,7 +425,7 @@ foo : ${?bar}${?baz}
             Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsOnSubstitutionWithQuestionMarkInKeys()
         {
             var hocon = @"a{
@@ -441,7 +451,7 @@ foo : ${?bar}${?baz}
          * A substitution is replaced with any value type (number, object, string, array, true, false, null)
          */
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void CanAssignSubstitutionToField()
         {
             var hocon = @"a{

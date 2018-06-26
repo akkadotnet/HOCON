@@ -23,6 +23,11 @@ namespace Hocon
         private Func<string, HoconRoot> _includeCallback;
         private Stack<string> _diagnosticsStack = new Stack<string>();
 
+        public int LineNumber => _reader.LineNumber;
+        public int LinePosition => _reader.LinePosition;
+        public string Path { get; private set; }
+        public HoconTokenizer Tokenizer => _reader;
+
         private void PushDiagnostics(string message)
         {
             _diagnosticsStack.Push(message);
@@ -57,81 +62,118 @@ namespace Hocon
 
         private HoconRoot ParseText(string text,Func<string,HoconRoot> includeCallback)
         {
+            // Workaround for annoying end of line difference between windows and unix
+            if (Environment.NewLine == "\r\n")
+            {
+                text = text.Replace(Environment.NewLine, "\n");
+            }
+
             _includeCallback = includeCallback;
-            _root = new HoconValue();
+            _root = new HoconValue(null);
             _reader = new HoconTokenizer(text);
             _reader.PullWhitespaceAndComments();
             ParseObject(_root, true,"");
 
+            if (_reader.BraceCount > 0)
+            {
+                throw HoconParserException.Create(this, "Curly brace mismatch, missing closing brace.");
+            }
+            if (_reader.BraceCount < 0)
+            {
+                throw HoconParserException.Create(this, "Curly brace mismatch, missing opening brace.");
+            }
+
             var c = new Config(new HoconRoot(_root, Enumerable.Empty<HoconSubstitution>()));
             foreach (HoconSubstitution sub in _substitutions)
             {
+                HoconValue ownerValue;
                 HoconValue res = c.GetValue(sub.Path);
-                if (res == HoconValue.Undefined)
+                if (ReferenceEquals(res, HoconValue.Undefined))
                 {
-                    if (sub.IsQuestionMark)
+                    string envValue = null;
+                    try
                     {
-                        string envValue = null;
-                        try
-                        {
-                            // Try to pull value from environment
-                            envValue = Environment.GetEnvironmentVariable(sub.Path);
-                        }
-                        catch {}
-
-                        if (envValue == null)
-                        {
-                            sub.Owner.Values.Remove(sub);
-                            continue;
-                        }
-                        else
-                        {
-                            res = new HoconValue();
-                            res.AppendValue(new HoconLiteral
-                            {
-                                Value = envValue
-                            });
-                        }
+                        // Try to pull value from environment
+                        envValue = Environment.GetEnvironmentVariable(sub.Path);
                     }
-                    else
-                        throw new HoconParserException($"Unresolved substitution:{sub.Path}");
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+
+                    if (envValue == null)
+                    {
+                        if (!sub.IsQuestionMark)
+                            throw HoconParserException.Create(this, $"Unresolved substitution:{sub.Path}");
+
+                        ownerValue = sub.Owner as HoconValue;
+                        ownerValue.Values.Remove(sub);
+                        if (ownerValue.IsEmpty)
+                        {
+                            // If owner value is empty, but it has old values, restore the old values
+                            // Else, delete the owner.
+                            if (ownerValue.OldValues != null && ownerValue.OldValues.Count > 0)
+                            {
+                                ownerValue.RestoreOldValues();
+                            }
+                            else
+                            {
+                                var ownerParent = ownerValue.Owner;
+                                switch (ownerParent)
+                                {
+                                    case HoconObject obj:
+                                        foreach (var item in obj.Items)
+                                        {
+                                            if (!ReferenceEquals(item.Value, ownerValue)) continue;
+
+                                            obj.Items.Remove(item.Key);
+                                            break;
+                                        }
+                                        break;
+                                    case HoconArray arr:
+                                        arr.Remove(ownerValue);
+                                        break;
+                                }
+                            }
+                        }
+
+                        continue;
+                    }
+
+                    res = new HoconValue(sub);
+                    res.AppendValue(new HoconLiteral(sub)
+                    {
+                        Value = envValue
+                    });
                 }
 
-                sub.ResolvedValue = res;
+                ownerValue = sub.Owner as HoconValue;
 
-                //var owner = sub.Owner.GetObject();
+                sub.ResolvedValue = res;
                 if (res.IsArray() || res.IsString())
                 {
                     if (sub.Owner.IsObject())
-                        throw new HoconParserException("Array substitution can not be value concatenated with an object.");
+                        throw HoconParserException.Create(this, "Array substitution can not be value concatenated with an object.");
 
-                    ValidateValue(sub.Owner, false);
+                    ValidateValue(ownerValue, false);
                     continue;
                 }
 
-                foreach (var value in sub.Owner.Values)
+                foreach (var value in ownerValue.Values)
                 {
                     if(value.IsArray())
-                        throw new HoconParserException("Hocon object can not be merged with an array.");
+                        throw HoconParserException.Create(this, "Hocon object can not be merged with an array.");
 
                     if (value is HoconLiteral && !value.IsWhitespace())
-                        throw new HoconParserException("Hocon object can not be merged with a string.");
+                        throw HoconParserException.Create(this, "Hocon object can not be merged with a string.");
                 }
-
-                /*
-                var otherObject = res.GetObject();
-                if (owner != null && owner != otherObject)
-                {
-                    sub.Owner.Values.Remove(sub);
-                    owner.Merge(otherObject);
-                }
-                */
             }
             return new HoconRoot(_root, _substitutions);
         }
 
         private void ParseObject(HoconValue owner, bool root,string currentPath)
         {
+            Path = currentPath;
             try
             {
                 PushDiagnostics("{");
@@ -142,8 +184,8 @@ namespace Hocon
                 }
                 else
                 {
-
-                    owner.AppendValue(new HoconObject());
+                    _reader.IsParsingObject = true;
+                    owner.AppendValue(new HoconObject(owner));
                     //the value of this KVP is not an object, thus, we should add a new
                     //owner.NewValue(new HoconObject());
                 }
@@ -152,7 +194,16 @@ namespace Hocon
 
                 while (!_reader.EoF)
                 {
-                    Token t = _reader.PullNext();
+                    Token t;
+                    try
+                    {
+                        t = _reader.PullNext();
+                    }
+                    catch (Exception e)
+                    {
+                        throw HoconParserException.Create(this, "Failed to parse Hocon key content.", e);
+                    }
+
                     switch (t.Type)
                     {
                         case TokenType.Include:
@@ -170,13 +221,15 @@ namespace Hocon
                         case TokenType.EoF:
                             if (!string.IsNullOrEmpty(currentPath))
                             {
-                                throw new HoconParserException($"Expected end of object but found EoF {GetDiagnosticsStackTrace()}");
+                                throw HoconParserException.Create(this, $"Expected end of object but found EoF {GetDiagnosticsStackTrace()}");
                             }
                             break;
                         case TokenType.Key:
                             HoconValue value = currentObject.GetOrCreateKey(t.Value);
                             var nextPath = currentPath == "" ? t.Value : currentPath + "." + t.Value;
+                            Path = nextPath;
                             ParseKeyContent(value, nextPath);
+                            Path = currentPath;
                             ValidateValue(value, true);
                             if (!root)
                                 return;
@@ -218,7 +271,7 @@ namespace Hocon
                             type = ItemType.Array;
                             continue;
                     }
-                    throw new HoconParserException("Arrays can only be value concatenated with another array.");
+                    throw HoconParserException.Create(this, "Arrays can only be value concatenated with another array.");
                 }
                 if (value.IsString())
                 {
@@ -232,7 +285,7 @@ namespace Hocon
                             type = ItemType.String;
                             continue;
                     }
-                    throw new HoconParserException("String can only be value concatenated with another string.");
+                    throw HoconParserException.Create(this, "String can only be value concatenated with another string.");
                 }
             }
         }
@@ -245,7 +298,16 @@ namespace Hocon
                 PushDiagnostics($"{last} = ");
                 while (!_reader.EoF)
                 {
-                    Token t = _reader.PullNext();
+                    Token t;
+                    try
+                    {
+                        t = _reader.PullNext();
+                    }
+                    catch (Exception e)
+                    {
+                        throw HoconParserException.Create(this, "Failed to parse Hocon key content.", e);
+                    }
+
                     switch (t.Type)
                     {
                         case TokenType.Dot:
@@ -282,7 +344,7 @@ namespace Hocon
         public void ParseValue(HoconValue owner, string currentPath)
         {
             if (_reader.EoF)
-                throw new HoconParserException("End of file reached while trying to read a value");
+                throw HoconParserException.Create(this, "End of file reached while trying to read a value");
 
             _reader.PullWhitespaceAndComments();
             var start = _reader.Index;
@@ -290,7 +352,15 @@ namespace Hocon
             {
                 while (_reader.IsValue())
                 {
-                    Token t = _reader.PullValue();
+                    Token t;
+                    try
+                    {
+                        t = _reader.PullValue();
+                    }
+                    catch (Exception e)
+                    {
+                        throw HoconParserException.Create(this, "Failed to parse Hocon token", e);
+                    }
 
                     switch (t.Type)
                     {
@@ -298,19 +368,18 @@ namespace Hocon
                             break;
                         case TokenType.LiteralValue:
                             if (owner.IsArray())
-                                throw new HoconParserException("Literal value can not be value concatenated with an array");
+                                throw HoconParserException.Create(this, "Literal value can not be value concatenated with an array");
 
                             if (owner.IsObject())
                             {
-                                var ownerObject = owner.GetObject();
-                                if(!ownerObject.IsOutOfScope)
-                                    throw new HoconParserException("Literal value can not be value concatenated with an object");
+                                if(_reader.IsParsingObject)
+                                    throw HoconParserException.Create(this, "Literal value can not be value concatenated with an object");
 
                                 //needed to allow for override objects
                                 owner.Clear();
                             }
 
-                            var lit = new HoconLiteral
+                            var lit = new HoconLiteral(owner)
                             {
                                 Value = t.Value
                             };
@@ -320,52 +389,62 @@ namespace Hocon
                             break;
                         case TokenType.ObjectStart:
                             if (owner.IsString() || owner.IsArray())
-                                throw new HoconParserException("Object can not be merged with an array or string");
+                                throw HoconParserException.Create(this, "Object can not be merged with an array or string");
 
                             ParseObject(owner, true, currentPath);
                             break;
                         case TokenType.ArrayStart:
                             if (owner.IsObject() || owner.IsString())
-                                throw new HoconParserException("Array can not be value concatenated with a string or object");
+                                throw HoconParserException.Create(this, "Array can not be value concatenated with a string or object");
 
-                            HoconArray arr = ParseArray(currentPath);
+                            HoconArray arr = ParseArray(currentPath, owner);
                             owner.AppendValue(arr);
                             break;
+                        case TokenType.SubstituteWithQuestionMark:
                         case TokenType.Substitute:
-                            HoconSubstitution sub = ParseSubstitution(owner, t.Value);
+                            if (!_reader.IsValidSubstitutionPath(t.Value))
+                                throw HoconParserException.Create(this, $"Invalid substitution path: {t.Value}");
+
+                            HoconSubstitution sub = ParseSubstitution(owner, t.Value, t.Type == TokenType.SubstituteWithQuestionMark);
                             _substitutions.Add(sub);
                             owner.AppendValue(sub);
                             break;
                     }
+
+                    if(_reader.IsWhitespaceWithNoNewLine())
+                        ParseTrailingWhitespaceWithNoNewLine(owner);
+
+                    /*
                     if (_reader.IsSpaceOrTab())
                     {
                         ParseTrailingWhitespace(owner);
                     }
+                    */
                 }
 
                 IgnoreComma();
             }
             catch(HoconTokenizerException tokenizerException)
             {
-                throw new HoconParserException($"{tokenizerException.Message}\n{GetDiagnosticsStackTrace()}",tokenizerException);
+                throw HoconParserException.Create(this, $"{tokenizerException.Message}\n{GetDiagnosticsStackTrace()}", tokenizerException);
             }
             finally
             {
                 //no value was found, tokenizer is still at the same position
                 if (_reader.Index == start)
                 {
-                    throw new HoconParserException($"Hocon syntax error {_reader.GetHelpTextAtIndex(start)}\n{GetDiagnosticsStackTrace()}");
+                    throw HoconParserException.Create(this, $"Hocon syntax error {_reader.GetHelpTextAtIndex(start)}\n{GetDiagnosticsStackTrace()}");
                 }
             }
         }
 
-        private void ParseTrailingWhitespace(HoconValue owner)
+        private void ParseTrailingWhitespaceWithNoNewLine(HoconValue owner)
         {
-            Token ws = _reader.PullSpaceOrTab();
+            Token ws = _reader.PullNonNewLineWhitespace();
             //single line ws should be included if string concat
             if (ws.Value.Length > 0)
             {
-                var wsLit = new HoconLiteral
+                var wsLit = new HoconLiteral(owner)
                 {
                     Value = ws.Value,
                 };
@@ -373,30 +452,53 @@ namespace Hocon
             }
         }
 
-        private static HoconSubstitution ParseSubstitution(HoconValue owner, string value)
+        /*
+        private void ParseTrailingWhitespace(HoconValue owner)
         {
-            return new HoconSubstitution(owner, value);
+            Token ws = _reader.PullSpaceOrTab();
+            //single line ws should be included if string concat
+            if (ws.Value.Length > 0)
+            {
+                var wsLit = new HoconLiteral(owner)
+                {
+                    Value = ws.Value,
+                };
+                owner.AppendValue(wsLit);
+            }
+        }
+        */
+
+        private static HoconSubstitution ParseSubstitution(HoconValue owner, string value, bool isQuestionMarked)
+        {
+            return new HoconSubstitution(owner, value, isQuestionMarked);
         }
 
         /// <summary>
         /// Retrieves the next array token from the tokenizer.
         /// </summary>
         /// <returns>An array of elements retrieved from the token.</returns>
-        public HoconArray ParseArray(string currentPath)
+        public HoconArray ParseArray(string currentPath, IHoconElement owner)
         {
             try
             {
                 PushDiagnostics("[");
 
-                var arr = new HoconArray();
+                var arr = new HoconArray(owner);
                 while (!_reader.EoF && !_reader.IsArrayEnd())
                 {
-                    var v = new HoconValue();
+                    var v = new HoconValue(arr);
                     ParseValue(v, currentPath);
                     arr.Add(v);
                     _reader.PullWhitespaceAndComments();
                 }
-                _reader.PullArrayEnd();
+                try
+                {
+                    _reader.PullArrayEnd();
+                }
+                catch (Exception e)
+                {
+                    throw HoconParserException.Create(this, "Failed to parse Hocon", e);
+                }
                 return arr;
             }
             finally

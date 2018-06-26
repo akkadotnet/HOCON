@@ -8,11 +8,8 @@ namespace Hocon.Impl
 {
     public class HoconMergedObject : HoconObject
     {
-        public HoconMergedObject(List<HoconObject> objects):base()
+        public HoconMergedObject(IHoconElement owner, List<HoconObject> objects):base(owner)
         {
-            HoconObject.FloatingObjects.Remove(this);
-            Unscope();
-
             foreach (var obj in objects)
             {
                 Merge(obj);
