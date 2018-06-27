@@ -123,7 +123,7 @@ namespace Hocon
         public virtual bool GetBoolean(string path, bool @default = false)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetBoolean();
@@ -137,7 +137,8 @@ namespace Hocon
         public virtual long? GetByteSize(string path)
         {
             HoconValue value = GetNode(path);
-            if (value == null) return null;
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                return null;
             return value.GetByteSize();
         }
 
@@ -150,7 +151,7 @@ namespace Hocon
         public virtual int GetInt(string path, int @default = 0)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetInt();
@@ -165,7 +166,7 @@ namespace Hocon
         public virtual long GetLong(string path, long @default = 0)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetLong();
@@ -180,7 +181,7 @@ namespace Hocon
         public virtual string GetString(string path, string @default = null)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetString();
@@ -195,7 +196,7 @@ namespace Hocon
         public virtual float GetFloat(string path, float @default = 0)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetFloat();
@@ -210,7 +211,7 @@ namespace Hocon
         public virtual decimal GetDecimal(string path, decimal @default = 0)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetDecimal();
@@ -225,7 +226,7 @@ namespace Hocon
         public virtual double GetDouble(string path, double @default = 0)
         {
             HoconValue value = GetNode(path);
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return @default;
 
             return value.GetDouble();
@@ -239,6 +240,9 @@ namespace Hocon
         public virtual IList<Boolean> GetBooleanList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetBooleanList();
         }
 
@@ -250,6 +254,9 @@ namespace Hocon
         public virtual IList<decimal> GetDecimalList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetDecimalList();
         }
 
@@ -261,6 +268,9 @@ namespace Hocon
         public virtual IList<float> GetFloatList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetFloatList();
         }
 
@@ -272,6 +282,9 @@ namespace Hocon
         public virtual IList<double> GetDoubleList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetDoubleList();
         }
 
@@ -283,6 +296,9 @@ namespace Hocon
         public virtual IList<int> GetIntList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetIntList();
         }
 
@@ -294,6 +310,9 @@ namespace Hocon
         public virtual IList<long> GetLongList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetLongList();
         }
 
@@ -305,6 +324,9 @@ namespace Hocon
         public virtual IList<byte> GetByteList(string path)
         {
             HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetByteList();
         }
 
@@ -316,7 +338,9 @@ namespace Hocon
         public virtual IList<string> GetStringList(string path)
         {
             HoconValue value = GetNode(path);
-            if (value == null) return new string[0];
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array.");
+
             return value.GetStringList();
         }
 
@@ -332,15 +356,15 @@ namespace Hocon
             if (Fallback != null)
             {
                 Config f = Fallback.GetConfig(path);
-                if (value == null && f == null)
+                if (ReferenceEquals(value, HoconValue.Undefined) && f == null)
                     return null;
-                if (value == null)
+                if (ReferenceEquals(value, HoconValue.Undefined))
                     return f;
 
                 return new Config(new HoconRoot(value)).WithFallback(f);
             }
 
-            if (value == null)
+            if (ReferenceEquals(value, HoconValue.Undefined))
                 return null;
 
             return new Config(new HoconRoot(value));
