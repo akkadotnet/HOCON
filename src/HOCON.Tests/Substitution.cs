@@ -25,7 +25,7 @@ namespace Hocon.Tests
     b = 1
     c = $ {a.b}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
@@ -40,7 +40,7 @@ namespace Hocon.Tests
     b = 1
     c = ${ ?a.b}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Hocon.Tests
     b = 1
     c = $ {?a.b}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
@@ -68,7 +68,7 @@ namespace Hocon.Tests
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Equal(value, HoconParser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -86,7 +86,7 @@ namespace Hocon.Tests
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Equal(value, HoconParser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -112,7 +112,7 @@ namespace Hocon.Tests
     b = 5
     c = ""I have ${a.b} Tesla car(s).""
 }";
-            Assert.Equal("I have ${a.b} Tesla car(s).", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("I have ${a.b} Tesla car(s).", HoconParser.Parse(hocon).GetString("a.c"));
         }
 
         /*
@@ -127,7 +127,7 @@ namespace Hocon.Tests
   name = Roger
   c = Hello my name is ${a.name}
 }";
-            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("Hello my name is Roger", HoconParser.Parse(hocon).GetString("a.c"));
         }
 
         /*
@@ -141,7 +141,7 @@ namespace Hocon.Tests
   name = Roger
   c = ""Hello my name is ""${a.name}
 }";
-            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("Hello my name is Roger", HoconParser.Parse(hocon).GetString("a.c"));
         }
 
         /*
@@ -165,7 +165,7 @@ namespace Hocon.Tests
     b = ${a.c}
     c = 42
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(42, config.GetInt("a.b"));
         }
 
@@ -181,8 +181,10 @@ namespace Hocon.Tests
 x = 123
 y = ${x}
 ";
-            Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
-            var config = ConfigurationFactory.ParseString(hocon, include);
+            HoconRoot IncludeCallback(HoconCallbackType t, string s) 
+                => HoconParser.Parse(includeHocon);
+
+            var config = HoconParser.Parse(hocon, IncludeCallback);
 
             Assert.Equal(123, config.GetInt("a.b.x"));
             Assert.Equal(123, config.GetInt("a.b.y"));
@@ -207,9 +209,13 @@ x = 123
 y = ${x}
 ";
 
-            HoconRoot Include2(string s) => Parser.Parse(includeHocon2, null);
-            HoconRoot Include(string s) => Parser.Parse(includeHocon, Include2);
-            var config = ConfigurationFactory.ParseString(hocon, Include);
+            HoconRoot Include2(HoconCallbackType t, string s) 
+                => HoconParser.Parse(includeHocon2);
+
+            HoconRoot Include(HoconCallbackType t, string s) 
+                => HoconParser.Parse(includeHocon, Include2);
+
+            var config = HoconParser.Parse(hocon, Include);
 
             Assert.Equal(123, config.GetInt("a.b.c.d.e.x"));
             Assert.Equal(123, config.GetInt("a.b.c.d.e.y"));
@@ -240,7 +246,7 @@ a {
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Null(HoconParser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -260,7 +266,7 @@ a {
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Null(HoconParser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -280,7 +286,7 @@ a {
             var hocon = @"a{
     b = ${foo}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
@@ -295,7 +301,7 @@ a {
     b = 1
     c = ${?foo}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.False(config.HasPath("a.c"));
         }
 
@@ -305,7 +311,7 @@ a {
             var hocon = @"a {
   b = ${?a.c}
 }";
-            ConfigurationFactory.ParseString(hocon);
+            HoconParser.Parse(hocon);
         }
 
         /*
@@ -321,7 +327,7 @@ a {
     b = 2
     b = ${?foo}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(2, config.GetInt("a.b"));
         }
 
@@ -336,7 +342,7 @@ a {
             var hocon = @"a{
     b = [ 1, ${?foo}, 3, 4 ]
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.True(new []{1, 3, 4}.SequenceEqual(config.GetIntList("a.b")));
         }
 
@@ -351,8 +357,8 @@ a {
             var hocon = @"a{
     b = My name is ${?foo}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal("My name is", config.GetString("a.b"));
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal("My name is ", config.GetString("a.b"));
         }
 
         /*
@@ -366,7 +372,7 @@ a {
             var hocon = @"a {
   c = ${?a.b} [4,5,6]
 }";
-            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
+            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(HoconParser.Parse(hocon).GetIntList("a.c")));
         }
 
         [Fact]
@@ -377,8 +383,8 @@ foo : { a : 42 },
 foo : ${?bar}
 ";
 
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.NotNull(config.GetConfig("foo"));
+            var config = HoconParser.Parse(hocon);
+            Assert.NotNull(config.GetValue("foo"));
             Assert.Equal(42, config.GetInt("foo.a"));
         }
 
@@ -395,8 +401,8 @@ bar : { a : 42 },
 foo : ${?bar}${?baz}
 ";
 
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.NotNull(config.GetConfig("foo"));
+            var config = HoconParser.Parse(hocon);
+            Assert.NotNull(config.GetValue("foo"));
             Assert.Equal(42, config.GetInt("foo.a"));
         }
 
@@ -404,10 +410,9 @@ foo : ${?bar}${?baz}
         public void TwoUndefinedQuestionMarkSubstitutionShouldNotCreateField()
         {
             var hocon = @"a{
-    b = 1
     foo = ${?bar}${?baz}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.False(config.HasPath("a.foo"));
         }
 
@@ -422,7 +427,7 @@ foo : ${?bar}${?baz}
     c = b
     ${a.c} = 2;
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         [Fact]
@@ -433,7 +438,7 @@ foo : ${?bar}${?baz}
     c = b
     ${?a.c} = 2;
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         [Fact]
@@ -443,7 +448,7 @@ foo : ${?bar}${?baz}
     bar = foo
     foo = ${?a.${?bar}}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
@@ -467,12 +472,12 @@ foo : ${?bar}${?baz}
     e = ${a.null}
     f = ${a.int}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(10.0, config.GetFloat("a.b"));
             Assert.Equal("string", config.GetString("a.c"));
             Assert.True(config.GetBoolean("a.d"));
             Assert.Null(config.GetString("a.e"));
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.f"));
+            Assert.Equal(1, HoconParser.Parse(hocon).GetInt("a.f"));
         }
 
         [Fact]
@@ -488,19 +493,31 @@ foo : ${?bar}${?baz}
      e = ${a.b}
   }  
 }";
-            var ace = ConfigurationFactory.ParseString(hocon).GetConfig("a.c.e");
-            Assert.Equal("hello", ace.GetString("foo"));
-            Assert.Equal(123, ace.GetInt("bar"));
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal("hello", config.GetString("a.c.e.foo"));
+            Assert.Equal(123, config.GetInt("a.c.e.bar"));
         }
 
         [Fact]
-        public void CanConcatenateArray()
+        public void CanConcatenateArray_1()
         {
             var hocon = @"a {
   b = [1,2,3]
   c = ${a.b} [4,5,6]
 }";
-            Assert.True(new[] { 1, 2, 3, 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
+            var config = HoconParser.Parse(hocon);
+            Assert.True(new[] { 1, 2, 3, 4, 5, 6 }.SequenceEqual(config.GetIntList("a.c")));
+        }
+
+        [Fact]
+        public void CanConcatenateArray_2()
+        {
+            var hocon = @"a {
+  b = [4,5,6]
+  c = [1,2,3] ${a.b}
+}";
+            var config = HoconParser.Parse(hocon);
+            Assert.True(new[] { 1, 2, 3, 4, 5, 6 }.SequenceEqual(config.GetIntList("a.c")));
         }
 
         /*
@@ -514,9 +531,9 @@ foo : ${?bar}${?baz}
     b = 1
     c = ${a.b}23
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.b"));
-            Assert.Equal(123, ConfigurationFactory.ParseString(hocon).GetInt("a.c"));
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal(1, config.GetInt("a.b"));
+            Assert.Equal(123, config.GetInt("a.c"));
         }
 
         [Fact]
@@ -526,9 +543,9 @@ foo : ${?bar}${?baz}
     b = 1
     c = ${a.b}foo
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.b"));
-            Assert.Equal("1foo", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal(1, config.GetInt("a.b"));
+            Assert.Equal("1foo", config.GetString("a.c"));
         }
     }
 }

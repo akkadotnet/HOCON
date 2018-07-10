@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace Hocon
@@ -29,113 +30,49 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : IHoconElement
+    public class HoconObject : Dictionary<string, HoconValue>, IHoconElement
     {
-        public IHoconElement Owner { get; }
+        public IHoconElement Parent { get; }
 
-        /// <summary>
-        /// Determines whether this element is a HOCON object.
-        /// </summary>
-        /// <returns><c>true</c>.</returns>
-        public bool IsObject()
-        {
-            return true;
-        }
-
-        /// <summary>
-        /// Retrieves the HOCON object representation of this element.
-        /// </summary>
-        /// <returns>The HOCON object representation of this element.</returns>
-        public HoconObject GetObject()
-        {
-            return this;
-        }
-
-        /// <summary>
-        /// Determines whether this element is a string and all of its characters are whitespace characters.
-        /// </summary>
-        /// <returns><c>false</c>.</returns>
-        public bool IsWhitespace()
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HoconObject"/> class.
-        /// </summary>
-        public HoconObject(IHoconElement owner)
-        {
-            Owner = owner;
-
-            Items = new Dictionary<string, HoconValue>();
-        }
+        /// <inheritdoc />
+        /// <returns><see cref="HoconType.Object"/>.</returns>
+        public HoconType Type => HoconType.Object;
 
         /// <summary>
         /// Retrieves the underlying map that contains the barebones
         /// object values.
         /// </summary>
-        public IDictionary<string, object> Unwrapped
+        public IDictionary<string, object> Unwrapped 
+            => this.ToDictionary(k => k.Key, v 
+                => v.Value.Type == HoconType.Object ? (object)v.Value.GetObject().Unwrapped : v.Value);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HoconObject"/> class.
+        /// </summary>
+        public HoconObject(IHoconElement parent)
         {
-            get
-            {
-                return Items.ToDictionary(k => k.Key, v =>
-                {
-                    HoconObject obj = v.Value.GetObject();
-                    if (obj != null)
-                        return (object) obj.Unwrapped;
-                    return v.Value;
-                });
-            }
+            Parent = parent;
         }
 
-        /// <summary>
-        /// Retrieves the underlying map that this element is based on.
-        /// </summary>
-        public Dictionary<string, HoconValue> Items { get; }
+        /// <inheritdoc />
+        public HoconObject GetObject() => this;
 
-        /// <summary>
-        /// Determines whether this element is a string.
-        /// </summary>
-        /// <returns><c>false</c></returns>
-        public bool IsString()
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Retrieves the string representation of this element.
-        /// </summary>
-        /// <returns>The string representation of this element.</returns>
-        /// <exception cref="System.NotImplementedException">
-        /// This element is an object. It is not a string.
-        /// Therefore this method will throw an exception.
+        /// <inheritdoc />
+        /// <exception cref="HoconException">
+        /// This element is an object, it is not a string, therefore this method will throw an exception.
         /// </exception>
         public string GetString()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new HoconException("Can not convert Hocon object into a string.");
 
-        /// <summary>
-        /// Determines whether this element is an array.
-        /// </summary>
-        /// <returns><c>false</c></returns>
-        public bool IsArray()
-        {
-            return false;
-        }
+        public string Raw
+            => throw new HoconException("Can not convert Hocon object into a string.");
 
-        /// <summary>
-        /// Retrieves a list of elements associated with this element.
-        /// </summary>
-        /// <returns>A list of elements associated with this element.</returns>
-        /// <exception cref="System.NotImplementedException">
-        /// This element is an object. It is not an array.
-        /// Therefore this method will throw an exception.
+        /// <inheritdoc />
+        /// <exception cref="HoconException">
+        /// This element is an object, it is not an array, Therefore this method will throw an exception.
         /// </exception>
         public IList<HoconValue> GetArray()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new HoconException("Can not convert Hocon object into an array.");
 
         /// <summary>
         /// Retrieves the value associated with the supplied key.
@@ -147,11 +84,13 @@ namespace Hocon
         /// </returns>
         public HoconValue GetKey(string key)
         {
-            if (Items.ContainsKey(key))
-            {
-                return Items[key];
-            }
-            return null;
+            if(TryGetValue(key, out var item))
+                return item;
+#if AKKA
+            return null; // this is intentional, decided by AKKA devs
+#else
+            throw new HoconException($"Object does not contain a field with key `{key}`");
+#endif
         }
 
         /// <summary>
@@ -161,15 +100,49 @@ namespace Hocon
         /// </summary>
         /// <param name="key">The key associated with the value to retrieve.</param>
         /// <returns>The value associated with the supplied key.</returns>
-        public HoconValue GetOrCreateKey(string key)
+        internal HoconValue GetOrCreateKey(string key)
         {
-            if (Items.ContainsKey(key))
-            {
-                return Items[key];
-            }
-            var child = new HoconValue(this);
-            Items.Add(key, child);
+            if (TryGetValue(key, out var child))
+                return child;
+
+            child = new HoconValue(this);
+            Add(key, child);
             return child;
+        }
+
+        internal void TraversePath(HoconPath path, List<HoconValue> result)
+        {
+            var key = path[0];
+            path.RemoveAt(0);
+
+            if (!TryGetValue(key, out var child))
+            {
+                child = new HoconValue(this);
+                this[key] = child;
+            }
+
+            result.Add(child);
+
+            if (path.Count > 0)
+            {
+                HoconObject childObject;
+                if (child.Type != HoconType.Object)
+                {
+                    childObject = new HoconObject(this);
+                    if (child.IsSubstitution())
+                        child.AppendValue(childObject);
+                    else if (child.Type != HoconType.Object)
+                        child.NewValue(childObject);
+                }
+                else
+                {
+                    childObject = child.GetObject();
+                }
+
+                childObject.TraversePath(path, result);
+            }
+
+            path.Insert(0, key);
         }
 
         /// <summary>
@@ -177,61 +150,63 @@ namespace Hocon
         /// </summary>
         /// <returns>A HOCON string representation of this element.</returns>
         public override string ToString()
-        {
-            return ToString(0);
-        }
+            => ToString(0, 2);
 
-        /// <summary>
-        /// Returns a HOCON string representation of this element.
-        /// </summary>
-        /// <param name="indent">The number of spaces to indent the string.</param>
-        /// <returns>A HOCON string representation of this element.</returns>
-        public string ToString(int indent)
+        /// <inheritdoc />
+        public string ToString(int indent, int indentSize)
         {
-            var i = new string(' ', indent*2);
-            var sb = new StringBuilder();
-            foreach (var kvp in Items)
+            var i = new string(' ', indent * indentSize);
+            var list = new List<string>();
+            foreach (var field in this)
             {
-                string key = QuoteIfNeeded(kvp.Key);
-                sb.AppendFormat("{0}{1} : {2}\r\n", i, key, kvp.Value.ToString(indent));
+                list.Add($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)}");
             }
-            return sb.ToString();
-        }
-
-        private string QuoteIfNeeded(string text)
-        {
-            if (text.ToCharArray().Intersect(" \t".ToCharArray()).Any())
-            {
-                return "\"" + text + "\"";
-            }
-            return text;
+            return string.Join($",{Environment.NewLine}", list);
         }
 
         public void Merge(HoconObject other)
         {
-            var thisItems = Items;
-            var otherItems = other.Items;
-
-            foreach (var otherItem in otherItems)
+            var keys = other.Keys.ToArray();
+            foreach (var key in keys)
             {
-                if (thisItems.ContainsKey(otherItem.Key))
+                if (ContainsKey(key))
                 {
-                    //other key was present in this object.
-                    //if we have a value, just ignore the other value, unless it is an object
-                    var thisItem = thisItems[otherItem.Key];
-
-                    //if both values are objects, merge them
-                    if (thisItem.IsObject() && otherItem.Value.IsObject())
+                    var thisItem = this[key];
+                    var otherItem = other[key];
+                    if (thisItem.Type == HoconType.Object && otherItem.Type == HoconType.Object)
                     {
-                        thisItem.GetObject().Merge(otherItem.Value.GetObject());
+                        thisItem.GetObject().Merge(otherItem.GetObject());
+                        continue;
                     }
                 }
-                else
+                this[key] = other[key];
+            }
+        }
+
+        internal void ResolveValue(HoconValue child)
+        {
+            if(child.Type != HoconType.Empty)
+                return;
+
+            foreach (var kvp in this.ToArray())
+            {
+                if (kvp.Value == child)
                 {
-                    //other key was not present in this object, just copy it over
-                    Items.Add(otherItem.Key,otherItem.Value);
+                    Remove(kvp.Key);
+                    return;
                 }
-            }            
+            }
+        }
+
+        /// <inheritdoc />
+        public IHoconElement Clone(IHoconElement newParent)
+        {
+            var clone = new HoconObject(newParent);
+            foreach (var kvp in this)
+            {
+                clone[kvp.Key] = (HoconValue)kvp.Value.Clone(this);
+            }
+            return clone;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Hocon.Tests
 array_1 : [1, 2, 3, ]
 array_2 : [1, 2, 3]
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.True(
                 config.GetIntList("array_1")
                 .SequenceEqual(config.GetIntList("array_2")));
@@ -47,7 +47,7 @@ array_1 : [
   3 ]
 array_2 : [1, 2, 3]
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.True(
                 config.GetIntList("array_1")
                     .SequenceEqual(config.GetIntList("array_2")));
@@ -57,33 +57,33 @@ array_2 : [1, 2, 3]
          * FACT:
          * [1, 2, 3,,] is invalid because it has two trailing commas.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleTrailingCommasInArray()
         {
             var hocon = @"array : [1, 2, 3,, ]";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
          * FACT:
          * [, 1, 2, 3] is invalid because it has an initial comma.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnIllegalCommaInFrontOfArray()
         {
             var hocon = @"array : [, 1, 2, 3]";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
          * FACT:
          * [1,, 2, 3] is invalid because it has two commas in a row.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleCommasInArray()
         {
             var hocon = @"array : [1,, 2, 3]";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
@@ -100,9 +100,9 @@ array_2 : [1, 2, 3]
             var hocon_1 = @"a:1, b:2, c:3,";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            using (var config_1 = ConfigurationFactory.ParseString(hocon_1).AsEnumerable().GetEnumerator())
+            using (var config_1 = HoconParser.Parse(hocon_1).AsEnumerable().GetEnumerator())
             {
-                using (var config_2 = ConfigurationFactory.ParseString(hocon_2).AsEnumerable().GetEnumerator())
+                using (var config_2 = HoconParser.Parse(hocon_2).AsEnumerable().GetEnumerator())
                 {
                     while (config_1.MoveNext())
                     {
@@ -127,9 +127,9 @@ b:2
 c:3";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            using (var config_1 = ConfigurationFactory.ParseString(hocon_1).AsEnumerable().GetEnumerator())
+            using (var config_1 = HoconParser.Parse(hocon_1).AsEnumerable().GetEnumerator())
             {
-                using (var config_2 = ConfigurationFactory.ParseString(hocon_2).AsEnumerable().GetEnumerator())
+                using (var config_2 = HoconParser.Parse(hocon_2).AsEnumerable().GetEnumerator())
                 {
                     while (config_1.MoveNext())
                     {
@@ -145,33 +145,33 @@ c:3";
          * FACT:
          * {a:1, b:2, c:3,,} is invalid because it has two trailing commas.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleTrailingCommas()
         {
             var hocon = @"{a:1, b:2, c:3,,}";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
          * FACT:
          * {, a:1, b:2, c:3} is invalid because it has an initial comma.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnIllegalCommaInFront()
         {
             var hocon = @"{, a:1, b:2, c:3}";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
 
         /*
          * FACT:
          * {a:1,, b:2, c:3} is invalid because it has two commas in a row.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleCommas()
         {
             var hocon = @"{a:1,, b:2, c:3}";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
         }
     }
 }

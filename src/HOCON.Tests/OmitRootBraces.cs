@@ -13,22 +13,22 @@ namespace Hocon.Tests
          * FACT:
          * Empty files are invalid documents.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void EmptyFilesShouldThrows()
         {
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(""));
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(null));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(""));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse(null));
         }
 
         /* 
          * FACT:
          * Files containing only a non-array non-object value such as a string are invalid.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void FileWithLiteralOnlyShouldThrows()
         {
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString("literal"));
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString("${?path}"));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse("literal"));
+            Assert.Throws<HoconParserException>(() => HoconParser.Parse("${?path}"));
         }
 
         /*
@@ -53,14 +53,14 @@ namespace Hocon.Tests
   },
   ""root_2"" : 1234
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
             Assert.True(config.GetBoolean("root.object.hasContent"));
             Assert.Null(config.GetString("root.null"));
             Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
+            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -80,14 +80,14 @@ namespace Hocon.Tests
   ""bool"" : true
 },
 ""root_2"" : 1234";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
             Assert.True(config.GetBoolean("root.object.hasContent"));
             Assert.Null(config.GetString("root.null"));
             Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
+            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -118,7 +118,7 @@ root {
 }
 root_2 = 1234
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
@@ -128,13 +128,13 @@ root_2 = 1234
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
+                new[] { 1, 2, 3, 4 }.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.True(
                 new[] { 1, 2, 3, 4 }.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetIntList("root.array-newline-element")));
+                    HoconParser.Parse(hocon).GetIntList("root.array-newline-element")));
             Assert.True(
                 new[] { "1 2 3 4" }.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetStringList("root.array-single-element")));
+                    HoconParser.Parse(hocon).GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -166,7 +166,7 @@ root_2 = 1234
   }
   root_2 : 1234
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
@@ -176,13 +176,13 @@ root_2 = 1234
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
+                new[] { 1, 2, 3, 4 }.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.True(
                 new[] { 1, 2, 3, 4 }.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetIntList("root.array-newline-element")));
+                    HoconParser.Parse(hocon).GetIntList("root.array-newline-element")));
             Assert.True(
                 new[] { "1 2 3 4" }.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetStringList("root.array-single-element")));
+                    HoconParser.Parse(hocon).GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -192,20 +192,20 @@ root_2 = 1234
          * the curly braces must be balanced.
          */
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnUnterminatedFile()
         {
             var hocon = "{ root { string : \"hello\" }";
             Assert.Throws<HoconParserException>(() =>
-                ConfigurationFactory.ParseString(hocon));
+                HoconParser.Parse(hocon));
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnInvalidTerminatedFile()
         {
             var hocon = "root { string : \"hello\" }}";
             Assert.Throws<HoconParserException>(() =>
-                ConfigurationFactory.ParseString(hocon));
+                HoconParser.Parse(hocon));
         }
 
         [Fact]
@@ -213,7 +213,7 @@ root_2 = 1234
         {
             var hocon = " root { string : \"hello\" ";
             Assert.Throws<HoconParserException>(() =>
-                ConfigurationFactory.ParseString(hocon));
+                HoconParser.Parse(hocon));
         }
 
         [Fact]
@@ -221,7 +221,7 @@ root_2 = 1234
         {
             var hocon = " root { bar { string : \"hello\" } ";
             Assert.Throws<HoconParserException>(() =>
-                ConfigurationFactory.ParseString(hocon));
+                HoconParser.Parse(hocon));
         }
 
     }

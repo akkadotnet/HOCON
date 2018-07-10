@@ -6,14 +6,13 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-#if NET45
-using System.Configuration;
-#endif
+using System.Threading.Tasks;
 
-namespace Hocon
+namespace Hocon.Configuration
 {
     /// <summary>
     /// This class contains methods used to retrieve configuration information
@@ -25,10 +24,7 @@ namespace Hocon
         /// <summary>
         /// Generates an empty configuration.
         /// </summary>
-        public static Config Empty
-        {
-            get { return ParseString(""); }
-        }
+        public static Config Empty => ParseString("{}");
 
         /// <summary>
         /// Generates a configuration defined in the supplied
@@ -37,9 +33,15 @@ namespace Hocon
         /// <param name="hocon">A string that contains configuration options to use.</param>
         /// <param name="includeCallback">callback used to resolve includes</param>
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
-        public static Config ParseString(string hocon, Func<string,HoconRoot> includeCallback)
+        public static Config ParseString(string hocon, HoconIncludeCallback includeCallback)
         {
-            HoconRoot res = Parser.Parse(hocon, includeCallback);
+            HoconRoot res = HoconParser.Parse(hocon, includeCallback);
+            return new Config(res);
+        }
+
+        public static async Task<Config> ParseStringAsync(string hocon, HoconIncludeCallbackAsync includeCallback)
+        {
+            HoconRoot res = await HoconParser.ParseAsync(hocon, includeCallback);
             return new Config(res);
         }
 
@@ -51,11 +53,14 @@ namespace Hocon
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
         public static Config ParseString(string hocon)
         {
-            //TODO: add default include resolver
             return ParseString(hocon, null);
         }
 
-#if NET45
+        public static async Task<Config> ParseStringAsync(string hocon)
+        {
+            return await ParseStringAsync(hocon, null);
+        }
+
         /// <summary>
         /// Loads a configuration named "akka" defined in the current application's
         /// configuration file, e.g. app.config or web.config.
@@ -85,8 +90,6 @@ namespace Hocon
    
            return config;
         }
-#endif
-
         /// <summary>
         /// Retrieves the default configuration that Akka.NET uses
         /// when no configuration has been defined.
@@ -154,11 +157,26 @@ namespace Hocon
                 using (var reader = new StreamReader(stream))
                 {
                     string result = reader.ReadToEnd();
-
                     return ParseString(result);
                 }
             }
         }
+
+        /*
+        public static async Task<Config> FromResourceAsync(string resourceName, Assembly assembly)
+        {
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                Debug.Assert(stream != null, "stream != null");
+                using (var reader = new StreamReader(stream))
+                {
+                    string result = await reader.ReadToEndAsync();
+                    return await ParseStringAsync(result);
+                }
+            }
+        }
+        */
+
     }
 }
 

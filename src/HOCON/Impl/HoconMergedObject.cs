@@ -4,12 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Hocon.Impl
+namespace Hocon
 {
-    public class HoconMergedObject : HoconObject
+    public class HoconMergedObject:HoconObject
     {
-        public HoconMergedObject(IHoconElement owner, List<HoconObject> objects):base(owner)
+        public IList<HoconObject> Objects { get; }
+
+        public HoconMergedObject(IHoconElement parent, IList<HoconObject> objects) : base(parent)
         {
+            Objects = objects;
             foreach (var obj in objects)
             {
                 Merge(obj);

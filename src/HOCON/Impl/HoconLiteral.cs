@@ -8,11 +8,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Hocon
 {
     /// <summary>
-    /// This class represents a string literal element in a HOCON (Human-Optimized Config Object Notation)
+    /// This class represents a literal element in a HOCON (Human-Optimized Config Object Notation)
     /// configuration string.
     /// <code>
     /// akka {  
@@ -22,65 +23,39 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconLiteral : IHoconElement
+    public abstract class HoconLiteral : IHoconElement
     {
-        public HoconLiteral(IHoconElement owner)
-        {
-            Owner = owner;
-        }
-
-        public IHoconElement Owner { get; }
-
-        public bool IsObject()
-        {
-            return false;
-        }
-
-        public HoconObject GetObject()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Determines whether this element is a string and all of its characters are whitespace characters.
-        /// </summary>
-        /// <returns><c>true</c> if every characters in value is whitespace characters; otherwise <c>false</c>.</returns>
-        public bool IsWhitespace()
-        {
-            return Value != null && Value.All(c => StringUtil.Whitespaces.Contains(c));
-        }
+        public IHoconElement Parent { get; }
+        public HoconType Type => HoconType.Literal;
+        public abstract HoconLiteralType LiteralType { get; }
 
         /// <summary>
         /// Gets or sets the value of this element.
         /// </summary>
-        public string Value { get; set; }
+        public virtual string Value { get; }
 
         /// <summary>
-        /// Determines whether this element is a string.
+        /// Retrieves the raw string representation of this element.
         /// </summary>
-        /// <returns><c>true</c></returns>
-        public bool IsString()
+        /// <returns>The raw value of this element.</returns>
+        public virtual string Raw => Value;
+
+        protected HoconLiteral(IHoconElement parent, string value)
         {
-            return true;
+            Parent = parent;
+            Value = value;
         }
 
-        /// <summary>
-        /// Retrieves the string representation of this element.
-        /// </summary>
-        /// <returns>The value of this element.</returns>
-        public string GetString()
-        {
-            return Value;
-        }
+        /// <inheritdoc />
+        /// <exception cref="T:Hocon.HoconException">
+        /// This element is a string literal. It is not an object.
+        /// Therefore this method will throw an exception.
+        /// </exception>
+        public HoconObject GetObject()
+            => throw new HoconException("Hocon literal could not be converted to object.");
 
-        /// <summary>
-        /// Determines whether this element is an array.
-        /// </summary>
-        /// <returns><c>false</c></returns>
-        public bool IsArray()
-        {
-            return false;
-        }
+        /// <inheritdoc />
+        public string GetString() => Value;
 
         /// <summary>
         /// Retrieves a list of elements associated with this element.
@@ -88,23 +63,142 @@ namespace Hocon
         /// <returns>
         /// A list of elements associated with this element.
         /// </returns>
-        /// <exception cref="System.NotImplementedException">
+        /// <exception cref="HoconException">
         /// This element is a string literal. It is not an array.
         /// Therefore this method will throw an exception.
         /// </exception>
         public IList<HoconValue> GetArray()
-        {
-            throw new NotSupportedException();
-        }
+            => throw new HoconException("Hocon literal could not be converted to array.");
 
         /// <summary>
         /// Returns the string representation of this element.
         /// </summary>
         /// <returns>The value of this element.</returns>
-        public override string ToString()
+        public override string ToString() => Raw;
+
+        /// <inheritdoc />
+        public string ToString(int indent, int indentSize)
+            => Raw;
+
+        public abstract IHoconElement Clone(IHoconElement newParent);
+
+        internal static HoconLiteral Create(IHoconElement owner, Token token)
         {
-            return Value;
+            switch (token.LiteralType)
+            {
+                case TokenLiteralType.Null:
+                    return (new HoconNull(owner));
+
+                case TokenLiteralType.Bool:
+                    return (new HoconBool(owner, token.Value));
+
+                case TokenLiteralType.Whitespace:
+                    return (new HoconWhitespace(owner, token.Value));
+
+                case TokenLiteralType.UnquotedLiteralValue:
+                    return (new HoconUnquotedString(owner, token.Value));
+
+                case TokenLiteralType.QuotedLiteralValue:
+                    return (new HoconQuotedString(owner, token.Value));
+
+                case TokenLiteralType.TripleQuotedLiteralValue:
+                    return (new HoconTripleQuotedString(owner, token.Value));
+
+                case TokenLiteralType.Long:
+                    return (new HoconLong(owner, token.Value));
+
+                case TokenLiteralType.Double:
+                    return (new HoconDouble(owner, token.Value));
+
+                default:
+                    throw new HoconException($"Unknown token literal type: {token.Value}");
+            }
+
         }
+    }
+
+    public class HoconNull : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Null;
+        public override string Raw => "null";
+        public override string Value => null;
+
+        public HoconNull(IHoconElement parent) : base(parent, "null") { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconNull(newParent);
+    }
+
+    public class HoconBool : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Bool;
+
+        public HoconBool(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconBool(newParent, Value);
+    }
+
+    public class HoconDouble : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Double;
+
+        public HoconDouble(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconDouble(newParent, Value);
+    }
+
+    public class HoconLong : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Long;
+
+        public HoconLong(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconLong(newParent, Value);
+    }
+
+    public class HoconUnquotedString : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.UnquotedString;
+
+        public HoconUnquotedString(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconUnquotedString(newParent, Value);
+    }
+
+    public class HoconQuotedString : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.QuotedString;
+        public override string Raw => "\"" + Value + "\"";
+
+        public HoconQuotedString(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconQuotedString(newParent, Value);
+    }
+
+    public class HoconTripleQuotedString : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.TripleQuotedString;
+        public override string Raw => "\"\"\"" + Value + "\"\"\"";
+
+        public HoconTripleQuotedString(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconTripleQuotedString(newParent, Value);
+    }
+
+    public class HoconWhitespace : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Whitespace;
+
+        public HoconWhitespace(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconWhitespace(newParent, Value);
     }
 }
 

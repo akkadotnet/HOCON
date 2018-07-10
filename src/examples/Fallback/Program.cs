@@ -7,6 +7,7 @@
 
 using System;
 using Hocon;
+using Hocon.Configuration;
 
 namespace Fallback
 {

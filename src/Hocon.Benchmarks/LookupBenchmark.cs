@@ -10,6 +10,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using Hocon.Benchmarks.Configs;
+using Hocon.Configuration;
 using BenchmarkConfig = BenchmarkDotNet.Attributes.ConfigAttribute;
 
 namespace Hocon.Benchmarks

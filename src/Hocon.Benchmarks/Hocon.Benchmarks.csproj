@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Hocon\Hocon.csproj" />
+    <ProjectReference Include="..\Hocon.Configuration\Hocon.Configuration.csproj" />
   </ItemGroup>
 
 </Project>

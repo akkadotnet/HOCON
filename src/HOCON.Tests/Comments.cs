@@ -22,8 +22,8 @@ namespace Hocon.Tests
 b = 2 // This should be ignored
 # This should be ignored
 c = 3 # This should be ignored";
-            Assert.Equal("2", ConfigurationFactory.ParseString(hocon).GetString("b"));
-            Assert.Equal("3", ConfigurationFactory.ParseString(hocon).GetString("c"));
+            Assert.Equal("2", HoconParser.Parse(hocon).GetString("b"));
+            Assert.Equal("3", HoconParser.Parse(hocon).GetString("c"));
         }
 
         [Fact]
@@ -33,8 +33,8 @@ c = 3 # This should be ignored";
 b = ""2 // This should not be ignored"" 
 c = ""3 # This should not be ignored"" 
 ";
-            Assert.Equal("2 // This should not be ignored", ConfigurationFactory.ParseString(hocon).GetString("b"));
-            Assert.Equal("3 # This should not be ignored", ConfigurationFactory.ParseString(hocon).GetString("c"));
+            Assert.Equal("2 // This should not be ignored", HoconParser.Parse(hocon).GetString("b"));
+            Assert.Equal("3 # This should not be ignored", HoconParser.Parse(hocon).GetString("c"));
         }
     }
 }

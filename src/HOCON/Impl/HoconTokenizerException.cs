@@ -2,10 +2,18 @@
 
 namespace Hocon
 {
-    public class HoconTokenizerException : Exception
+    public class HoconTokenizerException : Exception, IHoconLineInfo
     {
-        public HoconTokenizerException(string message) : base(message)
+        public int LineNumber { get; }
+        public int LinePosition { get; }
+        public string Value { get; }
+
+        internal HoconTokenizerException(string message, Token token) : base(message)
         {
+            LineNumber = token.LineNumber;
+            LinePosition = token.LinePosition;
+            Value = token.Value;
         }
+
     }
 }

@@ -40,7 +40,7 @@ root = {
 }
 root_2 : 1234
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
@@ -49,14 +49,9 @@ root_2 : 1234
             Assert.Equal("foo", config.GetString("root.quoted-string"));
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
-            Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("root.array")));
-            Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetIntList("root.array-newline-element")));
-            Assert.True(
-                new[] { "1 2 3 4" }.SequenceEqual(
-                    ConfigurationFactory.ParseString(hocon).GetStringList("root.array-single-element")));
+            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("root.array")));
+            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("root.array-newline-element")));
+            Assert.True(new[] { "1 2 3 4" }.SequenceEqual(config.GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -75,7 +70,7 @@ root_2 {
   unquoted-string = bar
 }
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("bar", config.GetString("root_2.unquoted-string"));
         }

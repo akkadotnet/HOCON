@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <DefineConstants>$(DefineConstants);CONFIGURATION;</DefineConstants>
+    <DefineConstants>$(DefineConstants);AKKA</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <DefineConstants>$(DefineConstants);AKKA</DefineConstants>
   </PropertyGroup>
 </Project>

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Hocon
 {
@@ -21,76 +22,67 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconArray : List<HoconValue>, IHoconElement
+    public sealed class HoconArray : List<IHoconElement>, IHoconElement
     {
-        public HoconArray(IHoconElement owner)
-        {
-            Owner = owner;
-        }
+        public IHoconElement Parent { get; }
+        public HoconType Type => HoconType.Array;
 
-        public IHoconElement Owner { get; }
-
-        public bool IsObject()
+        public HoconArray(IHoconElement parent)
         {
-            return false;
+            Parent = parent;
         }
 
         public HoconObject GetObject()
         {
-            throw new NotImplementedException();
+            throw new HoconException("Can not convert Hocon array into an object.");
         }
 
-        /// <summary>
-        /// Determines whether this element is a string and all of its characters are whitespace characters.
-        /// </summary>
-        /// <returns><c>false</c>.</returns>
-        public bool IsWhitespace()
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Determines whether this element is a string.
-        /// </summary>
-        /// <returns><c>false</c></returns>
-        public bool IsString()
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Retrieves the string representation of this element.
-        /// </summary>
-        /// <returns>
-        /// The string representation of this element.
-        /// </returns>
-        /// <exception cref="System.NotImplementedException">
+        /// <inheritdoc />
+        /// <exception cref="HoconException">
         /// This element is an array. It is not a string.
         /// Therefore this method will throw an exception.
         /// </exception>
         public string GetString()
         {
-            throw new NotSupportedException();
+            throw new HoconException("Can not convert Hocon array into a string.");
         }
 
-        /// <summary>
-        /// Determines whether this element is an array.
-        /// </summary>
-        /// <returns><c>true</c></returns>
-        public bool IsArray()
-        {
-            return true;
-        }
+        public string Raw
+            => throw new HoconException("Can not convert Hocon array into a string.");
 
-        /// <summary>
-        /// Retrieves a list of elements associated with this element.
-        /// </summary>
-        /// <returns>
-        /// A list of elements associated with this element.
-        /// </returns>
+        /// <inheritdoc />
         public IList<HoconValue> GetArray()
         {
-            return this;
+            var result = new List<HoconValue>();
+            foreach (var item in this)
+            {
+                switch (item) {
+                    case HoconValue value:
+                        result.Add(value);
+                        break;
+                    case HoconSubstitution sub:
+                        result.AddRange(sub.ResolvedValue.Values.Cast<HoconValue>());
+                        break;
+                    default:
+                        throw new HoconException("Unknown ");
+                }
+            }
+            return result;
+        }
+
+        internal void ResolveValue(HoconSubstitution sub)
+        {
+            if (sub.Type == HoconType.Empty)
+            {
+                Remove(sub);
+                return;
+            }
+
+            if (sub.Type != HoconType.Array)
+            {
+                throw HoconParserException.Create(sub, sub.Path,
+                    $"Substitution value must match the rest of the field type or empty. Parent value type: {Type}, substitution type: {sub.Type}");
+            }
         }
 
         /// <summary>
@@ -98,8 +90,18 @@ namespace Hocon
         /// </summary>
         /// <returns>A HOCON string representation of this element.</returns>
         public override string ToString()
+            => ToString(0, 2);
+
+        public string ToString(int indent, int indentSize)
         {
-            return "[" + string.Join(",", this) + "]";
+            return $"[{string.Join(", ", this)}]";
+        }
+
+        public IHoconElement Clone(IHoconElement newParent)
+        {
+            var clone = new HoconArray(newParent);
+            clone.AddRange(this);
+            return clone;
         }
     }
 }

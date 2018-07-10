@@ -21,7 +21,7 @@ namespace Hocon.Tests
         public void ShouldRemoveAllLeadingWhitespace()
         {
             var hocon = $"a = {Whitespace.Whitespaces}literal value";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal("literal value", config.GetString("a"));
         }
@@ -30,7 +30,7 @@ namespace Hocon.Tests
         public void ShouldRemoveAllTrailingWhitespace()
         {
             var hocon = $"a = literal value{Whitespace.Whitespaces}";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal("literal value", config.GetString("a"));
         }
@@ -45,7 +45,7 @@ namespace Hocon.Tests
         public void ShouldPreserveWhitespacesInTheMiddle()
         {
             var hocon = $"a = literal{Whitespace.Whitespaces}value";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal($"literal{Whitespace.Whitespaces}value", config.GetString("a"));
         }
