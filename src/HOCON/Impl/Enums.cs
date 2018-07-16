@@ -31,6 +31,8 @@ namespace Hocon
         TripleQuotedString,
         Bool,
         Long,
+        Hex,
+        Octal,
         Double,
     }
 }

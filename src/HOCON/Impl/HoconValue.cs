@@ -192,7 +192,23 @@ namespace Hocon
         /// <returns>The decimal value represented by this <see cref="HoconValue"/>.</returns>
         public decimal GetDecimal()
         {
-            return decimal.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            switch (value)
+            {
+                case "Infinity":
+                case "-Infinity":
+                case "NaN":
+                    throw new HoconException($"Could not convert `{value}` to decimal. Decimal does not support Infinity and NaN");
+                default:
+                    try
+                    {
+                        return decimal.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new HoconException($"Could not convert `{value}` to decimal.", e);
+                    }
+            }
         }
 
         /// <summary>
@@ -201,7 +217,25 @@ namespace Hocon
         /// <returns>The float value represented by this <see cref="HoconValue"/>.</returns>
         public float GetFloat()
         {
-            return float.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            switch (value)
+            {
+                case "Infinity":
+                    return float.PositiveInfinity;
+                case "-Infinity":
+                    return float.NegativeInfinity;
+                case "NaN":
+                    return float.NaN;
+                default:
+                    try
+                    {
+                        return float.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new HoconException($"Could not convert `{value}` to float.", e);
+                    }
+            }
         }
 
         /// <summary>
@@ -210,7 +244,25 @@ namespace Hocon
         /// <returns>The double value represented by this <see cref="HoconValue"/>.</returns>
         public double GetDouble()
         {
-            return double.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            switch (value)
+            {
+                case "Infinity":
+                    return double.PositiveInfinity;
+                case "-Infinity":
+                    return double.NegativeInfinity;
+                case "NaN":
+                    return double.NaN;
+                default:
+                    try
+                    {
+                        return double.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new HoconException($"Could not convert `{value}` to double.", e);
+                    }
+            }
         }
 
         /// <summary>
@@ -219,7 +271,39 @@ namespace Hocon
         /// <returns>The long value represented by this <see cref="HoconValue"/>.</returns>
         public long GetLong()
         {
-            return long.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            if (value.StartsWith("0x"))
+            {
+                try
+                {
+                    return Convert.ToInt64(value, 16);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                }
+            }
+
+            if (value.StartsWith("0"))
+            {
+                try
+                {
+                    return Convert.ToInt64(value, 8);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                }
+            }
+
+            try
+            {
+                return long.Parse(value, NumberStyles.Integer);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+            }
         }
 
         /// <summary>
@@ -228,7 +312,39 @@ namespace Hocon
         /// <returns>The integer value represented by this <see cref="HoconValue"/>.</returns>
         public int GetInt()
         {
-            return int.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            if (value.StartsWith("0x"))
+            {
+                try
+                {
+                    return Convert.ToInt32(value, 16);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                }
+            }
+
+            if (value.StartsWith("0"))
+            {
+                try
+                {
+                    return Convert.ToInt32(value, 8);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                }
+            }
+
+            try
+            {
+                return int.Parse(value, NumberStyles.Integer);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+            }
         }
 
         /// <summary>
@@ -237,7 +353,39 @@ namespace Hocon
         /// <returns>The byte value represented by this <see cref="HoconValue"/>.</returns>
         public byte GetByte()
         {
-            return byte.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            if (value.StartsWith("0x"))
+            {
+                try
+                {
+                    return Convert.ToByte(value, 16);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                }
+            }
+
+            if (value.StartsWith("0"))
+            {
+                try
+                {
+                    return Convert.ToByte(value, 8);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                }
+            }
+
+            try
+            {
+                return byte.Parse(value, NumberStyles.Integer);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+            }
         }
 
         /// <summary>

@@ -287,6 +287,50 @@ a.b.e.f=3
         }
 
         [Fact]
+        public void CanAssignNumbersToField()
+        {
+            var hocon = @"
+a = 1000.05
+b = Infinity
+c = -Infinity
+d = +Infinity
+e = NaN
+f = 255
+g = 0xff
+h = 0377
+";
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal(1000.05, config.GetDouble("a"));
+            Assert.Equal(double.PositiveInfinity, config.GetDouble("b"));
+            Assert.Equal(double.NegativeInfinity, config.GetDouble("c"));
+            Assert.Equal(double.PositiveInfinity, config.GetDouble("d"));
+            Assert.Equal(double.NaN, config.GetDouble("e"));
+
+            Assert.Equal(1000.05f, config.GetFloat("a"));
+            Assert.Equal(float.PositiveInfinity, config.GetFloat("b"));
+            Assert.Equal(float.NegativeInfinity, config.GetFloat("c"));
+            Assert.Equal(float.PositiveInfinity, config.GetFloat("d"));
+            Assert.Equal(float.NaN, config.GetFloat("e"));
+
+            Assert.Equal(1000.05m, config.GetDecimal("a"));
+            Assert.Throws<HoconException>(() => config.GetDecimal("b"));
+            Assert.Throws<HoconException>(() => config.GetDecimal("c"));
+            Assert.Throws<HoconException>(() => config.GetDecimal("d"));
+
+            Assert.Equal(255, config.GetLong("f"));
+            Assert.Equal(255, config.GetLong("g"));
+            Assert.Equal(255, config.GetLong("h"));
+
+            Assert.Equal(255, config.GetInt("f"));
+            Assert.Equal(255, config.GetInt("g"));
+            Assert.Equal(255, config.GetInt("h"));
+
+            Assert.Equal(255, config.GetByte("f"));
+            Assert.Equal(255, config.GetByte("g"));
+            Assert.Equal(255, config.GetByte("h"));
+        }
+
+        [Fact]
         public void CanAssignNullToField()
         {
             var hocon = @"a=null";

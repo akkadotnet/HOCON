@@ -107,6 +107,12 @@ namespace Hocon
                 case TokenLiteralType.Long:
                     return (new HoconLong(owner, token.Value));
 
+                case TokenLiteralType.Hex:
+                    return (new HoconHex(owner, token.Value));
+
+                case TokenLiteralType.Octal:
+                    return (new HoconOctal(owner, token.Value));
+
                 case TokenLiteralType.Double:
                     return (new HoconDouble(owner, token.Value));
 
@@ -157,6 +163,26 @@ namespace Hocon
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconLong(newParent, Value);
+    }
+
+    public class HoconHex : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Hex;
+
+        public HoconHex(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconHex(newParent, Value);
+    }
+
+    public class HoconOctal : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Long;
+
+        public HoconOctal(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconOctal(newParent, Value);
     }
 
     public class HoconUnquotedString : HoconLiteral

@@ -515,7 +515,6 @@ namespace Hocon
         private bool PullSubstitution(HoconTokenizerResult tokens)
         {
             bool questionMarked = false;
-            int start = Index;
             if (Matches("${?"))
             {
                 Take(3);
@@ -549,7 +548,6 @@ namespace Hocon
             if (!Peek().IsWhitespaceWithNoNewLine())
                 return false;
 
-            int start = Index;
             var sb = new StringBuilder();
             while (Peek().IsWhitespaceWithNoNewLine())
             {
@@ -662,12 +660,13 @@ namespace Hocon
 
         private bool PullHexadecimal(HoconTokenizerResult tokens)
         {
-            if (!Matches("0x", "0X"))
+            if (!Matches("0x", "0X", "&h", "&H"))
                 return false;
 
             PushIndex();
             var sb = new StringBuilder();
-            sb.Append(Take(2));
+            Take(2);
+            sb.Append("0x");
 
             while (Peek().IsHexadecimal())
             {
@@ -684,7 +683,7 @@ namespace Hocon
             }
 
             PopIndex();
-            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Hex, this));
             return true;
         }
 
@@ -709,7 +708,7 @@ namespace Hocon
             }
 
             PopIndex();
-            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Octal, this));
             return true;
         }
 

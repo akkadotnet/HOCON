@@ -235,6 +235,18 @@ namespace Hocon
             return value.GetLong();
         }
 
+        public byte GetByte(string path, byte @default = 0)
+            => GetByte(HoconPath.Parse(path), @default);
+
+        public byte GetByte(HoconPath path, byte @default = 0)
+        {
+            HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                return @default;
+
+            return value.GetByte();
+        }
+
         /// <summary>
         /// Retrieves a float value from the specified path in the configuration.
         /// </summary>

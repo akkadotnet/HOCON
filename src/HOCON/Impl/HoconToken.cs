@@ -124,6 +124,8 @@ namespace Hocon
         TripleQuotedLiteralValue,
         Bool,
         Long,
+        Hex,
+        Octal,
         Double,
     }
 

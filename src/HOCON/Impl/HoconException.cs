@@ -2,7 +2,7 @@
 
 namespace Hocon
 {
-    class HoconException:Exception
+    public class HoconException:Exception
     {
         public HoconException(string message):base(message)
         { }
