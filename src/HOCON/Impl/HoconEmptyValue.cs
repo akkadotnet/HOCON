@@ -19,7 +19,7 @@ namespace Hocon
 
         public override HoconType Type => HoconType.Empty;
 
-        public override List<IHoconElement> Values => new List<IHoconElement>(); 
+        public override IList<IHoconElement> Values => new List<IHoconElement>().AsReadOnly();
 
         public override HoconObject GetObject() => new HoconObject(Parent);
 

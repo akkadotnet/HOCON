@@ -17,40 +17,45 @@ namespace Hocon
     /// </summary>
     public class HoconRoot
     {
+        internal static readonly HoconRoot Empty = new HoconRoot(new HoconEmptyValue(null));
+
         /// <summary>
         /// Retrieves the value associated with this element.
         /// </summary>
-        public HoconValue Value { get; }
+        public HoconValue Value { get; protected set; }
 
         /// <summary>
         /// Retrieves an enumeration of substitutions associated with this element.
         /// </summary>
         public IEnumerable<HoconSubstitution> Substitutions { get; }
 
-        internal static readonly HoconRoot Empty = new HoconRoot(new HoconValue(null));
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="HoconRoot"/> class.
+        /// Determines if this root node contains any values
         /// </summary>
+        public bool IsEmpty => ReferenceEquals(this, Empty) || Value == null || Value.Type == HoconType.Empty;
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:Hocon.HoconRoot" /> class.
+        /// </summary>
+        public HoconRoot() : this(new HoconEmptyValue(null), Enumerable.Empty<HoconSubstitution>())
+        { }
+
+        /// <inheritdoc cref="HoconRoot()"/>
+        /// <param name="value">The value to associate with this element.</param>
+        public HoconRoot(HoconValue value) : this(value, Enumerable.Empty<HoconSubstitution>())
+        { }
+
+        /// <inheritdoc cref="HoconRoot()"/>
         /// <param name="value">The value to associate with this element.</param>
         /// <param name="substitutions">An enumeration of substitutions to associate with this element.</param>
-        internal HoconRoot(HoconValue value, IEnumerable<HoconSubstitution> substitutions)
+        public HoconRoot(HoconValue value, IEnumerable<HoconSubstitution> substitutions)
         {
             Value = value;
             Substitutions = substitutions;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HoconRoot"/> class.
-        /// </summary>
-        /// <param name="value">The value to associate with this element.</param>
-        public HoconRoot(HoconValue value)
-        {
-            Value = value;
-            Substitutions = Enumerable.Empty<HoconSubstitution>();
-        }
-
-        private HoconValue GetNode(HoconPath path)
+        protected virtual HoconValue GetNode(HoconPath path)
         {
             HoconValue currentNode = Value;
             if (currentNode == null)
@@ -81,8 +86,62 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The location to check for a configuration value.</param>
         /// <returns><c>true</c> if a value was found, <c>false</c> otherwise.</returns>
-        public virtual bool HasPath(HoconPath path)
+        public bool HasPath(HoconPath path)
             => !ReferenceEquals(GetNode(path), HoconValue.Undefined);
+
+        /// <summary>
+        /// Normalize the values inside all Hocon fields to the simplest value possible under Hocon spec.
+        /// NOTE: You might not be able to reproduce a clean reproduction of the original configuration file after this normalization.
+        /// </summary>
+        public void Normalize()
+        {
+            Flatten(Value);
+        }
+
+        private static void Flatten(IHoconElement node)
+        {
+            if (!(node is HoconValue v))
+                return;
+
+            switch (v.Type)
+            {
+                case HoconType.Object:
+                    var o = v.GetObject();
+                    v.Values.Clear();
+                    v.Values.Add(o);
+                    foreach (var item in o.Values)
+                        Flatten(item);
+                    break;
+
+                case HoconType.Array:
+                    var a = v.GetArray();
+                    v.Values.Clear();
+                    var newArray = new HoconArray(v);
+                    foreach (var item in a)
+                    {
+                        Flatten(item);
+                        newArray.Add(item);
+                    }
+                    v.Values.Add(newArray);
+                    break;
+
+                case HoconType.Literal:
+                    if (v.Values.Count == 1)
+                        return;
+
+                    var value = v.GetString();
+                    v.Values.Clear();
+                    if (value == null)
+                        v.Values.Add(new HoconNull(v));
+                    else if (value.NeedTripleQuotes())
+                        v.Values.Add(new HoconTripleQuotedString(v, value));
+                    else if (value.NeedQuotes())
+                        v.Values.Add(new HoconQuotedString(v, value));
+                    else
+                        v.Values.Add(new HoconUnquotedString(v, value));
+                    break;
+            }
+        }
 
         #region Value getter methods
 
@@ -96,13 +155,10 @@ namespace Hocon
             => GetString(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetString(string,string)"/>
-        public virtual string GetString(HoconPath path, string @default = null)
+        public string GetString(HoconPath path, string @default = null)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetString();
+            var value = GetNode(path);
+            return ReferenceEquals(value, HoconValue.Undefined) ? @default : value.GetString();
         }
 
         /// <summary>
@@ -115,7 +171,7 @@ namespace Hocon
             => GetBoolean(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetBoolean(string,bool)"/>
-        public virtual bool GetBoolean(HoconPath path, bool @default = false)
+        public bool GetBoolean(HoconPath path, bool @default = false)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -133,7 +189,7 @@ namespace Hocon
             => GetByteSize(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetByteSize(string)"/>
-        public virtual long? GetByteSize(HoconPath path)
+        public long? GetByteSize(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -151,7 +207,7 @@ namespace Hocon
             => GetInt(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetInt(string,int)"/>
-        public virtual int GetInt(HoconPath path, int @default = 0)
+        public int GetInt(HoconPath path, int @default = 0)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -170,7 +226,7 @@ namespace Hocon
             => GetLong(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetLong(string,long)"/>
-        public virtual long GetLong(HoconPath path, long @default = 0)
+        public long GetLong(HoconPath path, long @default = 0)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -189,7 +245,7 @@ namespace Hocon
             => GetFloat(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetFloat(string,float)"/>
-        public virtual float GetFloat(HoconPath path, float @default = 0)
+        public float GetFloat(HoconPath path, float @default = 0)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -208,7 +264,7 @@ namespace Hocon
             => GetDecimal(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetDecimal(string,decimal)"/>
-        public virtual decimal GetDecimal(HoconPath path, decimal @default = 0)
+        public decimal GetDecimal(HoconPath path, decimal @default = 0)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -227,7 +283,7 @@ namespace Hocon
             => GetDouble(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetDouble(string,double)"/>
-        public virtual double GetDouble(HoconPath path, double @default = 0)
+        public double GetDouble(HoconPath path, double @default = 0)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -245,7 +301,7 @@ namespace Hocon
             => GetBooleanList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetBooleanList(string)"/>
-        public virtual IList<Boolean> GetBooleanList(HoconPath path)
+        public IList<Boolean> GetBooleanList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -263,7 +319,7 @@ namespace Hocon
             => GetDecimalList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetDecimalList(string)"/>
-        public virtual IList<decimal> GetDecimalList(HoconPath path)
+        public IList<decimal> GetDecimalList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -281,7 +337,7 @@ namespace Hocon
             => GetFloatList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetFloatList(string)"/>
-        public virtual IList<float> GetFloatList(HoconPath path)
+        public IList<float> GetFloatList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -299,7 +355,7 @@ namespace Hocon
             => GetDoubleList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetDoubleList(string)"/>
-        public virtual IList<double> GetDoubleList(HoconPath path)
+        public IList<double> GetDoubleList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -317,7 +373,7 @@ namespace Hocon
             => GetIntList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetIntList(string)"/>
-        public virtual IList<int> GetIntList(HoconPath path)
+        public IList<int> GetIntList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -335,7 +391,7 @@ namespace Hocon
             => GetLongList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetLongList(string)"/>
-        public virtual IList<long> GetLongList(HoconPath path)
+        public IList<long> GetLongList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -353,7 +409,7 @@ namespace Hocon
             => GetByteList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetByteList(string)"/>
-        public virtual IList<byte> GetByteList(HoconPath path)
+        public IList<byte> GetByteList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -371,7 +427,7 @@ namespace Hocon
             => GetStringList(HoconPath.Parse(path));
 
         /// <inheritdoc cref="GetStringList(string)"/>
-        public virtual IList<string> GetStringList(HoconPath path)
+        public IList<string> GetStringList(HoconPath path)
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
@@ -395,6 +451,16 @@ namespace Hocon
             return value;
         }
 
+        [Obsolete("Use GetTimeSpan instead")]
+        public TimeSpan GetMillisDuration(string path, TimeSpan? @default = null, bool allowInfinite = true)
+            => GetMillisDuration(HoconPath.Parse(path), @default, allowInfinite);
+
+        [Obsolete("Use GetTimeSpan instead")]
+        public TimeSpan GetMillisDuration(HoconPath path, TimeSpan? @default = null, bool allowInfinite = true)
+        {
+            return GetTimeSpan(path, @default, allowInfinite);
+        }
+
         /// <summary>
         /// Retrieves a <see cref="TimeSpan"/> value from the specified path in the configuration.
         /// </summary>
@@ -402,11 +468,11 @@ namespace Hocon
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <param name="allowInfinite"><c>true</c> if infinite timespans are allowed; otherwise <c>false</c>.</param>
         /// <returns>The <see cref="TimeSpan"/> value defined in the specified path.</returns>
-        public virtual TimeSpan GetTimeSpan(string path, TimeSpan? @default = null, bool allowInfinite = true)
+        public TimeSpan GetTimeSpan(string path, TimeSpan? @default = null, bool allowInfinite = true)
             => GetTimeSpan(HoconPath.Parse(path), @default, allowInfinite);
 
         /// <inheritdoc cref="GetTimeSpan(string,System.Nullable{System.TimeSpan},bool)"/>
-        public virtual TimeSpan GetTimeSpan(HoconPath path, TimeSpan? @default = null, bool allowInfinite = true)
+        public TimeSpan GetTimeSpan(HoconPath path, TimeSpan? @default = null, bool allowInfinite = true)
         {
             HoconValue value = GetNode(path);
             if (value == null)

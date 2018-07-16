@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -48,11 +47,11 @@ namespace Hocon
         /// <summary>
         /// The list of elements inside this HOCON value
         /// </summary>
-        public virtual List<IHoconElement> Values { get; } = new List<IHoconElement>();
+        public virtual IList<IHoconElement> Values { get; } = new List<IHoconElement>();
 
-        internal List<IHoconElement> OldValues { get; } = new List<IHoconElement>();
+        internal IList<IHoconElement> OldValues { get; } = new List<IHoconElement>();
 
-        public ReadOnlyCollection<IHoconElement> Childrens => Values.AsReadOnly();
+        public ReadOnlyCollection<IHoconElement> Childrens => Values.ToList().AsReadOnly();
 
         /// <summary>
         /// Merge an <see cref="IHoconElement"/> into this <see cref="HoconValue"/>.
@@ -81,7 +80,10 @@ namespace Hocon
         {
             // save old values because it might need to be restored later.
             OldValues.Clear();
-            OldValues.AddRange(new List<IHoconElement>(Values));
+            foreach (var value in Values)
+            {
+                OldValues.Add(value);
+            }
             Values.Clear();
             Type = HoconType.Empty;
         }
@@ -391,7 +393,10 @@ namespace Hocon
                 Values.Remove(child);
                 if (Values.Count == 0 && HasOldValues)
                 {
-                    Values.AddRange(OldValues);
+                    foreach (var value in OldValues)
+                    {
+                        Values.Add(value);
+                    }
                     OldValues.Clear();
                     foreach (var item in Values)
                     {
