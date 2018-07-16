@@ -205,7 +205,7 @@ namespace Hocon
         public HoconTokenizerResult Tokenize()
         {
             var tokens = Tokenize(TokenType.EndOfFile);
-            tokens.Add(new Token(TokenType.EndOfFile, this, Index, 0));
+            tokens.Add(new Token("", TokenType.EndOfFile, this));
             return tokens;
         }
 
@@ -274,7 +274,7 @@ namespace Hocon
                 if (PullLiteral(tokens))
                     continue;
 
-                throw new HoconTokenizerException($"Invalid token {GetHelpTextAtIndex(Index)}", Token.Error(this, Index, 0));
+                throw new HoconTokenizerException($"Invalid token {GetHelpTextAtIndex(Index)}", Token.Error(this));
             }
 
             if(closingTokenType != TokenType.EndOfFile)
@@ -292,7 +292,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.EndOfArray, this, Index - 1, 1));
+            tokens.Add(new Token("]", TokenType.EndOfArray, this));
             return true;
         }
 
@@ -306,7 +306,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.StartOfArray, this, Index - 1, 1));
+            tokens.Add(new Token("[", TokenType.StartOfArray, this));
             return true;
         }
 
@@ -316,7 +316,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.ParenthesisStart, this, Index - 1, 1));
+            tokens.Add(new Token("(", TokenType.ParenthesisStart, this));
             return true;
         }
 
@@ -326,7 +326,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.ParenthesisEnd, this, Index - 1, 1));
+            tokens.Add(new Token(")", TokenType.ParenthesisEnd, this));
             return true;
         }
 
@@ -336,7 +336,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.EndOfLine, this, Index - 1, 1));
+            tokens.Add(new Token("\n", TokenType.EndOfLine, this));
             return true;
         }
 
@@ -350,7 +350,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(",", TokenType.Comma, TokenLiteralType.UnquotedLiteralValue, this, Index - 1, 1));
+            tokens.Add(new Token(",", TokenType.Comma, TokenLiteralType.UnquotedLiteralValue, this));
             return true;
         }
 
@@ -364,7 +364,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.StartOfObject, this, Index - 1, 1));
+            tokens.Add(new Token("{", TokenType.StartOfObject, this));
             return true;
         }
 
@@ -378,7 +378,7 @@ namespace Hocon
                 return false;
 
             Take();
-            tokens.Add(new Token(TokenType.EndOfObject, this, Index - 1, 1));
+            tokens.Add(new Token("}", TokenType.EndOfObject, this));
             return true;
         }
 
@@ -391,8 +391,8 @@ namespace Hocon
             if (!Matches(':', '='))
                 return false;
 
-            Take();
-            tokens.Add(new Token(TokenType.Assign, this, Index - 1, 1));
+            var c = Take();
+            tokens.Add(new Token(c.ToString(), TokenType.Assign, this));
             return true;
         }
 
@@ -405,11 +405,10 @@ namespace Hocon
             if (!Matches("//", "#"))
                 return false;
 
-            int start = Index;
-            DiscardRestOfLine();
+            var comment = DiscardRestOfLine();
 
             //tokens.Add(new Token(TokenType.Comment, this, start, Index - start));
-            tokens.Add(new Token(TokenType.EndOfLine, this, Index-1, 1));
+            tokens.Add(new Token(comment, TokenType.EndOfLine, this));
             return true;
         }
 
@@ -418,9 +417,8 @@ namespace Hocon
             if (!Matches("include"))
                 return false;
 
-            int start = Index;
             Take("include".Length);
-            tokens.Add(new Token(TokenType.Include, this, start, Index - start));
+            tokens.Add(new Token("include", TokenType.Include, this));
             PullWhitespaces();
 
             return true;
@@ -428,12 +426,11 @@ namespace Hocon
 
         private bool PullRequired(HoconTokenizerResult tokens)
         {
-            if (!Matches("required("))
+            if (!Matches("required"))
                 return false;
 
-            var start = Index;
             Take("required".Length);
-            tokens.Add(new Token(TokenType.Required, this, start, Index - start));
+            tokens.Add(new Token("required", TokenType.Required, this));
             PullWhitespaces();
             return true;
 
@@ -441,36 +438,33 @@ namespace Hocon
 
         private bool PullUrlInclude(HoconTokenizerResult tokens)
         {
-            if (!Matches("url("))
+            if (!Matches("url"))
                 return false;
 
-            var start = Index;
             Take("url".Length);
-            tokens.Add(new Token(TokenType.Url, this, start, Index - start));
+            tokens.Add(new Token("url", TokenType.Url, this));
             PullWhitespaces();
             return true;
         }
 
         private bool PullFileInclude(HoconTokenizerResult tokens)
         {
-            if (!Matches("file("))
+            if (!Matches("file"))
                 return false;
 
-            var start = Index;
             Take("file".Length);
-            tokens.Add(new Token(TokenType.File, this, start, Index - start));
+            tokens.Add(new Token("file", TokenType.File, this));
             PullWhitespaces();
             return true;
         }
 
         private bool PullResourceInclude(HoconTokenizerResult tokens)
         {
-            if (!Matches("classpath("))
+            if (!Matches("classpath"))
                 return false;
 
-            var start = Index;
             Take("classpath".Length);
-            tokens.Add(new Token(TokenType.Classpath, this, start, Index - start));
+            tokens.Add(new Token("classpath", TokenType.Classpath, this));
             PullWhitespaces();
             return true;
         }
@@ -507,10 +501,10 @@ namespace Hocon
                     }
                     catch
                     {
-                        throw new HoconTokenizerException($"Invalid unicode escape code `{escaped}` {GetHelpTextAtIndex(start)}", Token.Error(this, start, 0));
+                        throw new HoconTokenizerException($"Invalid unicode escape code `{escaped}` {GetHelpTextAtIndex(start)}", Token.Error(this));
                     }
                 default:
-                    throw new HoconTokenizerException($"Unknown escape code `{escaped}` {GetHelpTextAtIndex(start)}", Token.Error(this, start, 0));
+                    throw new HoconTokenizerException($"Unknown escape code `{escaped}` {GetHelpTextAtIndex(start)}", Token.Error(this));
             }
         }
 
@@ -543,10 +537,10 @@ namespace Hocon
             }
 
             if (EoF)
-                throw new HoconTokenizerException("Expected end of substitution but found EoF", Token.Error(this, Index, 0));
+                throw new HoconTokenizerException("Expected end of substitution but found EoF", Token.Error(this));
             Take();
 
-            tokens.Add(Token.Substitution(sb.ToString().TrimWhitespace(), this, start, Index - start, questionMarked));
+            tokens.Add(Token.Substitution(sb.ToString().TrimWhitespace(), this, questionMarked));
             return true;
         }
 
@@ -561,7 +555,7 @@ namespace Hocon
             {
                 sb.Append(Take());
             }
-            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Whitespace, this, start, Index - start));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Whitespace, this));
             return true;
         }
 
@@ -574,7 +568,7 @@ namespace Hocon
                 case '"':
                     if (PullTripleQuotedText(tokens) || PullQuotedText(tokens))
                         return true;
-                    throw new HoconTokenizerException("Expected closing quote.", new Token(TokenType.Error, this, Index, 0));
+                    throw new HoconTokenizerException("Expected closing quote.", Token.Error(this));
                 case '-':
                 case '+':
                     return PullInfinity(tokens) ||
@@ -623,33 +617,31 @@ namespace Hocon
             if (!Matches("null"))
                 return false;
 
-            var start = Index;
             Take(4);
-            tokens.Add(Token.LiteralValue("null", TokenLiteralType.Null, this, start, Index - start));
+            tokens.Add(Token.LiteralValue("null", TokenLiteralType.Null, this));
             return true;
         }
 
         private bool PullInfinity(HoconTokenizerResult tokens)
         {
-            var start = Index;
             if (Matches("-Infinity"))
             {
                 Take("-Infinity".Length);
-                tokens.Add(Token.LiteralValue("-Infinity", TokenLiteralType.Double, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("-Infinity", TokenLiteralType.Double, this));
                 return true;
             }
 
             if (Matches("Infinity"))
             {
                 Take("Infinity".Length);
-                tokens.Add(Token.LiteralValue("Infinity", TokenLiteralType.Double, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("Infinity", TokenLiteralType.Double, this));
                 return true;
             }
 
             if (Matches("+Infinity"))
             {
                 Take("+Infinity".Length);
-                tokens.Add(Token.LiteralValue("+Infinity", TokenLiteralType.Double, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("Infinity", TokenLiteralType.Double, this));
                 return true;
             }
 
@@ -658,11 +650,10 @@ namespace Hocon
 
         private bool PullNaN(HoconTokenizerResult tokens)
         {
-            var start = Index;
             if (Matches("NaN"))
             {
                 Take(3);
-                tokens.Add(Token.LiteralValue("NaN", TokenLiteralType.Double, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("NaN", TokenLiteralType.Double, this));
                 return true;
             }
 
@@ -671,8 +662,6 @@ namespace Hocon
 
         private bool PullHexadecimal(HoconTokenizerResult tokens)
         {
-            var start = Index;
-
             if (!Matches("0x", "0X"))
                 return false;
 
@@ -695,14 +684,12 @@ namespace Hocon
             }
 
             PopIndex();
-            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this, start, Index - start));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this));
             return true;
         }
 
         private bool PullOctal(HoconTokenizerResult tokens)
         {
-            var start = Index;
-
             PushIndex();
             var sb = new StringBuilder();
             sb.Append(Take());
@@ -722,7 +709,7 @@ namespace Hocon
             }
 
             PopIndex();
-            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this, start, Index - start));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this));
             return true;
         }
 
@@ -735,7 +722,6 @@ namespace Hocon
 
         private bool PullNumbers(HoconTokenizerResult tokens)
         {
-            var start = Index;
             var sb = new StringBuilder();
 
             // Parse numbers
@@ -777,7 +763,7 @@ namespace Hocon
                         }
                         PopIndex(); // end long test index
 
-                        lastValidToken = Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this, start, Index - start);
+                        lastValidToken = Token.LiteralValue(sb.ToString(), TokenLiteralType.Long, this);
                         state = NumberTokenizerState.Significand;
                         break;
 
@@ -812,7 +798,7 @@ namespace Hocon
                         }
                         PopIndex(); // end validate significand in number test
 
-                        lastValidToken = Token.LiteralValue(sb.ToString(), TokenLiteralType.Double, this, start, Index - start);
+                        lastValidToken = Token.LiteralValue(sb.ToString(), TokenLiteralType.Double, this);
                         state = NumberTokenizerState.Exponent;
                         break;
 
@@ -849,7 +835,7 @@ namespace Hocon
                         }
                         PopIndex(); // end validate exponent
 
-                        lastValidToken = Token.LiteralValue(sb.ToString(), TokenLiteralType.Double, this, start, Index - start);
+                        lastValidToken = Token.LiteralValue(sb.ToString(), TokenLiteralType.Double, this);
                         parsing = false;
                         break;
                 }
@@ -864,42 +850,41 @@ namespace Hocon
 
         private bool PullBool(HoconTokenizerResult tokens)
         {
-            var start = Index;
             if (Matches("true"))
             {
                 Take(4);
-                tokens.Add(Token.LiteralValue("true", TokenLiteralType.Bool, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("true", TokenLiteralType.Bool, this));
                 return true;
             }
             if (Matches("yes"))
             {
                 Take(3);
-                tokens.Add(Token.LiteralValue("yes", TokenLiteralType.Bool, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("yes", TokenLiteralType.Bool, this));
                 return true;
             }
             if (Matches("on"))
             {
                 Take(2);
-                tokens.Add(Token.LiteralValue("on", TokenLiteralType.Bool, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("on", TokenLiteralType.Bool, this));
                 return true;
             }
 
             if (Matches("false"))
             {
                 Take(5);
-                tokens.Add(Token.LiteralValue("false", TokenLiteralType.Bool, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("false", TokenLiteralType.Bool, this));
                 return true;
             }
             if (Matches("no"))
             {
                 Take(2);
-                tokens.Add(Token.LiteralValue("no", TokenLiteralType.Bool, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("no", TokenLiteralType.Bool, this));
                 return true;
             }
             if (Matches("off"))
             {
                 Take(3);
-                tokens.Add(Token.LiteralValue("off", TokenLiteralType.Bool, this, start, start - Index));
+                tokens.Add(Token.LiteralValue("off", TokenLiteralType.Bool, this));
                 return true;
             }
             return false;
@@ -910,14 +895,13 @@ namespace Hocon
             if (!IsUnquotedText())
                 return false;
 
-            int start = Index;
             var sb = new StringBuilder();
             while (!EoF && IsUnquotedText())
             {
                 sb.Append(Take());
             }
 
-            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.UnquotedLiteralValue, this, start, Index - start));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.UnquotedLiteralValue, this));
             return true;
         }
 
@@ -930,7 +914,6 @@ namespace Hocon
             if (!Matches('\"', '\''))
                 return false;
 
-            int start = Index;
             var sb = new StringBuilder();
             Take();
             while (!EoF && !Matches('\"', '\''))
@@ -946,10 +929,10 @@ namespace Hocon
             }
 
             if (EoF)
-                throw new HoconTokenizerException($"Expected end of quoted string {GetHelpTextAtIndex(Index)}", Token.Error(this, Index, 0));
+                throw new HoconTokenizerException($"Expected end of quoted string {GetHelpTextAtIndex(Index)}", Token.Error(this));
             Take();
 
-            tokens.Add(Token.QuotedLiteralValue(sb.ToString(), this, start, Index - start));
+            tokens.Add(Token.QuotedLiteralValue(sb.ToString(), this));
             return true;
         }
 
@@ -962,7 +945,6 @@ namespace Hocon
             if (!Matches("\"\"\"", "'''"))
                 return false;
 
-            int start = Index;
             var sb = new StringBuilder();
             Take(3);
             while (!EoF && !Matches("\"\"\"", "'''"))
@@ -978,10 +960,10 @@ namespace Hocon
             }
 
             if (EoF)
-                throw new HoconTokenizerException($"Expected end of triple quoted string {GetHelpTextAtIndex(Index)}", Token.Error(this, Index, 0));
+                throw new HoconTokenizerException($"Expected end of triple quoted string {GetHelpTextAtIndex(Index)}", Token.Error(this));
             Take(3);
 
-            tokens.Add(Token.TripleQuotedLiteralValue(sb.ToString(), this, start, Index - start));
+            tokens.Add(Token.TripleQuotedLiteralValue(sb.ToString(), this));
             return true;
         }
 
@@ -990,12 +972,15 @@ namespace Hocon
         /// is located in the string.
         /// </summary>
         /// <returns>The current line from where the current token is located.</returns>
-        private void DiscardRestOfLine()
+        private string DiscardRestOfLine()
         {
+            var sb = new StringBuilder();
             while (!EoF && !Matches(Utils.NewLine))
             {
-                Take();
+                sb.Append(Take());
             }
+
+            return sb.ToString();
         }
 
         private bool IsStartOfComment() => Matches("//");

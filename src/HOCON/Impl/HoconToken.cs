@@ -137,8 +137,6 @@ namespace Hocon
 
         public int LineNumber { get; }
         public int LinePosition { get; }
-        public int SourceIndex { get; }
-        public int Length { get; }
 
         /// <summary>
         /// The value associated with this token. If this token is
@@ -158,51 +156,47 @@ namespace Hocon
         private Token()
         { }
 
-        public Token(string value, TokenType type, TokenLiteralType literalType, IHoconLineInfo source, int sourceIndex, int sourceLength)
+        public Token(string value, TokenType type, TokenLiteralType literalType, IHoconLineInfo source)
         {
             Type = type;
             LiteralType = literalType;
             Value = value;
-            SourceIndex = sourceIndex;
-            Length = sourceLength;
 
             if (source != null)
             {
                 LineNumber = source.LineNumber;
-                LinePosition = source.LinePosition - Length;
+                LinePosition = source.LinePosition - (value?.Length ?? 0);
             }
         }
 
         public override string ToString()
             => $"Type:{Type}, Value:{Value ?? "null"}, Num:{LineNumber}, Pos:{LinePosition}";
 
-        public Token(string value, TokenType type, IHoconLineInfo source, int sourceIndex, int sourceLength) 
-            : this(value, type, TokenLiteralType.None, source, sourceIndex, sourceLength)
+        public Token(string value, TokenType type, IHoconLineInfo source) 
+            : this(value, type, TokenLiteralType.None, source)
         { }
 
+        /*
         /// <summary>
         /// Initializes a new instance of the <see cref="Token"/> class.
         /// </summary>
         /// <param name="type">The type of token to associate with.</param>
         /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
-        /// <param name="sourceIndex">The character index of this <see cref="Token"/> inside the Hocon config source, used for exception generation purposes.</param>
-        /// <param name="sourceLength">The character length of the raw characters of this <see cref="Token"/>, used for exception generation purposes.</param>
-        public Token(TokenType type, IHoconLineInfo source, int sourceIndex, int sourceLength) 
-            : this(null, type, TokenLiteralType.None, source, sourceIndex, sourceLength)
+        public Token(TokenType type, IHoconLineInfo source) 
+            : this(null, type, TokenLiteralType.None, source)
         { }
+        */
 
         /// <summary>
         /// Creates a substitution token with a given <paramref name="path"/>.
         /// </summary>
         /// <param name="path">The path to associate with this token.</param>
         /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
-        /// <param name="sourceIndex">The character index of this <see cref="Token"/> inside the Hocon config source, used for exception generation purposes.</param>
-        /// <param name="sourceLength">The character length of the raw characters of this <see cref="Token"/>, used for exception generation purposes.</param>
         /// <param name="questionMarked">Designate whether the substitution <see cref="Token"/> was declared as `${?`.</param>
         /// <returns>A substitution token with the given path.</returns>
-        public static Token Substitution(string path, IHoconLineInfo source, int sourceIndex, int sourceLength, bool questionMarked)
+        public static Token Substitution(string path, IHoconLineInfo source, bool questionMarked)
         {
-            return new Token(path, questionMarked ? TokenType.SubstituteOptional : TokenType.SubstituteRequired, TokenLiteralType.None, source, sourceIndex, sourceLength);
+            return new Token(path, questionMarked ? TokenType.SubstituteOptional : TokenType.SubstituteRequired, TokenLiteralType.None, source);
         }
 
         /// <summary>
@@ -211,32 +205,30 @@ namespace Hocon
         /// <param name="value">The value to associate with this token.</param>
         /// <param name="literalType">The <see cref="TokenLiteralType"/> of this <see cref="Token"/>.</param>
         /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
-        /// <param name="sourceIndex">The character index of this <see cref="Token"/> inside the Hocon config source, used for exception generation purposes.</param>
-        /// <param name="sourceLength">The character length of the raw characters of this <see cref="Token"/>, used for exception generation purposes.</param>
         /// <returns>A string literal token with the given value.</returns>
-        public static Token LiteralValue(string value, TokenLiteralType literalType, IHoconLineInfo source, int sourceIndex, int sourceLength)
+        public static Token LiteralValue(string value, TokenLiteralType literalType, IHoconLineInfo source)
         {
-            return new Token(value, TokenType.LiteralValue, literalType, source, sourceIndex, sourceLength);
+            return new Token(value, TokenType.LiteralValue, literalType, source);
         }
 
-        public static Token QuotedLiteralValue(string value, IHoconLineInfo source, int sourceIndex, int sourceLength)
+        public static Token QuotedLiteralValue(string value, IHoconLineInfo source)
         {
-            return LiteralValue(value, TokenLiteralType.QuotedLiteralValue, source, sourceIndex, sourceLength);
+            return LiteralValue(value, TokenLiteralType.QuotedLiteralValue, source);
         }
 
-        public static Token TripleQuotedLiteralValue(string value, IHoconLineInfo source, int sourceIndex, int sourceLength)
+        public static Token TripleQuotedLiteralValue(string value, IHoconLineInfo source)
         {
-            return LiteralValue(value, TokenLiteralType.TripleQuotedLiteralValue, source, sourceIndex, sourceLength);
+            return LiteralValue(value, TokenLiteralType.TripleQuotedLiteralValue, source);
         }
 
-        public static Token Include(string path, IHoconLineInfo source, int sourceIndex, int sourceLength)
+        public static Token Include(string path, IHoconLineInfo source)
         {
-            return new Token(path, TokenType.Include, TokenLiteralType.None, source, sourceIndex, sourceLength);
+            return new Token(path, TokenType.Include, TokenLiteralType.None, source);
         }
 
-        public static Token Error(IHoconLineInfo source, int sourceIndex, int sourceLength)
+        public static Token Error(IHoconLineInfo source)
         {
-            return new Token(null, TokenType.Error, TokenLiteralType.None, source, sourceIndex, sourceLength);
+            return new Token("", TokenType.Error, TokenLiteralType.None, source);
         }
     }
 }

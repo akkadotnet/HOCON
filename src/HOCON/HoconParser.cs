@@ -522,7 +522,7 @@ namespace Hocon
             }
             keyTokens.Reverse();
 
-            keyTokens.Add(new Token(TokenType.EndOfFile, null, 0, 0));
+            keyTokens.Add(new Token("", TokenType.EndOfFile, null));
 
             return HoconPath.FromTokens(keyTokens);
         }
