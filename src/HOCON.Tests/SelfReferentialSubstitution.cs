@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FsCheck;
 using Xunit;
 using Xunit.Abstractions;
 
