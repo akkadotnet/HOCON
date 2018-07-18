@@ -67,20 +67,17 @@ namespace Hocon.Configuration
 
         protected override HoconValue GetNode(HoconPath path)
         {
-            HoconValue currentNode = Root;
-            if (currentNode == null)
+            HoconValue result;
+            try
             {
-                throw new InvalidOperationException("Current node should not be null");
+                result = Root.GetObject().GetValue(path);
             }
-            foreach (string key in path)
+            catch
             {
-                currentNode = currentNode.GetChildObject(key);
-                if (currentNode == null || currentNode.Type == HoconType.Empty)
-                {
-                    return Fallback != null ? Fallback.GetNode(path) : HoconValue.Undefined;
-                }
+                result = Fallback?.GetNode(path) ?? HoconValue.Undefined;
             }
-            return currentNode.Type == HoconType.Empty ? HoconValue.Undefined : currentNode;
+
+            return result;
         }
 
         /// <summary>
@@ -154,7 +151,7 @@ namespace Hocon.Configuration
             => ConfigurationFactory.ParseString(str);
 
         /// <inheritdoc />
-        public override IEnumerable<KeyValuePair<string, HoconValue>> AsEnumerable()
+        public override IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
         {
             var used = new HashSet<string>();
             var current = this;

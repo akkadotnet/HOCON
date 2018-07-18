@@ -4,11 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Tests
 {
     public class Substitution
     {
+        private readonly ITestOutputHelper _output;
+
+        public Substitution(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /*
          * FACT:
          * The syntax is ${pathexpression} or ${?pathexpression}
@@ -25,7 +33,11 @@ namespace Hocon.Tests
     b = 1
     c = $ {a.b}
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -40,7 +52,11 @@ namespace Hocon.Tests
     b = 1
     c = ${ ?a.b}
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
@@ -50,7 +66,11 @@ namespace Hocon.Tests
     b = 1
     c = $ {?a.b}
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -181,8 +201,8 @@ namespace Hocon.Tests
 x = 123
 y = ${x}
 ";
-            HoconRoot IncludeCallback(HoconCallbackType t, string s) 
-                => HoconParser.Parse(includeHocon);
+            string IncludeCallback(HoconCallbackType t, string s) 
+                => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
 
@@ -195,13 +215,13 @@ y = ${x}
         {
             var hocon = @"a.b.c {
     d { 
-        include ""foo""
+        include ""hocon1""
     }
 }";
             var includeHocon = @"
 f = 123
 e {
-      include ""foo""
+      include ""hocon2""
 }";
 
             var includeHocon2 = @"
@@ -209,11 +229,18 @@ x = 123
 y = ${x}
 ";
 
-            HoconRoot Include2(HoconCallbackType t, string s) 
-                => HoconParser.Parse(includeHocon2);
-
-            HoconRoot Include(HoconCallbackType t, string s) 
-                => HoconParser.Parse(includeHocon, Include2);
+            string Include(HoconCallbackType t, string s)
+            {
+                switch (s)
+                {
+                    case "hocon1":
+                        return includeHocon;
+                    case "hocon2":
+                        return includeHocon2;
+                    default:
+                        return "{}";
+                }
+            }
 
             var config = HoconParser.Parse(hocon, Include);
 
@@ -286,7 +313,11 @@ a {
             var hocon = @"a{
     b = ${foo}
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -427,7 +458,11 @@ foo : ${?bar}${?baz}
     c = b
     ${a.c} = 2;
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
@@ -438,7 +473,11 @@ foo : ${?bar}${?baz}
     c = b
     ${?a.c} = 2;
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
@@ -448,7 +487,11 @@ foo : ${?bar}${?baz}
     bar = foo
     foo = ${?a.${?bar}}
 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*

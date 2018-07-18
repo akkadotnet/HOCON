@@ -18,7 +18,7 @@ namespace Hocon
     /// This class represents the root type for a HOCON (Human-Optimized Config Object Notation)
     /// configuration object.
     /// </summary>
-    public class HoconValue : IHoconElement
+    public class HoconValue : List<IHoconElement>, IHoconElement
     {
         public static readonly HoconValue Undefined;
 
@@ -26,6 +26,12 @@ namespace Hocon
         {
             Undefined = new HoconEmptyValue(null);
         }
+
+        public IHoconElement Parent { get; }
+
+        public virtual HoconType Type { get; private set; } = HoconType.Empty;
+
+        public ReadOnlyCollection<IHoconElement> Childrens => AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconValue"/> class.
@@ -35,23 +41,11 @@ namespace Hocon
             Parent = parent;
         }
 
-        public IHoconElement Parent { get; }
-
-        public virtual HoconType Type { get; private set; } = HoconType.Empty;
-
-        /// <summary>
-        /// Returns true if there are old values stored.
-        /// </summary>
-        internal bool HasOldValues => OldValues.Count > 0;
-
-        /// <summary>
-        /// The list of elements inside this HOCON value
-        /// </summary>
-        public virtual IList<IHoconElement> Values { get; } = new List<IHoconElement>();
-
-        internal IList<IHoconElement> OldValues { get; } = new List<IHoconElement>();
-
-        public ReadOnlyCollection<IHoconElement> Childrens => Values.ToList().AsReadOnly();
+        public new void Clear()
+        {
+            Type = HoconType.Empty;
+            base.Clear();
+        }
 
         /// <summary>
         /// Merge an <see cref="IHoconElement"/> into this <see cref="HoconValue"/>.
@@ -61,56 +55,35 @@ namespace Hocon
         /// Throws when the merged <see cref="IHoconElement.Type"/> type did not match <see cref="HoconValue.Type"/>, 
         /// if <see cref="HoconValue.Type"/> is not <see cref="HoconType.Empty"/>.
         /// </exception>
-        internal void AppendValue(IHoconElement value)
+        public new virtual void Add(IHoconElement value)
         {
             if (this.IsSubstitution() || Type == HoconType.Empty)
             {
                 Type = value.Type;
             }
-            else
+            else if (!value.IsSubstitution())
             {
-                if(value.Type != HoconType.Empty && !value.IsSubtitution() && Type != value.Type)
+                if(value.Type == HoconType.Empty)
+                    return;
+                if(Type != value.Type)
                     throw new HoconException($"Hocon value merge mismatch. Existing value: {Type}, merged item: {value.Type}");
             }
 
-            Values.Add(value);
+            base.Add(value);
         }
 
-        internal void Clear()
+        public new virtual void AddRange(IEnumerable<IHoconElement> values)
         {
-            // save old values because it might need to be restored later.
-            OldValues.Clear();
-            foreach (var value in Values)
+            foreach (var value in values)
             {
-                OldValues.Add(value);
+                Add(value);
             }
-            Values.Clear();
-            Type = HoconType.Empty;
-        }
-
-        internal void NewValue(IHoconElement value)
-        {
-            if (value == null)
-                throw new HoconException("Internal parser error.", new ArgumentNullException(nameof(value)));
-
-            Clear();
-            AppendValue(value);
-        }
-
-        /// <summary>
-        /// Retrieves the child object located at the given key.
-        /// </summary>
-        /// <param name="key">The key used to retrieve the child object.</param>
-        /// <returns>The element at the given key.</returns>
-        public HoconValue GetChildObject(string key)
-        {
-            return GetObject().TryGetValue(key, out var item) ? item : null;
         }
 
         /// <inheritdoc />
         public virtual HoconObject GetObject()
         {
-            List<HoconObject> objects = Values.Select(value => value.GetObject()).ToList();
+            List<HoconObject> objects = this.Select(value => value.GetObject()).ToList();
 
             switch (objects.Count)
             {
@@ -119,7 +92,7 @@ namespace Hocon
                 case 1:
                     return objects[0];
                 default:
-                    return new HoconMergedObject(Parent, objects.AsReadOnly());
+                    return new HoconMergedObject(Parent, objects);
             }
         }
 
@@ -135,13 +108,13 @@ namespace Hocon
 
         private string ConcatString()
         {
-            var array = Values.Select(l => l.GetString()).ToArray();
+            var array = this.Select(l => l.GetString()).ToArray();
             return array.All(value => value == null) ? null : string.Join("", array);
         }
 
         private string ConcatRawString()
         {
-            var array = Values.Select(l => l.Raw).ToArray();
+            var array = this.Select(l => l.Raw).ToArray();
             return array.All(value => value == null) ? "null" : string.Join("", array);
         }
 
@@ -149,14 +122,23 @@ namespace Hocon
         /// Retrieves a list of values from this <see cref="HoconValue"/>.
         /// </summary>
         /// <returns>A list of values represented by this <see cref="HoconValue"/>.</returns>
-        public virtual IList<HoconValue> GetArray()
+        public virtual List<HoconValue> GetArray()
         {
-            IEnumerable<HoconValue> x = from value in Values
+            IEnumerable<HoconValue> x = from value in this
                 where value.Type == HoconType.Array
                 from e in value.GetArray()
                 select e;
 
             return x.ToList();
+        }
+
+        internal List<HoconSubstitution> GetSubstitutions()
+        {
+            var x = from v in this
+                where v is HoconSubstitution
+                select v;
+
+            return x.Cast<HoconSubstitution>().ToList();
         }
 
         #region Value Getter methods
@@ -538,23 +520,7 @@ namespace Hocon
         {
             if (child.Type == HoconType.Empty)
             {
-                Values.Remove(child);
-                if (Values.Count == 0 && HasOldValues)
-                {
-                    foreach (var value in OldValues)
-                    {
-                        Values.Add(value);
-                    }
-                    OldValues.Clear();
-                    foreach (var item in Values)
-                    {
-                        if (item.Type != HoconType.Empty)
-                        {
-                            Type = item.Type;
-                            break;
-                        }
-                    }
-                }
+                Remove(child);
             }
             else if (Type == HoconType.Empty)
             {
@@ -568,15 +534,7 @@ namespace Hocon
                     $"Sibling type:{Type}, substitution type:{child.Type}");
             }
 
-            switch (Parent)
-            {
-                case HoconValue v:
-                    v.ResolveValue(this);
-                    break;
-                case HoconObject o:
-                    o.ResolveValue(this);
-                    break;
-            }
+            ((HoconField) Parent).ResolveValue(this);
         }
 
         /// <summary>
@@ -609,9 +567,9 @@ namespace Hocon
         public virtual IHoconElement Clone(IHoconElement newParent)
         {
             var clone = new HoconValue(newParent);
-            foreach (var value in Values)
+            foreach (var value in this)
             {
-                clone.AppendValue(value.Clone(this));
+                clone.Add(value.Clone(clone));
             }
             return clone;
         }

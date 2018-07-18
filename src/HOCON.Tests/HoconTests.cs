@@ -10,12 +10,20 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 
 
 namespace Hocon.Tests
 {
     public class HoconTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public HoconTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void CanUnwrapSubConfig() //undefined behavior in spec, this does not behave the same as JVM hocon.
         {
@@ -29,36 +37,52 @@ a {
             var config = HoconParser.Parse(hocon).Value.GetObject().Unwrapped;
             var a = config["a"] as IDictionary<string, object>;
             var b = a["b"] as IDictionary<string, object>;
-            (b["c"] as HoconValue).GetInt().Should().Be(1);
-            (b["d"] as HoconValue).GetBoolean().Should().Be(true);
+            (b["c"] as HoconField).Value.GetInt().Should().Be(1);
+            (b["d"] as HoconField).Value.GetBoolean().Should().Be(true);
         }
 
         [Fact]
         public void ThrowsParserExceptionOnUnterminatedString() //undefined behavior in spec
         {
             var hocon = " string : \"hello";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
         public void ThrowsParserExceptionOnUnterminatedStringInObject() //undefined behavior in spec
         {
             var hocon = " root { string : \"hello }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
         public void ThrowsParserExceptionOnUnterminatedArray() //undefined behavior in spec
         {
             var hocon = " array : [1,2,3";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
         public void ThrowsParserExceptionOnUnterminatedArrayInObject() //undefined behavior in spec
         {
             var hocon = " root { array : [1,2,3 }";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
@@ -172,7 +196,7 @@ a = null
 a.c = 3
 ";
             var config = HoconParser.Parse(hocon);
-            Assert.Null(config.GetString("a.b"));
+            Assert.False(config.HasPath("a.b"));
             Assert.Equal("3", config.GetString("a.c"));
         }
 
@@ -233,7 +257,8 @@ a {
         public void CanAssignValueToPathExpression()
         {
             var hocon = @"a.b.c=1";
-            Assert.Equal(1L, HoconParser.Parse(hocon).GetLong("a.b.c"));
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal(1L, config.GetLong("a.b.c"));
         }
 
         [Fact]
@@ -415,8 +440,8 @@ test.value = 456
 x = 123
 y = hello
 ";
-            HoconRoot IncludeCallback(HoconCallbackType t, string s) 
-                => HoconParser.Parse(includeHocon);
+            string IncludeCallback(HoconCallbackType t, string s) 
+                => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
 
@@ -432,8 +457,8 @@ y = hello
             var hocon = @"a : include ""foo""";
             var includeHocon = @"[1, 2, 3]";
 
-            HoconRoot IncludeCallback(HoconCallbackType t, string s)
-                => HoconParser.Parse(includeHocon);
+            string IncludeCallback(HoconCallbackType t, string s)
+                => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
             Assert.True(new[] { 1, 2, 3 }.SequenceEqual(config.GetIntList("a")));
@@ -445,8 +470,8 @@ y = hello
             var hocon = @"a : [ include ""foo"" ]";
             var includeHocon = @"[1, 2, 3]";
 
-            HoconRoot IncludeCallback(HoconCallbackType t, string s)
-                => HoconParser.Parse(includeHocon);
+            string IncludeCallback(HoconCallbackType t, string s)
+                => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
             // TODO: need to figure a better way to retrieve array inside array

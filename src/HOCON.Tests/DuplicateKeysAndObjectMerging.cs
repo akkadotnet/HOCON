@@ -65,7 +65,7 @@ foo : { a : 43 }
          * FACT:
          * for object-valued fields present in both objects, the object values should be recursively merged according to these same rules.
          */
-        [Fact(Skip = "Not yet implemented.")]
+        [Fact]
         public void CanMergeObject_RecursiveMerging()
         {
             var hocon = @"

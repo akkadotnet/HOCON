@@ -35,20 +35,14 @@ root {
 }
 ";
             //in this example we use a multi resolver as the include mechanism
-            HoconRoot ConfigResolver(HoconCallbackType type, string fileName)
+            string ConfigResolver(HoconCallbackType type, string fileName)
             {
                 switch (type)
                 {
                     case HoconCallbackType.Resource:
-                        {
-                            var content = ReadResource(fileName);
-                            return HoconParser.Parse(content, ConfigResolver);
-                        }
+                        return ReadResource(fileName);
                     case HoconCallbackType.File:
-                        {
-                            var content = File.ReadAllText(fileName);
-                            return HoconParser.Parse(content, ConfigResolver);
-                        }
+                        return File.ReadAllText(fileName);
                     default:
                         return null;
                 }

@@ -170,6 +170,7 @@ namespace Hocon
             }
         }
 
+        /*
         protected string GetHelpTextAtIndex(int index, int length = 0)
         {
             if (length == 0)
@@ -186,6 +187,7 @@ namespace Hocon
 
             return $"at index {index}: `{snippet}`";
         }
+        */
     }
 
 
@@ -274,11 +276,11 @@ namespace Hocon
                 if (PullLiteral(tokens))
                     continue;
 
-                throw new HoconTokenizerException($"Invalid token {GetHelpTextAtIndex(Index)}", Token.Error(this));
+                throw new HoconTokenizerException($"Invalid token at index {Index}", Token.Error(this));
             }
 
             if(closingTokenType != TokenType.EndOfFile)
-                throw new HoconTokenizerException($"Expected {closingTokenType}, found {tokens.Last().Type} instead.", tokens.Last());
+                throw new HoconTokenizerException($"Expected {closingTokenType}, found {TokenType.EndOfFile} instead.", tokens.Last());
             return tokens;
         }
 
@@ -501,10 +503,10 @@ namespace Hocon
                     }
                     catch
                     {
-                        throw new HoconTokenizerException($"Invalid unicode escape code `{escaped}` {GetHelpTextAtIndex(start)}", Token.Error(this));
+                        throw new HoconTokenizerException($"Invalid unicode escape code `{escaped}`", Token.Error(this));
                     }
                 default:
-                    throw new HoconTokenizerException($"Unknown escape code `{escaped}` {GetHelpTextAtIndex(start)}", Token.Error(this));
+                    throw new HoconTokenizerException($"Unknown escape code `{escaped}`", Token.Error(this));
             }
         }
 
@@ -928,7 +930,7 @@ namespace Hocon
             }
 
             if (EoF)
-                throw new HoconTokenizerException($"Expected end of quoted string {GetHelpTextAtIndex(Index)}", Token.Error(this));
+                throw new HoconTokenizerException($"Expected end of quoted string, found {TokenType.EndOfFile} instead.", Token.Error(this));
             Take();
 
             tokens.Add(Token.QuotedLiteralValue(sb.ToString(), this));
@@ -959,7 +961,7 @@ namespace Hocon
             }
 
             if (EoF)
-                throw new HoconTokenizerException($"Expected end of triple quoted string {GetHelpTextAtIndex(Index)}", Token.Error(this));
+                throw new HoconTokenizerException($"Expected end of triple quoted string, found {TokenType.EndOfFile} instead.", Token.Error(this));
             Take(3);
 
             tokens.Add(Token.TripleQuotedLiteralValue(sb.ToString(), this));

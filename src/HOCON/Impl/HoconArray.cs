@@ -51,7 +51,7 @@ namespace Hocon
             => throw new HoconException("Can not convert Hocon array into a string.");
 
         /// <inheritdoc />
-        public IList<HoconValue> GetArray()
+        public List<HoconValue> GetArray()
         {
             var result = new List<HoconValue>();
             foreach (var item in this)
@@ -61,7 +61,8 @@ namespace Hocon
                         result.Add(value);
                         break;
                     case HoconSubstitution sub:
-                        result.AddRange(sub.ResolvedValue.Values.Cast<HoconValue>());
+                        if(sub.ResolvedValue != null)
+                            result.AddRange(sub.ResolvedValue.Cast<HoconValue>());
                         break;
                     default:
                         throw new HoconException("Unknown ");

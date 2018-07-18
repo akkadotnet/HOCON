@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -30,7 +31,7 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : Dictionary<string, HoconValue>, IHoconElement
+    public class HoconObject : Dictionary<string, HoconField>, IHoconElement
     {
         public IHoconElement Parent { get; }
 
@@ -71,26 +72,178 @@ namespace Hocon
         /// <exception cref="HoconException">
         /// This element is an object, it is not an array, Therefore this method will throw an exception.
         /// </exception>
-        public IList<HoconValue> GetArray()
+        public List<HoconValue> GetArray()
             => throw new HoconException("Can not convert Hocon object into an array.");
 
         /// <summary>
-        /// Retrieves the value associated with the supplied key.
+        /// Retrieves the <see cref="HoconField"/> field associated with the supplied <see cref="string"/> key.
         /// </summary>
-        /// <param name="key">The key associated with the value to retrieve.</param>
+        /// <param name="key">The <see cref="string"/> key associated with the field to retrieve.</param>
         /// <returns>
-        /// The value associated with the supplied key or null
-        /// if they key does not exist.
+        /// The <see cref="HoconField"/> associated with the supplied key.
         /// </returns>
-        public HoconValue GetKey(string key)
+        /// <exception cref="ArgumentNullException">key is null</exception>
+        /// <exception cref="KeyNotFoundException">The key does not exist in the <see cref="HoconObject"/></exception>
+        public HoconField GetField(string key)
         {
-            if(TryGetValue(key, out var item))
-                return item;
-#if AKKA
-            return null; // this is intentional, decided by AKKA devs
-#else
-            throw new HoconException($"Object does not contain a field with key `{key}`");
-#endif
+            if(key == null)
+                throw new ArgumentNullException(nameof(key));
+
+            if (!TryGetValue(key, out var item))
+            {
+                var p = Parent;
+                while (p != null && !(p is HoconField))
+                    p = p.Parent;
+
+                throw new KeyNotFoundException($"Object does not contain a field with key `{key}`. " +
+                                         $"Path: `{ (p != null ? $"{((HoconField)p).Path.Value}.{key}" : key) }`");
+            }
+
+            return item;
+        }
+
+        /// <summary>
+        /// Retrieves the <see cref="HoconField"/> field associated with the supplied <see cref="string"/> key.
+        /// </summary>
+        /// <param name="key">The <see cref="string"/> key associated with the field to retrieve.</param>
+        /// <param name="result">When this method returns, contains the <see cref="HoconField"/> 
+        /// associated with the specified key, if the key is found; 
+        /// otherwise, null. This parameter is passed uninitialized.</param>
+        /// <returns>
+        /// <c>true</c> if the <see cref="HoconObject"/> contains a field with the the specified key; otherwise, <c>false</c>.
+        /// </returns>
+        public bool TryGetField(string key, out HoconField result)
+        {
+            return TryGetValue(key, out result);
+        }
+
+        public HoconField GetField(HoconPath path)
+        {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            if (path.Count == 0)
+                throw new ArgumentException("Path is empty.", nameof(path));
+
+            var pathIndex = 0;
+            var currentObject = this;
+            while (true)
+            {
+                var key = path[pathIndex];
+
+                if (!currentObject.TryGetValue(key, out var field))
+                    throw new KeyNotFoundException($"Could not find field with key `{key}` at path `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
+
+                if (pathIndex >= path.Count - 1)
+                    return field;
+
+                if (field.Type != HoconType.Object)
+                    throw new HoconException($"Invalid path, trying to access a key on a non object field. Path: `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
+
+                currentObject = field.GetObject();
+                pathIndex = pathIndex + 1;
+            }
+        }
+
+        public bool TryGetField(HoconPath path, out HoconField result)
+        {
+            result = null;
+            try
+            {
+                result = GetField(path);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Retrieves the merged <see cref="HoconObject"/> backing the <see cref="HoconField"/> field 
+        /// associated with the supplied <see cref="string"/> key.
+        /// </summary>
+        /// <param name="key">The <see cref="string"/> key associated with the field to retrieve.</param>
+        /// <returns>
+        /// The <see cref="HoconObject"/> backing the <see cref="HoconField"/> field associated with the supplied key.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">key is null</exception>
+        /// <exception cref="KeyNotFoundException">The key does not exist in the <see cref="HoconObject"/></exception>
+        /// <exception cref="HoconException">The <see cref="HoconField.Type"/> is not of type <see cref="HoconType.Object"/></exception>
+        public HoconObject GetObject(string key)
+        {
+            return GetField(key).GetObject();
+        }
+
+        /// <summary>
+        /// Retrieves the merged <see cref="HoconObject"/> backing the <see cref="HoconField"/> field 
+        /// associated with the supplied <see cref="string"/> key.
+        /// </summary>
+        /// <param name="key">The <see cref="string"/> key associated with the field to retrieve.</param>
+        /// <param name="result">When this method returns, contains the backing <see cref="HoconObject"/>
+        /// of the <see cref="HoconField"/> associated with the specified key, if the key is found; 
+        /// otherwise, null. This parameter is passed uninitialized.</param>
+        /// <returns>
+        /// <c>true</c> if the <see cref="HoconObject"/> contains a <see cref="HoconField"/> field with the the specified key
+        /// and the <see cref="HoconField.Type"/> is of type <see cref="HoconType.Object"/>; otherwise, <c>false</c>.
+        /// </returns>
+        public bool TryGetObject(string key, out HoconObject result)
+        {
+            result = null;
+            try
+            {
+                result = GetField(key).GetObject();
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Retrieves the backing <see cref="HoconValue"/> value of the <see cref="HoconField"/> associated with 
+        /// the supplied <see cref="HoconPath"/> path, relative to this object.
+        /// </summary>
+        /// <param name="path">The relative <see cref="HoconPath"/> path associated with 
+        /// the <see cref="HoconField"/> of the <see cref="HoconValue"/> value to retrieve.</param>
+        /// <returns>
+        /// The <see cref="HoconValue"/> value backing the <see cref="HoconField"/> field associated 
+        /// with the supplied key.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">path is null</exception>
+        /// <exception cref="ArgumentException">path is empty</exception>
+        /// <exception cref="KeyNotFoundException">The key does not exist in the <see cref="HoconObject"/></exception>
+        public HoconValue GetValue(HoconPath path)
+        {
+            return GetField(path).Value;
+        }
+
+        /// <summary>
+        /// Retrieves the backing <see cref="HoconValue"/> value of the <see cref="HoconField"/> associated with 
+        /// the supplied <see cref="HoconPath"/> path, relative to this object.
+        /// </summary>
+        /// <param name="path">The relative <see cref="HoconPath"/> path associated with 
+        /// the <see cref="HoconField"/> of the <see cref="HoconValue"/> value to retrieve.</param>
+        /// <param name="result">When this method returns, contains the backing <see cref="HoconValue"/>
+        /// of the <see cref="HoconField"/> associated with the specified <see cref="HoconPath"/> path, 
+        /// if the path is resolveable; otherwise, null. This parameter is passed uninitialized.</param>
+        /// <returns>
+        /// <c>true</c> if the <see cref="HoconObject"/> children contains a <see cref="HoconField"/> field resolveable
+        /// with the the specified relative <see cref="HoconPath"/> path; otherwise, <c>false</c>.
+        /// </returns>
+        public bool TryGetValue(HoconPath path, out HoconValue result)
+        {
+            result = null;
+            try
+            {
+                result = GetValue(path);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -98,51 +251,35 @@ namespace Hocon
         /// If the supplied key is not found, then one is created
         /// with a blank value.
         /// </summary>
-        /// <param name="key">The key associated with the value to retrieve.</param>
+        /// <param name="path">The path associated with the value to retrieve.</param>
         /// <returns>The value associated with the supplied key.</returns>
-        internal HoconValue GetOrCreateKey(string key)
+        private HoconField GetOrCreateKey(HoconPath path)
         {
-            if (TryGetValue(key, out var child))
+            if (TryGetValue(path.Key, out var child))
                 return child;
 
-            child = new HoconValue(this);
-            Add(key, child);
+            child = new HoconField(path, this);
+            Add(path.Key, child);
             return child;
         }
 
-        internal void TraversePath(HoconPath path, List<HoconValue> result)
+        internal List<HoconField> TraversePath(HoconPath path)
         {
-            var key = path[0];
-            path.RemoveAt(0);
-
-            if (!TryGetValue(key, out var child))
+            var result = new List<HoconField>();
+            var pathLength = 1;
+            var currentObject = this;
+            while (true)
             {
-                child = new HoconValue(this);
-                this[key] = child;
+                var child = currentObject.GetOrCreateKey(new HoconPath(path.GetRange(0, pathLength)));
+                result.Add(child);
+
+                pathLength++;
+                if (pathLength > path.Count)
+                    return result;
+
+                child.EnsureFieldIsObject();
+                currentObject = child.GetObject();
             }
-
-            result.Add(child);
-
-            if (path.Count > 0)
-            {
-                HoconObject childObject;
-                if (child.Type != HoconType.Object)
-                {
-                    childObject = new HoconObject(this);
-                    if (child.IsSubstitution())
-                        child.AppendValue(childObject);
-                    else if (child.Type != HoconType.Object)
-                        child.NewValue(childObject);
-                }
-                else
-                {
-                    childObject = child.GetObject();
-                }
-
-                childObject.TraversePath(path, result);
-            }
-
-            path.Insert(0, key);
         }
 
         /// <summary>
@@ -164,7 +301,7 @@ namespace Hocon
             return string.Join($",{Environment.NewLine}", list);
         }
 
-        public void Merge(HoconObject other)
+        public virtual void Merge(HoconObject other)
         {
             var keys = other.Keys.ToArray();
             foreach (var key in keys)
@@ -183,18 +320,14 @@ namespace Hocon
             }
         }
 
-        internal void ResolveValue(HoconValue child)
+        internal void ResolveValue(HoconField child)
         {
-            if(child.Type != HoconType.Empty)
-                return;
-
-            foreach (var kvp in this.ToArray())
+            if (child.Value.Count == 0)
             {
-                if (kvp.Value == child)
-                {
-                    Remove(kvp.Key);
-                    return;
-                }
+                if(child.HasOldValues)
+                    child.RestoreOldValue();
+                else
+                    Remove(child.Key);
             }
         }
 
@@ -204,7 +337,7 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this)
             {
-                clone[kvp.Key] = (HoconValue)kvp.Value.Clone(this);
+                clone[kvp.Key] = (HoconField)kvp.Value.Clone(this);
             }
             return clone;
         }

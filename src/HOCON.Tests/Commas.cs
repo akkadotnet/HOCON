@@ -4,11 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Tests
 {
     public class Commas
     {
+        private readonly ITestOutputHelper _output;
+
+        public Commas(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /*
          * Values in arrays, and fields in objects, need not have a comma between them 
          * as long as they have at least one ASCII newline (\n, decimal value 10) between them.
@@ -61,7 +69,11 @@ array_2 : [1, 2, 3]
         public void ThrowsParserExceptionOnMultipleTrailingCommasInArray()
         {
             var hocon = @"array : [1, 2, 3,, ]";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -72,7 +84,11 @@ array_2 : [1, 2, 3]
         public void ThrowsParserExceptionOnIllegalCommaInFrontOfArray()
         {
             var hocon = @"array : [, 1, 2, 3]";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -83,7 +99,11 @@ array_2 : [1, 2, 3]
         public void ThrowsParserExceptionOnMultipleCommasInArray()
         {
             var hocon = @"array : [1,, 2, 3]";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -108,7 +128,7 @@ array_2 : [1, 2, 3]
                     {
                         config_2.MoveNext();
                         Assert.Equal(config_1.Current.Key, config_2.Current.Key);
-                        Assert.Equal(config_1.Current.Value.GetInt(), config_2.Current.Value.GetInt());
+                        Assert.Equal(config_1.Current.Value.Value.GetInt(), config_2.Current.Value.Value.GetInt());
                     }
                 }
             }
@@ -135,7 +155,7 @@ c:3";
                     {
                         config_2.MoveNext();
                         Assert.Equal(config_1.Current.Key, config_2.Current.Key);
-                        Assert.Equal(config_1.Current.Value.GetInt(), config_2.Current.Value.GetInt());
+                        Assert.Equal(config_1.Current.Value.Value.GetInt(), config_2.Current.Value.Value.GetInt());
                     }
                 }
             }
@@ -149,7 +169,11 @@ c:3";
         public void ThrowsParserExceptionOnMultipleTrailingCommas()
         {
             var hocon = @"{a:1, b:2, c:3,,}";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -160,7 +184,11 @@ c:3";
         public void ThrowsParserExceptionOnIllegalCommaInFront()
         {
             var hocon = @"{, a:1, b:2, c:3}";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -171,7 +199,11 @@ c:3";
         public void ThrowsParserExceptionOnMultipleCommas()
         {
             var hocon = @"{a:1,, b:2, c:3}";
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
     }
 }

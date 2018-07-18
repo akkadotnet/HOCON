@@ -60,11 +60,22 @@ namespace Hocon
                 sb.Append(" ");
             }
 
-            if(path != null)
-                sb.Append(string.Format(CultureInfo.InvariantCulture, "Path '{0}'", path));
+            var addComma = false;
+            if (path != null)
+            {
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "At path '{0}'", path));
+                addComma = true;
+            }
 
             if (lineInfo != null)
-                sb.Append(string.Format(CultureInfo.InvariantCulture, ", line {0}, position {1}", lineInfo.LineNumber, lineInfo.LinePosition));
+            {
+                if (addComma)
+                    sb.Append(", ");
+                else
+                    sb.Append("At ");
+
+                sb.Append(string.Format(CultureInfo.InvariantCulture, "line {0}, position {1}", lineInfo.LineNumber, lineInfo.LinePosition));
+            }
 
             sb.Append(".");
 

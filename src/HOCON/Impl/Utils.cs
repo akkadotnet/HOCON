@@ -126,21 +126,25 @@ namespace Hocon
 
         #endregion
 
-        public static bool IsSubtitution(this IHoconElement value)
+        public static bool IsSubstitution(this IHoconElement value)
         {
             switch (value)
             {
                 case HoconValue v:
-                    return v.Values.OfType<HoconSubstitution>().Any();
+                    foreach (var val in v)
+                    {
+                        if (val is HoconSubstitution)
+                            return true;
+                    }
+                    return false;
+                case HoconField f:
+                    return f.Value.OfType<HoconSubstitution>().Any();
                 case HoconSubstitution _:
                     return true;
                 default:
                     return false;
             }
         }
-
-        public static bool IsSubstitution(this HoconValue value)
-            => value.Values.OfType<HoconSubstitution>().Any();
     }
 
     public static class StringUtil

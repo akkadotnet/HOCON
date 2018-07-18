@@ -67,7 +67,7 @@ namespace Hocon
         /// This element is a string literal. It is not an array.
         /// Therefore this method will throw an exception.
         /// </exception>
-        public IList<HoconValue> GetArray()
+        public List<HoconValue> GetArray()
             => throw new HoconException("Hocon literal could not be converted to array.");
 
         /// <summary>

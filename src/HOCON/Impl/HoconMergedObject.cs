@@ -8,15 +8,21 @@ namespace Hocon
 {
     public class HoconMergedObject:HoconObject
     {
-        public IList<HoconObject> Objects { get; }
+        public List<HoconObject> Objects { get; }
 
-        public HoconMergedObject(IHoconElement parent, IList<HoconObject> objects) : base(parent)
+        public HoconMergedObject(IHoconElement parent, List<HoconObject> objects) : base(parent)
         {
             Objects = objects;
             foreach (var obj in objects)
             {
-                Merge(obj);
+                base.Merge(obj);
             }
+        }
+
+        public override void Merge(HoconObject other)
+        {
+            ((HoconField)Parent).Value.Add(other.Clone(((HoconField)Parent).Value));
+            base.Merge(other);
         }
     }
 }

@@ -19,15 +19,23 @@ namespace Hocon
 
         public override HoconType Type => HoconType.Empty;
 
-        public override IList<IHoconElement> Values => new List<IHoconElement>().AsReadOnly();
+        public override string Raw => "";
+
+        public override void Add(IHoconElement value)
+        {
+            throw new HoconException($"Can not add new value to {nameof(HoconEmptyValue)}");
+        }
+
+        public override void AddRange(IEnumerable<IHoconElement> values)
+        {
+            throw new HoconException($"Can not add new values to {nameof(HoconEmptyValue)}");
+        }
 
         public override HoconObject GetObject() => new HoconObject(Parent);
 
         public override string GetString() => "";
 
-        public override string Raw => "";
-
-        public override IList<HoconValue> GetArray() => new List<HoconValue>();
+        public override List<HoconValue> GetArray() => new List<HoconValue>();
 
         public override IHoconElement Clone(IHoconElement newParent)
         {

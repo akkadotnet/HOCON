@@ -31,13 +31,23 @@ namespace Hocon
         /// <summary>
         ///     The Hocon node that owned this substitution node
         /// </summary>
-        public IHoconElement Parent { get; }
+        public IHoconElement Parent { get; private set; }
 
         public int LineNumber { get; }
 
         public int LinePosition { get; }
 
         public bool Required { get; }
+
+        internal HoconField ParentField
+        {
+            get  {
+                var p = Parent;
+                while (p != null && !(p is HoconField))
+                    p = p.Parent;
+                return p as HoconField;
+            }
+        }
 
         /// <summary>
         ///     The full path to the value which should substitute this instance.
@@ -89,7 +99,7 @@ namespace Hocon
         public string Raw => ResolvedValue?.Raw;
 
         /// <inheritdoc />
-        public IList<HoconValue> GetArray() => ResolvedValue?.GetArray() ?? new List<HoconValue>();
+        public List<HoconValue> GetArray() => ResolvedValue?.GetArray() ?? new List<HoconValue>();
 
         /// <inheritdoc />
         public HoconObject GetObject() => ResolvedValue?.GetObject() ?? new HoconObject(Parent);
@@ -105,13 +115,11 @@ namespace Hocon
         public string ToString(int indent, int indentSize)
             => ResolvedValue.ToString(indent, indentSize);
 
+        // Substitution can not be cloned.
         public IHoconElement Clone(IHoconElement newParent)
         {
-            var clone = new HoconSubstitution(newParent, Path, this, Required)
-            {
-                ResolvedValue = (HoconValue)ResolvedValue?.Clone(newParent)
-            };
-            return clone;
+            Parent = newParent;
+            return this;
         }
     }
 }

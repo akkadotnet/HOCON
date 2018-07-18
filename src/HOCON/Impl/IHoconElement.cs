@@ -37,7 +37,7 @@ namespace Hocon
         /// Retrieves a list of elements associated with this element.
         /// </summary>
         /// <returns>A list of elements associated with this element.</returns>
-        IList<HoconValue> GetArray();
+        List<HoconValue> GetArray();
 
         /// <summary>
         /// Do deep copy of this element.

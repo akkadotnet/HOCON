@@ -1,21 +1,44 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Hocon
 {
-    public class HoconPath:List<string>
+    public class HoconPath:List<string>, IEquatable<HoconPath>
     {
         public bool IsEmpty => Count == 0;
         public string Value => string.Join(".", this);
-        public string Last => this[Count - 1];
+        public string Key => this[Count - 1];
 
         public HoconPath() { }
 
         public HoconPath(IEnumerable<string> path)
         {
             AddRange(path);
+        }
+
+        public HoconPath SubPath(int length)
+        {
+            return new HoconPath(GetRange(0, length));
+        }
+
+        public HoconPath SubPath(int index, int count)
+        {
+            return new HoconPath(GetRange(index, count));
+        }
+
+        internal bool IsChildPathOf(HoconPath parentPath)
+        {
+            if (Count < parentPath.Count) return false;
+
+            for (var i = 0; i < parentPath.Count; ++i)
+            {
+                if (this[i] != parentPath[i])
+                    return false;
+            }
+            return true;
         }
 
         public override string ToString()
@@ -63,15 +86,50 @@ namespace Hocon
             if(path == null)
                 throw new ArgumentNullException(nameof(path));
 
-            try
+            return FromTokens(new HoconTokenizer(path).Tokenize());
+        }
+
+        public bool Equals(HoconPath other)
+        {
+            if (other is null) return false;
+            if (Count != other.Count) return false;
+
+            for (var i = 0; i < Count; ++i)
             {
-                return FromTokens(new HoconTokenizer(path).Tokenize());
+                if (this[i] != other[i])
+                    return false;
             }
-            catch (HoconTokenizerException e)
+            return true;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj is HoconPath other) 
+                return Equals(other);
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            const int seed = 601;
+            const int modifier = 31;
+
+            unchecked
             {
-                throw HoconParserException.Create(e, null, "Failed to tokenize path", e);
+                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
             }
-            
+        }
+
+        public static bool operator ==(HoconPath left, HoconPath right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconPath left, HoconPath right)
+        {
+            return !Equals(left, right);
         }
     }
 }

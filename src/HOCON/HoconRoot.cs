@@ -17,8 +17,6 @@ namespace Hocon
     /// </summary>
     public class HoconRoot
     {
-        internal static readonly HoconRoot Empty = new HoconRoot(new HoconEmptyValue(null));
-
         /// <summary>
         /// Retrieves the value associated with this element.
         /// </summary>
@@ -32,13 +30,13 @@ namespace Hocon
         /// <summary>
         /// Determines if this root node contains any values
         /// </summary>
-        public bool IsEmpty => ReferenceEquals(this, Empty) || Value == null || Value.Type == HoconType.Empty;
+        public bool IsEmpty => Value == null || Value.Type == HoconType.Empty;
 
         /// <inheritdoc />
         /// <summary>
         /// Initializes a new instance of the <see cref="T:Hocon.HoconRoot" /> class.
         /// </summary>
-        public HoconRoot() : this(new HoconEmptyValue(null), Enumerable.Empty<HoconSubstitution>())
+        public HoconRoot() : this(new HoconValue(null), Enumerable.Empty<HoconSubstitution>())
         { }
 
         /// <inheritdoc cref="HoconRoot()"/>
@@ -57,20 +55,10 @@ namespace Hocon
 
         protected virtual HoconValue GetNode(HoconPath path)
         {
-            HoconValue currentNode = Value;
-            if (currentNode == null)
-            {
-                throw new InvalidOperationException("Current node should not be null");
-            }
-            foreach (string key in path)
-            {
-                currentNode = currentNode.GetChildObject(key);
-            }
+            if(Value.Type != HoconType.Object)
+                throw new HoconException("Hocon is not an object.");
 
-            if(currentNode == null)
-                return HoconValue.Undefined;
-
-            return currentNode.Type == HoconType.Empty ? HoconValue.Undefined : currentNode;
+            return Value.GetObject().GetValue(path);
         }
 
         /// <summary>
@@ -87,7 +75,19 @@ namespace Hocon
         /// <param name="path">The location to check for a configuration value.</param>
         /// <returns><c>true</c> if a value was found, <c>false</c> otherwise.</returns>
         public bool HasPath(HoconPath path)
-            => !ReferenceEquals(GetNode(path), HoconValue.Undefined);
+        {
+            HoconValue node;
+            try
+            {
+                node = GetNode(path);
+            }
+            catch
+            {
+                return false;
+            }
+            return node != null;
+        }
+            
 
         /// <summary>
         /// Normalize the values inside all Hocon fields to the simplest value possible under Hocon spec.
@@ -107,38 +107,38 @@ namespace Hocon
             {
                 case HoconType.Object:
                     var o = v.GetObject();
-                    v.Values.Clear();
-                    v.Values.Add(o);
+                    v.Clear();
+                    v.Add(o);
                     foreach (var item in o.Values)
                         Flatten(item);
                     break;
 
                 case HoconType.Array:
                     var a = v.GetArray();
-                    v.Values.Clear();
+                    v.Clear();
                     var newArray = new HoconArray(v);
                     foreach (var item in a)
                     {
                         Flatten(item);
                         newArray.Add(item);
                     }
-                    v.Values.Add(newArray);
+                    v.Add(newArray);
                     break;
 
                 case HoconType.Literal:
-                    if (v.Values.Count == 1)
+                    if (v.Count == 1)
                         return;
 
                     var value = v.GetString();
-                    v.Values.Clear();
+                    v.Clear();
                     if (value == null)
-                        v.Values.Add(new HoconNull(v));
+                        v.Add(new HoconNull(v));
                     else if (value.NeedTripleQuotes())
-                        v.Values.Add(new HoconTripleQuotedString(v, value));
+                        v.Add(new HoconTripleQuotedString(v, value));
                     else if (value.NeedQuotes())
-                        v.Values.Add(new HoconQuotedString(v, value));
+                        v.Add(new HoconQuotedString(v, value));
                     else
-                        v.Values.Add(new HoconUnquotedString(v, value));
+                        v.Add(new HoconUnquotedString(v, value));
                     break;
             }
         }
@@ -498,7 +498,7 @@ namespace Hocon
         /// Retrieves an enumerable key value pair representation of the current configuration.
         /// </summary>
         /// <returns>The current configuration represented as an enumerable key value pair.</returns>
-        public virtual IEnumerable<KeyValuePair<string, HoconValue>> AsEnumerable()
+        public virtual IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
         {
             return Value.GetObject();
         }

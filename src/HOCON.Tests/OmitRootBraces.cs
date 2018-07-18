@@ -4,11 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Tests
 {
     public class OmitRootBraces
     {
+        private readonly ITestOutputHelper _output;
+
+        public OmitRootBraces(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /*
          * FACT:
          * Empty files are invalid documents.
@@ -16,8 +24,15 @@ namespace Hocon.Tests
         [Fact]
         public void EmptyFilesShouldThrows()
         {
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(""));
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse(null));
+            var ex = Record.Exception(() => HoconParser.Parse(""));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+
+            ex = Record.Exception(() => HoconParser.Parse(null));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /* 
@@ -27,8 +42,15 @@ namespace Hocon.Tests
         [Fact]
         public void FileWithLiteralOnlyShouldThrows()
         {
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse("literal"));
-            Assert.Throws<HoconParserException>(() => HoconParser.Parse("${?path}"));
+            var ex = Record.Exception(() => HoconParser.Parse("literal"));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+
+            ex = Record.Exception(() => HoconParser.Parse("${?path}"));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -196,32 +218,44 @@ root_2 = 1234
         public void ThrowsParserExceptionOnUnterminatedFile()
         {
             var hocon = "{ root { string : \"hello\" }";
-            Assert.Throws<HoconParserException>(() =>
-                HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
         public void ThrowsParserExceptionOnInvalidTerminatedFile()
         {
             var hocon = "root { string : \"hello\" }}";
-            Assert.Throws<HoconParserException>(() =>
-                HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
         public void ThrowsParserExceptionOnUnterminatedObject()
         {
             var hocon = " root { string : \"hello\" ";
-            Assert.Throws<HoconParserException>(() =>
-                HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
         public void ThrowsParserExceptionOnUnterminatedNestedObject()
         {
             var hocon = " root { bar { string : \"hello\" } ";
-            Assert.Throws<HoconParserException>(() =>
-                HoconParser.Parse(hocon));
+
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
     }
