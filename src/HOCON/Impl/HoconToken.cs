@@ -59,6 +59,11 @@ namespace Hocon
         LiteralValue,
 
         /// <summary>
+        /// This token type represents the assignment operator, <c>+=</c>.
+        /// </summary>
+        PlusEqualAssign,
+
+        /// <summary>
         /// This token type represents the assignment operator, <c>=</c> or <c>:</c> .
         /// </summary>
         Assign,

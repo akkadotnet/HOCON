@@ -258,10 +258,11 @@ namespace Hocon
                     continue;
                 if(PullSubstitution(tokens))
                     continue;
-                // if (PullDot(tokens)) continue;
                 if(PullComma(tokens))
                     continue;
                 if(PullAssignment(tokens))
+                    continue;
+                if (PullPlusEqualAssignment(tokens))
                     continue;
                 if(PullInclude(tokens))
                     continue;
@@ -381,6 +382,20 @@ namespace Hocon
 
             Take();
             tokens.Add(new Token("}", TokenType.EndOfObject, this));
+            return true;
+        }
+
+        /// <summary>
+        /// Retrieves a <see cref="TokenType.PlusEqualAssign"/> token from the tokenizer's current position.
+        /// </summary>
+        /// <returns>A <see cref="TokenType.PlusEqualAssign"/> token from the tokenizer's current position.</returns>
+        private bool PullPlusEqualAssignment(HoconTokenizerResult tokens)
+        {
+            if (!Matches("+="))
+                return false;
+
+            Take(2);
+            tokens.Add(new Token("+=", TokenType.PlusEqualAssign, this));
             return true;
         }
 

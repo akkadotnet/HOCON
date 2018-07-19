@@ -187,7 +187,7 @@ namespace Hocon
                 throw new HoconException("Substitution may not reference one of its direct parents.");
 
             // Detect invalid cyclic reference loop
-            if (IsValueCyclic(subField.Value, new List<HoconField> { subField }, new Stack<HoconSubstitution>()))
+            if (IsValueCyclic(subField, sub))
                 throw new HoconException("A cyclic substitution loop is detected in the Hocon file.");
 
             // third case, regular substitution
@@ -195,8 +195,32 @@ namespace Hocon
             return field;
         }
 
+        private bool IsValueCyclic(HoconField field, HoconSubstitution sub)
+        {
+            var subStack = new Stack<HoconSubstitution>();
+            subStack.Push(sub);
+            return IsValueCyclic(null, new List<HoconField> {field}, subStack);
+        }
+
         private bool IsValueCyclic(HoconValue currentValue, List<HoconField> visitedFields, Stack<HoconSubstitution> pendingSubs)
         {
+            while (pendingSubs.Count > 0)
+            {
+                var currentSub = pendingSubs.Pop();
+                if (!_root.GetObject().TryGetField(currentSub.Path, out var field))
+                    continue;
+                if (visitedFields.Contains(field))
+                {
+                    return true;
+                }
+                visitedFields.Add(field);
+                if (IsValueCyclic(field.Value, visitedFields, pendingSubs))
+                    return true;
+            }
+
+            if (currentValue == null)
+                return false;
+
             foreach (var value in currentValue)
             {
                 switch (value)
@@ -224,19 +248,6 @@ namespace Hocon
                         pendingSubs.Push(s);
                         break;
                 }
-            }
-
-            while (pendingSubs.Count > 0)
-            {
-                var currentSub = pendingSubs.Pop();
-                if (!_root.GetObject().TryGetField(currentSub.Path, out var field))
-                    continue;
-                if (visitedFields.Contains(field))
-                {
-                    return true;
-                }
-                if (IsValueCyclic(field.Value, visitedFields, pendingSubs))
-                    return true;
             }
             return false;
         }
@@ -636,10 +647,12 @@ namespace Hocon
                 ConsumeWhitelines();
 
             // sanity check
-            if (_tokens.Current.Type != TokenType.Assign && _tokens.Current.Type != TokenType.StartOfObject)
+            if (_tokens.Current.Type != TokenType.Assign 
+                && _tokens.Current.Type != TokenType.StartOfObject
+                && _tokens.Current.Type != TokenType.PlusEqualAssign)
                 throw HoconParserException.Create(_tokens.Current, Path,
-                    $"Failed to parse Hocon field. Expected {TokenType.Assign} or {TokenType.StartOfObject}, " +
-                    $"found {_tokens.Current.Type} instead.");
+                    $"Failed to parse Hocon field. Expected {TokenType.Assign}, {TokenType.StartOfObject} " +
+                    $"or {TokenType.PlusEqualAssign}, found {{_tokens.Current.Type}} instead.");
 
             // sanity check
             if (pathDelta == null || pathDelta.Count == 0)
@@ -650,10 +663,6 @@ namespace Hocon
 
             Path.AddRange(pathDelta);
             HoconField currentField = childInPath[childInPath.Count - 1];
-
-            if (_tokens.Current.Type != TokenType.Assign && _tokens.Current.Type != TokenType.StartOfObject)
-                throw HoconParserException.Create(_tokens.Current, Path,
-                    $"Failed to parse Hocon field. Unexpected token: `{_tokens.Current.Type}`.");
 
             var parsedValue = await ParseValueAsync(currentField).ConfigureAwait(false);
 
@@ -736,6 +745,15 @@ namespace Hocon
                         parsing = false;
                         break;
 
+                    case TokenType.PlusEqualAssign:
+                        HoconSubstitution subAssign = new HoconSubstitution(value, new HoconPath(Path), _tokens.Current, false);
+                        _substitutions.Add(subAssign);
+                        value.Add(subAssign);
+
+                        value.Add(await ParsePlusEqualAssignArrayAsync(value).ConfigureAwait(false));
+                        parsing = false;
+                        break;
+
                     case TokenType.Assign:
                         ConsumeWhitelines();
                         break;
@@ -753,6 +771,61 @@ namespace Hocon
                     value.RemoveAt(value.Count - 1);
             }
             return value;
+        }
+
+        private async Task<HoconArray> ParsePlusEqualAssignArrayAsync(IHoconElement owner)
+        {
+            // sanity check
+            if (_tokens.Current.Type != TokenType.PlusEqualAssign)
+                throw HoconParserException.Create(_tokens.Current, Path,
+                    "Failed to parse Hocon field with += operator. " +
+                    $"Expected {TokenType.PlusEqualAssign}, found {{_tokens.Current.Type}} instead.");
+
+            var currentArray = new HoconArray(owner);
+
+            // consume += operator token
+            ConsumeWhitelines();
+
+            switch (_tokens.Current.Type)
+            {
+                case TokenType.Include:
+                    currentArray.Add(await ParseIncludeAsync(currentArray).ConfigureAwait(false));
+                    break;
+
+                case TokenType.StartOfArray:
+                    // Array inside of arrays are parsed as values because it can be value concatenated with another array.
+                    currentArray.Add(await ParseValueAsync(currentArray).ConfigureAwait(false));
+                    break;
+
+                case TokenType.StartOfObject:
+                    currentArray.Add(await ParseObjectAsync(currentArray).ConfigureAwait(false));
+                    break;
+
+                case TokenType.LiteralValue:
+                    if (_tokens.Current.IsNonSignificant())
+                        ConsumeWhitelines();
+                    if (_tokens.Current.Type != TokenType.LiteralValue)
+                        break;
+
+                    currentArray.Add(await ParseValueAsync(currentArray).ConfigureAwait(false));
+                    break;
+
+                case TokenType.SubstituteOptional:
+                case TokenType.SubstituteRequired:
+                    var pointerPath = HoconPath.Parse(_tokens.Current.Value);
+                    HoconSubstitution sub = new HoconSubstitution(currentArray, pointerPath, _tokens.Current,
+                        _tokens.Current.Type == TokenType.SubstituteRequired);
+                    _substitutions.Add(sub);
+                    currentArray.Add(sub);
+                    _tokens.Next();
+                    break;
+
+                default:
+                    throw HoconParserException.Create(_tokens.Current, Path,
+                        $"Failed to parse Hocon array. Expected {TokenType.EndOfArray} but found {_tokens.Current.Type} instead.");
+            }
+
+            return currentArray;
         }
 
         /// <summary>

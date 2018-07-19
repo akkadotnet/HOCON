@@ -62,7 +62,7 @@ namespace Hocon
                         break;
                     case HoconSubstitution sub:
                         if(sub.ResolvedValue != null)
-                            result.AddRange(sub.ResolvedValue.Cast<HoconValue>());
+                            result.AddRange(sub.ResolvedValue.GetArray());
                         break;
                     default:
                         throw new HoconException("Unknown ");

@@ -127,6 +127,27 @@ foo : 42";
 
         /*
          * FACT:
+         * Fields may have += as a separator rather than : or =. A field with += transforms into an optional self-referential array concatenation 
+         * {a += b} becomes {a = ${?a} [b]}
+         */
+        [Fact]
+        public void PlusEqualOperatorShouldExpandToSelfReferencingArrayConcatenation()
+        {
+            var hocon = @"
+a = [ 1, 2 ]
+a += 3
+a += ${b}
+b = [ 4, 5 ]
+";
+
+            HoconRoot config = null;
+            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            Assert.Null(ex);
+            Assert.True( new []{1, 2, 3, 4, 5}.SequenceEqual(config.GetIntList("a")) );
+        }
+
+        /*
+         * FACT:
          * A self-reference resolves to the value "below" even if it's part of a path expression.
          * Here, ${foo.a} would refer to { c : 1 } rather than 2 and so the final merge would be { a : 2, c : 1 }
          */
