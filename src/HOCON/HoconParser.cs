@@ -66,10 +66,6 @@ namespace Hocon
                     $"Parameter {nameof(text)} is null or empty.\n" +
                     "If you want to create an empty Hocon HoconRoot, use \"{}\" or just use \"new HoconRoot();\" instead.");
 
-            // Workaround for annoying end of line difference between windows and unix
-            if (Environment.NewLine == "\r\n")
-                text = text.Replace(Environment.NewLine, "\n");
-
             if (includeCallback != null)
                 _includeCallback = includeCallback;
 
