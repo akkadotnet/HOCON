@@ -20,13 +20,25 @@ namespace Hocon
         private readonly Stack<int> _indexStack = new Stack<int>();
 
         private readonly string _text;
+        private int _index;
 
         protected void PushIndex() => _indexStack.Push(Index);
         protected void ResetIndex() => Index = _indexStack.Pop();
         protected void PopIndex() => _indexStack.Pop();
 
         public int Length => _text.Length;
-        public int Index { get; private set; }
+
+        public int Index
+        {
+            get => _index;
+            private set
+            {
+                _index = value;
+                if (_index > _text.Length)
+                    _index = _text.Length;
+            }
+        }
+
         public int LineNumber { get; private set; } = 1;
         public int LinePosition { get; private set; } = 1;
 
@@ -55,8 +67,12 @@ namespace Hocon
             if (pattern.Length + Index > _text.Length)
                 return false;
 
-            string selected = _text.Substring(Index, pattern.Length);
-            return selected == pattern;
+            for (var i = 0; i < pattern.Length; ++i)
+            {
+                if (pattern[i] != _text[Index + i])
+                    return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -67,15 +83,7 @@ namespace Hocon
         /// <returns><c>true</c> if any one of the patterns match, otherwise <c>false</c>.</returns>
         protected bool Matches(params string[] patterns)
         {
-            foreach (string pattern in patterns)
-            {
-                if (pattern.Length + Index > _text.Length)
-                    continue;
-
-                if (_text.Substring(Index, pattern.Length) == pattern)
-                    return true;
-            }
-            return false;
+            return patterns.Any(Matches);
         }
 
         protected bool Matches(char pattern)
@@ -98,21 +106,16 @@ namespace Hocon
         /// Retrieves the next character in the tokenizer.
         /// </summary>
         /// <returns>The character at the tokenizer's current position.</returns>
-        protected char Take()
+        protected void Take()
         {
-            if (EoF)
-                return (char)0;
-
-            var c = _text[Index];
             Index++;
+            if (EoF) return;
             LinePosition++;
-            if (c == Utils.NewLine)
+            if (_text[Index] == Utils.NewLine)
             {
                 LineNumber++;
                 LinePosition = 1;
             }
-
-            return c;
         }
 
         /// <summary>
@@ -123,22 +126,24 @@ namespace Hocon
         /// The string of the given length. If the length exceeds where the
         /// current index is located, then null is returned.
         /// </returns>
-        protected string Take(int length)
+        protected void Take(int length)
+        {
+            if (Index + length > _text.Length)
+                return;
+
+            for (var i = 0; i < length; ++i)
+            {
+                Take();
+            }
+        }
+
+        protected string TakeWithResult(int length)
         {
             if (Index + length > _text.Length)
                 return null;
 
-            string s = _text.Substring(Index, length);
+            var s = _text.Substring(Index, length);
             Index += length;
-            foreach (var c in s)
-            {
-                LinePosition++;
-                if (c == Utils.NewLine)
-                {
-                    LineNumber++;
-                    LinePosition = 1;
-                }
-            }
             return s;
         }
 
@@ -154,6 +159,14 @@ namespace Hocon
             return _text[Index];
         }
 
+        protected char PeekAndTake()
+        {
+            if (EoF)
+                return (char)0;
+            Take();
+            return _text[Index - 1];
+        }
+
         protected void PullWhitespaces()
         {
             while (!EoF && Utils.WhitespaceWithoutNewLine.Contains(Peek()))
@@ -161,25 +174,6 @@ namespace Hocon
                 Take();
             }
         }
-
-        /*
-        protected string GetHelpTextAtIndex(int index, int length = 0)
-        {
-            if (length == 0)
-                length = Length - index;
-
-            var l = Math.Min(20, length);
-
-            var snippet = _text.Substring(index, l);
-            if (length > l)
-                snippet = snippet + "...";
-
-            //escape snippet
-            snippet = snippet.Replace("\r", "\\r").Replace("\n", "\\n");
-
-            return $"at index {index}: `{snippet}`";
-        }
-        */
     }
 
 
@@ -400,7 +394,7 @@ namespace Hocon
             if (!Matches(':', '='))
                 return false;
 
-            var c = Take();
+            var c = PeekAndTake();
             tokens.Add(new Token(c.ToString(), TokenType.Assign, this));
             return true;
         }
@@ -481,7 +475,7 @@ namespace Hocon
         private string PullEscapeSequence()
         {
             Take(); //consume "\"
-            char escaped = Take();
+            char escaped = PeekAndTake();
             switch (escaped)
             {
                 case '"':
@@ -501,7 +495,7 @@ namespace Hocon
                 case 't':
                     return ("\t");
                 case 'u':
-                    string hex = "0x" + Take(4);
+                    string hex = $"0x{TakeWithResult(4)}";
                     try
                     {
                         int j = Convert.ToInt32(hex, 16);
@@ -540,7 +534,7 @@ namespace Hocon
             var sb = new StringBuilder();
             while (!EoF && !Matches("}"))
             {
-                sb.Append(Take());
+                sb.Append(PeekAndTake());
             }
 
             if (EoF)
@@ -559,7 +553,7 @@ namespace Hocon
             var sb = new StringBuilder();
             while (Peek().IsWhitespaceWithNoNewLine())
             {
-                sb.Append(Take());
+                sb.Append(PeekAndTake());
             }
             tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Whitespace, this));
             return true;
@@ -678,7 +672,7 @@ namespace Hocon
 
             while (Peek().IsHexadecimal())
             {
-                sb.Append(Take());
+                sb.Append(PeekAndTake());
             }
             try
             {
@@ -699,11 +693,11 @@ namespace Hocon
         {
             PushIndex();
             var sb = new StringBuilder();
-            sb.Append(Take());
+            sb.Append(PeekAndTake());
 
             while (Peek().IsOctal())
             {
-                sb.Append(Take());
+                sb.Append(PeekAndTake());
             }
             try
             {
@@ -749,7 +743,7 @@ namespace Hocon
 
                         PushIndex(); // long test index
                         if (Matches('+', '-'))
-                            sb.Append(Take());
+                            sb.Append(PeekAndTake());
 
                         // numbers could not start with a 0
                         if (!Peek().IsDigit() || Peek() == '0')
@@ -760,7 +754,7 @@ namespace Hocon
                         }
                         while (Peek().IsDigit())
                         {
-                            sb.Append(Take());
+                            sb.Append(PeekAndTake());
                         }
                         if (!long.TryParse(sb.ToString(), out _))
                         {
@@ -784,9 +778,9 @@ namespace Hocon
 
                         PushIndex(); // validate significand in number test
                         if (Matches('+', '-'))
-                            sb.Insert(0, Take());
+                            sb.Insert(0, PeekAndTake());
                         
-                        sb.Append(Take());
+                        sb.Append(PeekAndTake());
                         if (!Peek().IsDigit())
                         {
                             ResetIndex(); // reset validate significand in number test
@@ -795,7 +789,7 @@ namespace Hocon
                         }
                         while (Peek().IsDigit())
                         {
-                            sb.Append(Take());
+                            sb.Append(PeekAndTake());
                         }
                         if (!double.TryParse(sb.ToString(), out _))
                         {
@@ -818,11 +812,11 @@ namespace Hocon
                         }
 
                         PushIndex(); // validate exponent
-                        sb.Append(Take());
+                        sb.Append(PeekAndTake());
 
                         // check for signed exponent
                         if (Matches('-', '+'))
-                            sb.Append(Take());
+                            sb.Append(PeekAndTake());
 
                         if (!Peek().IsDigit())
                         {
@@ -832,7 +826,7 @@ namespace Hocon
                         }
                         while (Peek().IsDigit())
                         {
-                            sb.Append(Take());
+                            sb.Append(PeekAndTake());
                         }
                         if (!double.TryParse(sb.ToString(), out _))
                         {
@@ -905,7 +899,7 @@ namespace Hocon
             var sb = new StringBuilder();
             while (!EoF && IsUnquotedText())
             {
-                sb.Append(Take());
+                sb.Append(PeekAndTake());
             }
 
             tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.UnquotedLiteralValue, this));
@@ -931,7 +925,7 @@ namespace Hocon
                 }
                 else
                 {
-                    sb.Append(Take());
+                    sb.Append(PeekAndTake());
                 }
             }
 
@@ -962,7 +956,7 @@ namespace Hocon
                 }
                 else
                 {
-                    sb.Append(Take());
+                    sb.Append(PeekAndTake());
                 }
             }
 
@@ -984,7 +978,7 @@ namespace Hocon
             var sb = new StringBuilder();
             while (!EoF && !Matches(Utils.NewLine))
             {
-                sb.Append(Take());
+                sb.Append(PeekAndTake());
             }
 
             return sb.ToString();
