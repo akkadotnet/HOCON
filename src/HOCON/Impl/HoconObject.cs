@@ -293,12 +293,12 @@ namespace Hocon
         public string ToString(int indent, int indentSize)
         {
             var i = new string(' ', indent * indentSize);
-            var list = new List<string>();
+            var sb = new StringBuilder();
             foreach (var field in this)
             {
-                list.Add($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)}");
+                sb.Append($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
             }
-            return string.Join($",{Environment.NewLine}", list);
+            return sb.ToString(0, sb.Length - Environment.NewLine.Length - 1);
         }
 
         public virtual void Merge(HoconObject other)
