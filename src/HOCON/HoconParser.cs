@@ -193,56 +193,56 @@ namespace Hocon
 
         private bool IsValueCyclic(HoconField field, HoconSubstitution sub)
         {
-            var subStack = new Stack<HoconSubstitution>();
-            subStack.Push(sub);
-            return IsValueCyclic(null, new List<HoconField> {field}, subStack);
-        }
+            var pendingValues = new Stack<HoconValue>();
+            var visitedFields = new List<HoconField> { field };
+            var pendingSubs = new Stack<HoconSubstitution>();
+            pendingSubs.Push(sub);
 
-        private bool IsValueCyclic(HoconValue currentValue, List<HoconField> visitedFields, Stack<HoconSubstitution> pendingSubs)
-        {
             while (pendingSubs.Count > 0)
             {
                 var currentSub = pendingSubs.Pop();
-                if (!_root.GetObject().TryGetField(currentSub.Path, out var field))
+                if (!_root.GetObject().TryGetField(currentSub.Path, out var currentField))
                     continue;
-                if (visitedFields.Contains(field))
-                {
-                    return true;
-                }
-                visitedFields.Add(field);
-                if (IsValueCyclic(field.Value, visitedFields, pendingSubs))
-                    return true;
-            }
 
-            if (currentValue == null)
-                return false;
+                if (visitedFields.Contains(currentField))
+                    return true;
 
-            foreach (var value in currentValue)
-            {
-                switch (value)
+                visitedFields.Add(currentField);
+                pendingValues.Push(currentField.Value);
+                while (pendingValues.Count > 0)
                 {
-                    case HoconLiteral _:
-                        break;
-                    case HoconObject o:
-                        foreach (var field in o.Values)
+                    var currentValue = pendingValues.Pop();
+
+                    foreach (var value in currentValue)
+                    {
+                        switch (value)
                         {
-                            if (visitedFields.Contains(field))
-                                return true;
-                            visitedFields.Add(field);
-                            if (IsValueCyclic(field.Value, visitedFields, pendingSubs))
-                                return true;
+                            case HoconLiteral _:
+                                break;
+
+                            case HoconObject o:
+                                foreach (var f in o.Values)
+                                {
+                                    if (visitedFields.Contains(f))
+                                        return true;
+
+                                    visitedFields.Add(f);
+                                    pendingValues.Push(f.Value);
+                                }
+                                break;
+
+                            case HoconArray a:
+                                foreach (var item in a.GetArray())
+                                {
+                                    pendingValues.Push(item);
+                                }
+                                break;
+
+                            case HoconSubstitution s:
+                                pendingSubs.Push(s);
+                                break;
                         }
-                        break;
-                    case HoconArray a:
-                        foreach (var item in a.GetArray())
-                        {
-                            if (IsValueCyclic(item, visitedFields, pendingSubs))
-                                return true;
-                        }
-                        break;
-                    case HoconSubstitution s:
-                        pendingSubs.Push(s);
-                        break;
+                    }
                 }
             }
             return false;
