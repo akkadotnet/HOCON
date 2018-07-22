@@ -337,9 +337,43 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this)
             {
-                clone[kvp.Key] = (HoconField)kvp.Value.Clone(this);
+                clone[kvp.Key] = (HoconField)kvp.Value.Clone(clone);
             }
             return clone;
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (other.Type != HoconType.Object) return false;
+            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IHoconElement element && Equals(element);
+        }
+
+        public override int GetHashCode()
+        {
+            const int seed = 587;
+            const int modifier = 43;
+
+            unchecked
+            {
+                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
+            }
+        }
+
+        public static bool operator ==(HoconObject left, HoconObject right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconObject left, HoconObject right)
+        {
+            return !Equals(left, right);
         }
     }
 }

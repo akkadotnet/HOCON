@@ -57,15 +57,11 @@ namespace Hocon
         /// </exception>
         public new virtual void Add(IHoconElement value)
         {
-            if (this.IsSubstitution() || Type == HoconType.Empty)
-            {
+            if (Type == HoconType.Empty)
                 Type = value.Type;
-            }
-            else if (!value.IsSubstitution())
+            else
             {
-                if(value.Type == HoconType.Empty)
-                    return;
-                if(Type != value.Type)
+                if(!value.IsSubstitution() && Type != value.Type)
                     throw new HoconException($"Hocon value merge mismatch. Existing value: {Type}, merged item: {value.Type}");
             }
 
@@ -572,6 +568,61 @@ namespace Hocon
                 clone.Add(value.Clone(clone));
             }
             return clone;
+        }
+
+        protected bool Equals(HoconValue other)
+        {
+            return Type == other.Type && GetString() == other.GetString();
+        }
+
+        // HoconValue is an aggregate of same typed objects, so there are possibilities 
+        // where it can match with any other same typed objects (ie. a HoconLiteral can 
+        // have the same value as a HoconValue).
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Type != other.Type) return false;
+
+            switch (Type)
+            {
+                case HoconType.Empty:
+                    return other.Type == HoconType.Empty;
+                case HoconType.Array:
+                    return GetArray().SequenceEqual(other.GetArray());
+                case HoconType.Literal:
+                    return string.Equals(GetString(), other.GetString());
+                case HoconType.Object:
+                    return GetObject().AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
+                default:
+                    throw new HoconException($"Unknown enumeration value: {Type}");
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IHoconElement value && Equals(value);
+        }
+
+        public override int GetHashCode()
+        {
+            const int seed = 613;
+            const int modifier = 41;
+
+            unchecked
+            {
+                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
+            }
+        }
+
+        public static bool operator ==(HoconValue left, HoconValue right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconValue left, HoconValue right)
+        {
+            return !Equals(left, right);
         }
     }
 }

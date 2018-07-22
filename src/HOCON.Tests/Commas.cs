@@ -120,18 +120,9 @@ array_2 : [1, 2, 3]
             var hocon_1 = @"a:1, b:2, c:3,";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            using (var config_1 = HoconParser.Parse(hocon_1).AsEnumerable().GetEnumerator())
-            {
-                using (var config_2 = HoconParser.Parse(hocon_2).AsEnumerable().GetEnumerator())
-                {
-                    while (config_1.MoveNext())
-                    {
-                        config_2.MoveNext();
-                        Assert.Equal(config_1.Current.Key, config_2.Current.Key);
-                        Assert.Equal(config_1.Current.Value.Value.GetInt(), config_2.Current.Value.Value.GetInt());
-                    }
-                }
-            }
+            Assert.True(
+                HoconParser.Parse(hocon_1).AsEnumerable()
+                    .SequenceEqual(HoconParser.Parse(hocon_2).AsEnumerable()));
         }
 
         /*
@@ -147,18 +138,9 @@ b:2
 c:3";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            using (var config_1 = HoconParser.Parse(hocon_1).AsEnumerable().GetEnumerator())
-            {
-                using (var config_2 = HoconParser.Parse(hocon_2).AsEnumerable().GetEnumerator())
-                {
-                    while (config_1.MoveNext())
-                    {
-                        config_2.MoveNext();
-                        Assert.Equal(config_1.Current.Key, config_2.Current.Key);
-                        Assert.Equal(config_1.Current.Value.Value.GetInt(), config_2.Current.Value.Value.GetInt());
-                    }
-                }
-            }
+            Assert.True(
+                HoconParser.Parse(hocon_1).AsEnumerable()
+                    .SequenceEqual(HoconParser.Parse(hocon_2).AsEnumerable()));
         }
 
         /*

@@ -104,6 +104,52 @@ namespace Hocon
             clone.AddRange(this);
             return clone;
         }
+
+        private bool Equals(HoconArray other)
+        {
+            if (Count != other.Count) return false;
+            for(var i = 0; i < Count; ++i)
+            {
+                if (!Equals(this[i], other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other is HoconArray array && Equals(array);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj is IHoconElement element && Equals(element);
+        }
+
+        public override int GetHashCode()
+        {
+            const int seed = 599;
+            const int modifier = 37;
+
+            unchecked
+            {
+                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
+            }
+        }
+
+        public static bool operator ==(HoconArray left, HoconArray right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconArray left, HoconArray right)
+        {
+            return !Equals(left, right);
+        }
     }
 }
 

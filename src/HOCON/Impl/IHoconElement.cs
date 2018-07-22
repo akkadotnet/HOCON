@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace Hocon
@@ -13,7 +14,7 @@ namespace Hocon
     /// This interface defines the contract needed to implement
     /// a HOCON (Human-Optimized Config Object Notation) element.
     /// </summary>
-    public interface IHoconElement
+    public interface IHoconElement:IEquatable<IHoconElement>
     {
         IHoconElement Parent { get; }
 

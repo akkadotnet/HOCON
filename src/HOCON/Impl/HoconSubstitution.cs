@@ -52,7 +52,7 @@ namespace Hocon
         /// <summary>
         ///     The full path to the value which should substitute this instance.
         /// </summary>
-        public HoconPath Path { get; internal set; }
+        public HoconPath Path { get; }
 
         /// <summary>
         ///     The evaluated value from the Path property
@@ -115,11 +115,47 @@ namespace Hocon
         public string ToString(int indent, int indentSize)
             => ResolvedValue.ToString(indent, indentSize);
 
-        // Substitution can not be cloned.
+        // Substitution can not be cloned because it is resolved at the end of the parsing process.
         public IHoconElement Clone(IHoconElement newParent)
         {
             Parent = newParent;
             return this;
+        }
+
+        protected bool Equals(HoconSubstitution other)
+        {
+            return Equals(_resolvedValue, other._resolvedValue) && Equals(Path, other.Path);
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            if (other is HoconSubstitution sub)
+                return Path == sub.Path;
+
+            return !(_resolvedValue is null) && _resolvedValue.Equals(other);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IHoconElement element && Equals(element);
+        }
+
+        public override int GetHashCode()
+        {
+            return Path.GetHashCode();
+        }
+
+        public static bool operator ==(HoconSubstitution left, HoconSubstitution right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconSubstitution left, HoconSubstitution right)
+        {
+            return !Equals(left, right);
         }
     }
 }

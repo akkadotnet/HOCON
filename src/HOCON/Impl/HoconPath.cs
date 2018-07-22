@@ -106,9 +106,7 @@ namespace Hocon
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj is HoconPath other) 
-                return Equals(other);
-            return false;
+            return obj is HoconPath other && Equals(other);
         }
 
         public override int GetHashCode()

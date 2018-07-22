@@ -63,6 +63,9 @@ namespace Hocon
 
         public HoconField(HoconPath path, HoconObject parent)
         {
+            if(path == null)
+                throw new ArgumentNullException(nameof(path));
+
             Path = new HoconPath(path);
             Parent = parent;
             _internalValues = new List<HoconValue>();
@@ -110,7 +113,7 @@ namespace Hocon
             while (index < _internalValues.Count)
             {
                 var value = _internalValues[index];
-                if (value.Any(v => v == marker))
+                if (value.Any(v => ReferenceEquals(v, marker)))
                 {
                     break;
                 }
@@ -197,5 +200,35 @@ namespace Hocon
 
         public string ToString(int indent, int indentSize)
             => Value.ToString(indent, indentSize);
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other is HoconField field && Path.Equals(field.Path) && Value.Equals(other);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IHoconElement element && Equals(element);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return Path.GetHashCode() + Value.GetHashCode();
+            }
+        }
+
+        public static bool operator ==(HoconField left, HoconField right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconField left, HoconField right)
+        {
+            return !Equals(left, right);
+        }
     }
 }

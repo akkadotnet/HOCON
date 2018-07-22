@@ -121,6 +121,35 @@ namespace Hocon
             }
 
         }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Type == other.Type && string.Equals(Value, other.GetString());
+        }
+
+        public override bool Equals(object obj)
+        {
+            // Needs to be cast to IHoconElement because there are cases 
+            // where a HoconLiteral can be the same as a HoconValue
+            return obj is IHoconElement other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value?.GetHashCode() ?? 0;
+        }
+
+        public static bool operator ==(HoconLiteral left, HoconLiteral right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconLiteral left, HoconLiteral right)
+        {
+            return !Equals(left, right);
+        }
     }
 
     public class HoconNull : HoconLiteral
