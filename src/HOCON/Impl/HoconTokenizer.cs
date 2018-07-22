@@ -15,7 +15,7 @@ namespace Hocon
     /// <summary>
     /// This class contains methods used to tokenize a string.
     /// </summary>
-    internal class Tokenizer : IHoconLineInfo
+    internal abstract class Tokenizer : IHoconLineInfo
     {
         private readonly Stack<int> _indexStack = new Stack<int>();
 
@@ -34,7 +34,7 @@ namespace Hocon
         /// Initializes a new instance of the <see cref="Tokenizer"/> class.
         /// </summary>
         /// <param name="text">The string that contains the text to tokenize.</param>
-        public Tokenizer(string text)
+        protected Tokenizer(string text)
         {
             _text = text;
         }
@@ -195,7 +195,7 @@ namespace Hocon
     /// This class contains methods used to tokenize HOCON (Human-Optimized Config Object Notation)
     /// configuration strings.
     /// </summary>
-    internal class HoconTokenizer : Tokenizer
+    internal sealed class HoconTokenizer : Tokenizer
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconTokenizer"/> class.
@@ -488,7 +488,6 @@ namespace Hocon
 
         private string PullEscapeSequence()
         {
-            int start = Index;
             Take(); //consume "\"
             char escaped = Take();
             switch (escaped)

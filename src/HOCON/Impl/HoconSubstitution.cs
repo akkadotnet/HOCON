@@ -24,7 +24,7 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconSubstitution : IHoconElement, IHoconLineInfo
+    public sealed class HoconSubstitution : IHoconElement, IHoconLineInfo
     {
         private HoconValue _resolvedValue;
 

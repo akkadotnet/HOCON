@@ -152,7 +152,7 @@ namespace Hocon
         }
     }
 
-    public class HoconNull : HoconLiteral
+    public sealed class HoconNull : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Null;
         public override string Raw => "null";
@@ -164,7 +164,7 @@ namespace Hocon
             => new HoconNull(newParent);
     }
 
-    public class HoconBool : HoconLiteral
+    public sealed class HoconBool : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Bool;
 
@@ -174,7 +174,7 @@ namespace Hocon
             => new HoconBool(newParent, Value);
     }
 
-    public class HoconDouble : HoconLiteral
+    public sealed class HoconDouble : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Double;
 
@@ -184,7 +184,7 @@ namespace Hocon
             => new HoconDouble(newParent, Value);
     }
 
-    public class HoconLong : HoconLiteral
+    public sealed class HoconLong : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Long;
 
@@ -194,7 +194,7 @@ namespace Hocon
             => new HoconLong(newParent, Value);
     }
 
-    public class HoconHex : HoconLiteral
+    public sealed class HoconHex : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Hex;
 
@@ -204,7 +204,7 @@ namespace Hocon
             => new HoconHex(newParent, Value);
     }
 
-    public class HoconOctal : HoconLiteral
+    public sealed class HoconOctal : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Long;
 
@@ -214,7 +214,7 @@ namespace Hocon
             => new HoconOctal(newParent, Value);
     }
 
-    public class HoconUnquotedString : HoconLiteral
+    public sealed class HoconUnquotedString : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.UnquotedString;
 
@@ -224,7 +224,7 @@ namespace Hocon
             => new HoconUnquotedString(newParent, Value);
     }
 
-    public class HoconQuotedString : HoconLiteral
+    public sealed class HoconQuotedString : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.QuotedString;
         public override string Raw => "\"" + Value + "\"";
@@ -235,7 +235,7 @@ namespace Hocon
             => new HoconQuotedString(newParent, Value);
     }
 
-    public class HoconTripleQuotedString : HoconLiteral
+    public sealed class HoconTripleQuotedString : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.TripleQuotedString;
         public override string Raw => "\"\"\"" + Value + "\"\"\"";
@@ -246,7 +246,7 @@ namespace Hocon
             => new HoconTripleQuotedString(newParent, Value);
     }
 
-    public class HoconWhitespace : HoconLiteral
+    public sealed class HoconWhitespace : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Whitespace;
 

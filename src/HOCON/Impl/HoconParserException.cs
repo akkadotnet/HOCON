@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Hocon
 {
-    public class HoconParserException : Exception
+    public sealed class HoconParserException : Exception
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconParserException"/> class.

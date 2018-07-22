@@ -138,7 +138,7 @@ namespace Hocon
     /// This class represents a token within a HOCON (Human-Optimized Config Object Notation)
     /// configuration string.
     /// </summary>
-    internal class Token: IHoconLineInfo
+    internal sealed class Token: IHoconLineInfo
     {
         public static readonly Token Empty = new Token();
 

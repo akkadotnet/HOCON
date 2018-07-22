@@ -2,7 +2,7 @@
 
 namespace Hocon
 {
-    public class HoconTokenizerException : Exception, IHoconLineInfo
+    public sealed class HoconTokenizerException : Exception, IHoconLineInfo
     {
         public int LineNumber { get; }
         public int LinePosition { get; }

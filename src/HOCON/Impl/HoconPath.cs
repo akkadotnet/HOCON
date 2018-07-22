@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Hocon
 {
-    public class HoconPath:List<string>, IEquatable<HoconPath>
+    public sealed class HoconPath:List<string>, IEquatable<HoconPath>
     {
         public bool IsEmpty => Count == 0;
         public string Value => string.Join(".", this);

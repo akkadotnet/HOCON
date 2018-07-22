@@ -19,7 +19,7 @@ namespace Hocon
     /// This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)
     /// configuration strings.
     /// </summary>
-    public class HoconParser
+    public sealed class HoconParser
     {
         private readonly List<HoconSubstitution> _substitutions = new List<HoconSubstitution>();
         private HoconIncludeCallbackAsync _includeCallback = (type, value) => Task.FromResult("{}");

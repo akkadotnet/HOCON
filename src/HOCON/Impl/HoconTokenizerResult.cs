@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Hocon
 {
-    internal class HoconTokenizerResult : List<Token>
+    internal sealed class HoconTokenizerResult : List<Token>
     {
         private readonly Stack<int> _indexStack = new Stack<int>();
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Hocon
 {
-    public class HoconMergedObject:HoconObject
+    public sealed class HoconMergedObject:HoconObject
     {
         public List<HoconObject> Objects { get; }
 
