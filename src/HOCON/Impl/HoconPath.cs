@@ -111,13 +111,16 @@ namespace Hocon
 
         public override int GetHashCode()
         {
-            const int seed = 601;
             const int modifier = 31;
-
+            var result = 601;
             unchecked
             {
-                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
+                foreach (var key in this)
+                {
+                    result = result * modifier + key.GetHashCode();
+                }
             }
+            return result;
         }
 
         public static bool operator ==(HoconPath left, HoconPath right)

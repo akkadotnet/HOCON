@@ -94,14 +94,6 @@ namespace Hocon
             return patterns.Any(pattern => _text[Index] == pattern);
         }
 
-        protected bool BackMatch(string pattern)
-        {
-            if (Index - pattern.Length < 0)
-                return false;
-
-            return _text.Substring(Index = pattern.Length, pattern.Length) == pattern;
-        }
-
         /// <summary>
         /// Retrieves the next character in the tokenizer.
         /// </summary>

@@ -37,6 +37,17 @@ namespace Hocon
 
         public override List<HoconValue> GetArray() => new List<HoconValue>();
 
+        public override bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            return other.Type == HoconType.Empty;
+        }
+
+        public override int GetHashCode()
+        {
+            return 0;
+        }
+
         public override IHoconElement Clone(IHoconElement newParent)
         {
             return new HoconEmptyValue(newParent);

@@ -357,13 +357,16 @@ namespace Hocon
 
         public override int GetHashCode()
         {
-            const int seed = 587;
             const int modifier = 43;
-
+            var result = 587;
             unchecked
             {
-                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
+                foreach (var value in Values)
+                {
+                    result = result * modifier + value.GetHashCode();
+                }
             }
+            return result;
         }
 
         public static bool operator ==(HoconObject left, HoconObject right)

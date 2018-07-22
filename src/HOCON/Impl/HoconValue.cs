@@ -578,7 +578,7 @@ namespace Hocon
         // HoconValue is an aggregate of same typed objects, so there are possibilities 
         // where it can match with any other same typed objects (ie. a HoconLiteral can 
         // have the same value as a HoconValue).
-        public bool Equals(IHoconElement other)
+        public virtual bool Equals(IHoconElement other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;

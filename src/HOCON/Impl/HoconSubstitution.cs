@@ -122,11 +122,6 @@ namespace Hocon
             return this;
         }
 
-        protected bool Equals(HoconSubstitution other)
-        {
-            return Equals(_resolvedValue, other._resolvedValue) && Equals(Path, other.Path);
-        }
-
         public bool Equals(IHoconElement other)
         {
             if (other is null) return false;
