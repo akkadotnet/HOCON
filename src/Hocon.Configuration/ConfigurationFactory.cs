@@ -39,12 +39,6 @@ namespace Hocon.Configuration
             return new Config(res);
         }
 
-        public static async Task<Config> ParseStringAsync(string hocon, HoconIncludeCallbackAsync includeCallback)
-        {
-            HoconRoot res = await HoconParser.ParseAsync(hocon, includeCallback);
-            return new Config(res);
-        }
-
         /// <summary>
         /// Generates a configuration defined in the supplied
         /// HOCON (Human-Optimized Config Object Notation) string.
@@ -54,11 +48,6 @@ namespace Hocon.Configuration
         public static Config ParseString(string hocon)
         {
             return ParseString(hocon, null);
-        }
-
-        public static async Task<Config> ParseStringAsync(string hocon)
-        {
-            return await ParseStringAsync(hocon, null);
         }
 
         /// <summary>

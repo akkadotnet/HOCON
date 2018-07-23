@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 namespace Hocon
 {
     public delegate string HoconIncludeCallback(HoconCallbackType callbackType, string value);
-    public delegate Task<string> HoconIncludeCallbackAsync(HoconCallbackType callbackType, string value);
 
     /// <summary>
     /// This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)
@@ -22,7 +21,7 @@ namespace Hocon
     public sealed class HoconParser
     {
         private readonly List<HoconSubstitution> _substitutions = new List<HoconSubstitution>();
-        private HoconIncludeCallbackAsync _includeCallback = (type, value) => Task.FromResult("{}");
+        private HoconIncludeCallback _includeCallback = (type, value) => "{}";
 
         private HoconTokenizerResult _tokens;
         private HoconValue _root;
@@ -44,22 +43,7 @@ namespace Hocon
             return new HoconParser().ParseText(text, true, includeCallback);
         }
 
-        /// <inheritdoc cref="Parse(string, HoconIncludeCallback)"/>
-        public static async Task<HoconRoot> ParseAsync(string text, HoconIncludeCallbackAsync includeCallback = null)
-        {
-            return await new HoconParser().ParseTextAsync(text, true, includeCallback).ConfigureAwait(false);
-        }
-
         private HoconRoot ParseText(string text, bool resolveSubstitutions, HoconIncludeCallback includeCallback)
-        {
-            HoconIncludeCallbackAsync wrappedIncludeCallback = null;
-            if (includeCallback != null)
-                wrappedIncludeCallback = (t, s) => Task.FromResult(includeCallback(t, s));
-
-            return AsyncHelper.RunSync(() => ParseTextAsync(text, resolveSubstitutions, wrappedIncludeCallback));
-        }
-
-        private async Task<HoconRoot> ParseTextAsync(string text, bool resolveSubstitutions, HoconIncludeCallbackAsync includeCallback)
         {
             if (string.IsNullOrWhiteSpace(text))
                 throw new HoconParserException(
@@ -73,7 +57,7 @@ namespace Hocon
             {
                 _tokens = new HoconTokenizer(text).Tokenize();
                 _root = new HoconValue(null);
-                await ParseTokensAsync().ConfigureAwait(false);
+                ParseTokens();
                 if(resolveSubstitutions)
                     ResolveSubstitutions();
             }
@@ -248,7 +232,7 @@ namespace Hocon
             return false;
         }
 
-        private async Task ParseTokensAsync()
+        private void ParseTokens()
         {
             if (_tokens.Current.IsNonSignificant())
                 ConsumeWhitelines();
@@ -258,7 +242,7 @@ namespace Hocon
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
-                        var parsedInclude = await ParseIncludeAsync(null).ConfigureAwait(false);
+                        var parsedInclude = ParseInclude(null);
                         if (_root.Type != HoconType.Object)
                         {
                             _root.Clear();
@@ -271,7 +255,7 @@ namespace Hocon
                     // Hocon config file may contain one array and one array only
                     case TokenType.StartOfArray:
                         _root.Clear();
-                        _root.Add(await ParseArrayAsync(null).ConfigureAwait(false));
+                        _root.Add(ParseArray(null));
                         ConsumeWhitelines();
                         if (_tokens.Current.Type != TokenType.EndOfFile)
                             throw HoconParserException.Create(_tokens.Current, Path, "Hocon config can only contain one array or one object.");
@@ -279,7 +263,7 @@ namespace Hocon
 
                     case TokenType.StartOfObject:
                     {
-                        var parsedObject = await ParseObjectAsync(null).ConfigureAwait(false);
+                        var parsedObject = ParseObject(null);
                         if (_root.Type != HoconType.Object)
                         {
                             _root.Clear();
@@ -297,7 +281,7 @@ namespace Hocon
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
 
-                        var parsedObject = await ParseObjectAsync(null).ConfigureAwait(false);
+                        var parsedObject = ParseObject(null);
                         if (_root.Type != HoconType.Object)
                         {
                             _root.Clear();
@@ -322,7 +306,7 @@ namespace Hocon
             }
         }
 
-        private async Task<IHoconElement> ParseIncludeAsync(IHoconElement owner)
+        private IHoconElement ParseInclude(IHoconElement owner)
         {
             // Sanity check
             if (_tokens.Current.Type != TokenType.Include)
@@ -450,7 +434,7 @@ namespace Hocon
             // Consume the last token
             _tokens.Next();
 
-            var includeHocon = await _includeCallback(callbackType, fileName).ConfigureAwait(false);
+            var includeHocon = _includeCallback(callbackType, fileName);
 
             if (string.IsNullOrWhiteSpace(includeHocon))
             {
@@ -460,7 +444,7 @@ namespace Hocon
                 return new HoconEmptyValue(owner);
             }
 
-            var includeRoot = await new HoconParser().ParseTextAsync(includeHocon, false, _includeCallback).ConfigureAwait(false);
+            var includeRoot = new HoconParser().ParseText(includeHocon, false, _includeCallback);
             if (owner.Type != HoconType.Empty && owner.Type != includeRoot.Value.Type)
                 throw HoconParserException.Create(includeToken, Path,
                     $"Invalid Hocon include. Hocon config substitution type must be the same as the field it's merged into. " +
@@ -478,7 +462,7 @@ namespace Hocon
         }
 
         // The owner in this context can be either an object or an array.
-        private async Task<HoconObject> ParseObjectAsync(IHoconElement owner)
+        private HoconObject ParseObject(IHoconElement owner)
         {
             var hoconObject = new HoconObject(owner);
 
@@ -508,7 +492,7 @@ namespace Hocon
                                 $"Failed to parse Hocon object. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}`, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = await ParseIncludeAsync(hoconObject).ConfigureAwait(false);
+                        lastValue = ParseInclude(hoconObject);
                         break;
 
                     case TokenType.LiteralValue:
@@ -522,7 +506,7 @@ namespace Hocon
                                 $"Failed to parse Hocon object. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}`, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = await ParseFieldAsync(hoconObject).ConfigureAwait(false);
+                        lastValue = ParseField(hoconObject);
                         break;
 
                     // TODO: can an object be declared floating without being assigned to a field?
@@ -630,7 +614,7 @@ namespace Hocon
             return HoconPath.FromTokens(keyTokens);
         }
 
-        private async Task<HoconField> ParseFieldAsync(HoconObject owner)
+        private HoconField ParseField(HoconObject owner)
         {
             // sanity check
             if(_tokens.Current.Type != TokenType.LiteralValue)
@@ -660,7 +644,7 @@ namespace Hocon
             Path.AddRange(pathDelta);
             HoconField currentField = childInPath[childInPath.Count - 1];
 
-            var parsedValue = await ParseValueAsync(currentField).ConfigureAwait(false);
+            var parsedValue = ParseValue(currentField);
 
             foreach (var removedSub in currentField.SetValue(parsedValue))
             {
@@ -677,7 +661,7 @@ namespace Hocon
         /// </summary>
         /// <param name="owner">The element to append the next token.</param>
         /// <exception cref="System.Exception">End of file reached while trying to read a value</exception>
-        private async Task<HoconValue> ParseValueAsync(IHoconElement owner)
+        private HoconValue ParseValue(IHoconElement owner)
         {
             var value = new HoconValue(owner);
             var parsing = true;
@@ -686,7 +670,7 @@ namespace Hocon
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
-                        value.Add(await ParseIncludeAsync(value).ConfigureAwait(false));
+                        value.Add(ParseInclude(value));
                         break;
 
                     case TokenType.LiteralValue:
@@ -704,11 +688,11 @@ namespace Hocon
                         break;
 
                     case TokenType.StartOfObject:
-                        value.Add(await ParseObjectAsync(value).ConfigureAwait(false));
+                        value.Add(ParseObject(value));
                         break;
 
                     case TokenType.StartOfArray:
-                        value.Add(await ParseArrayAsync(value).ConfigureAwait(false));
+                        value.Add(ParseArray(value));
                         break;
 
                     case TokenType.SubstituteOptional:
@@ -746,7 +730,7 @@ namespace Hocon
                         _substitutions.Add(subAssign);
                         value.Add(subAssign);
 
-                        value.Add(await ParsePlusEqualAssignArrayAsync(value).ConfigureAwait(false));
+                        value.Add(ParsePlusEqualAssignArray(value));
                         parsing = false;
                         break;
 
@@ -769,7 +753,7 @@ namespace Hocon
             return value;
         }
 
-        private async Task<HoconArray> ParsePlusEqualAssignArrayAsync(IHoconElement owner)
+        private HoconArray ParsePlusEqualAssignArray(IHoconElement owner)
         {
             // sanity check
             if (_tokens.Current.Type != TokenType.PlusEqualAssign)
@@ -785,16 +769,16 @@ namespace Hocon
             switch (_tokens.Current.Type)
             {
                 case TokenType.Include:
-                    currentArray.Add(await ParseIncludeAsync(currentArray).ConfigureAwait(false));
+                    currentArray.Add(ParseInclude(currentArray));
                     break;
 
                 case TokenType.StartOfArray:
                     // Array inside of arrays are parsed as values because it can be value concatenated with another array.
-                    currentArray.Add(await ParseValueAsync(currentArray).ConfigureAwait(false));
+                    currentArray.Add(ParseValue(currentArray));
                     break;
 
                 case TokenType.StartOfObject:
-                    currentArray.Add(await ParseObjectAsync(currentArray).ConfigureAwait(false));
+                    currentArray.Add(ParseObject(currentArray));
                     break;
 
                 case TokenType.LiteralValue:
@@ -803,7 +787,7 @@ namespace Hocon
                     if (_tokens.Current.Type != TokenType.LiteralValue)
                         break;
 
-                    currentArray.Add(await ParseValueAsync(currentArray).ConfigureAwait(false));
+                    currentArray.Add(ParseValue(currentArray));
                     break;
 
                 case TokenType.SubstituteOptional:
@@ -828,7 +812,7 @@ namespace Hocon
         /// Retrieves the next array token from the tokenizer.
         /// </summary>
         /// <returns>An array of elements retrieved from the token.</returns>
-        private async Task<HoconArray> ParseArrayAsync(IHoconElement owner)
+        private HoconArray ParseArray(IHoconElement owner)
         {
             var currentArray = new HoconArray(owner);
 
@@ -847,7 +831,7 @@ namespace Hocon
                                 $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = await ParseIncludeAsync(currentArray).ConfigureAwait(false);
+                        lastValue = ParseInclude(currentArray);
                         break;
 
                     case TokenType.StartOfArray:
@@ -857,7 +841,7 @@ namespace Hocon
                                 $"found `{_tokens.Current.Type}` instead.");
 
                         // Array inside of arrays are parsed as values because it can be value concatenated with another array.
-                        lastValue = await ParseValueAsync(currentArray).ConfigureAwait(false);
+                        lastValue = ParseValue(currentArray);
                         break;
 
                     case TokenType.StartOfObject:
@@ -866,7 +850,7 @@ namespace Hocon
                                 $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = await ParseObjectAsync(currentArray).ConfigureAwait(false);
+                        lastValue = ParseObject(currentArray);
                         break;
 
                     case TokenType.LiteralValue:
@@ -880,7 +864,7 @@ namespace Hocon
                                 $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = await ParseValueAsync(currentArray).ConfigureAwait(false);
+                        lastValue = ParseValue(currentArray);
                         break;
 
                     case TokenType.SubstituteOptional:
