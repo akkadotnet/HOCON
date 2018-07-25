@@ -148,15 +148,30 @@ namespace Hocon
         public bool TryGetField(HoconPath path, out HoconField result)
         {
             result = null;
-            try
-            {
-                result = GetField(path);
-            }
-            catch
-            {
+            if (path == null || path.Count == 0)
                 return false;
+
+            var pathIndex = 0;
+            var currentObject = this;
+            while (true)
+            {
+                var key = path[pathIndex];
+
+                if (!currentObject.TryGetValue(key, out var field))
+                    return false;
+
+                if (pathIndex >= path.Count - 1)
+                {
+                    result = field;
+                    return true;
+                }
+
+                if (field.Type != HoconType.Object)
+                    return false;
+
+                currentObject = field.GetObject();
+                pathIndex = pathIndex + 1;
             }
-            return true;
         }
 
         /// <summary>
@@ -190,14 +205,10 @@ namespace Hocon
         public bool TryGetObject(string key, out HoconObject result)
         {
             result = null;
-            try
-            {
-                result = GetField(key).GetObject();
-            }
-            catch
-            {
+            if (!TryGetField(key, out var field))
                 return false;
-            }
+
+            result = field.GetObject();
             return true;
         }
 
@@ -235,14 +246,9 @@ namespace Hocon
         public bool TryGetValue(HoconPath path, out HoconValue result)
         {
             result = null;
-            try
-            {
-                result = GetValue(path);
-            }
-            catch
-            {
+            if (!TryGetField(path, out var field))
                 return false;
-            }
+            result = field.Value;
             return true;
         }
 
