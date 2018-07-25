@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,6 +88,9 @@ namespace Hocon
             return res;
         }
 
+        public static bool IsNotInUnquotedText(this char c)
+            => NotInUnquotedText.Contains(c);
+
         public static bool IsHoconWhitespace(this char c)
             => Whitespaces.Contains(c);
 
@@ -109,6 +111,16 @@ namespace Hocon
 
         public static HoconPath ToHoconPath(this string path)
             => HoconPath.Parse(path);
+
+        public static bool Contains(this string s, char c)
+        {
+            foreach (var cc in s)
+            {
+                if (c == cc)
+                    return true;
+            }
+            return false;
+        }
 
         #endregion
 
@@ -138,7 +150,12 @@ namespace Hocon
                     }
                     return false;
                 case HoconField f:
-                    return f.Value.OfType<HoconSubstitution>().Any();
+                    foreach (var v in f.Value)
+                    {
+                        if (v is HoconSubstitution)
+                            return true;
+                    }
+                    return false;
                 case HoconSubstitution _:
                     return true;
                 default:
@@ -151,7 +168,14 @@ namespace Hocon
     {
 
         public static bool NeedQuotes(this string s)
-            => s.Intersect(Utils.NotInUnquotedText).Any();
+        {
+            foreach (var c in s)
+            {
+                if (Utils.NotInUnquotedText.Contains(c))
+                    return true;
+            }
+            return false;
+        }
 
         public static bool NeedTripleQuotes(this string s)
             => s.NeedQuotes() && s.Contains(Utils.NewLine);

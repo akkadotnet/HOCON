@@ -7,7 +7,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Hocon
@@ -83,7 +82,22 @@ namespace Hocon
         /// <returns><c>true</c> if any one of the patterns match, otherwise <c>false</c>.</returns>
         protected bool Matches(params string[] patterns)
         {
-            return patterns.Any(Matches);
+            foreach (var pattern in patterns)
+            {
+                if (pattern.Length + Index > _text.Length)
+                    continue;
+
+                var match = true;
+                for (var i = 0; i < pattern.Length; ++i)
+                {
+                    if (pattern[i] == _text[Index + i]) continue;
+                    match = false;
+                    break;
+                }
+                if(match)
+                    return true;
+            }
+            return false;
         }
 
         protected bool Matches(char pattern)
@@ -99,7 +113,12 @@ namespace Hocon
             if (EoF)
                 return false;
 
-            return patterns.Any(pattern => _text[Index] == pattern);
+            foreach (var pattern in patterns)
+            {
+                if (_text[Index] == pattern)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -169,7 +188,7 @@ namespace Hocon
 
         protected void PullWhitespaces()
         {
-            while (!EoF && Utils.WhitespaceWithoutNewLine.Contains(Peek()))
+            while (!EoF && Peek().IsWhitespaceWithNoNewLine())
             {
                 Take();
             }
@@ -210,8 +229,10 @@ namespace Hocon
                 }
                 if (PullObjectEnd(tokens))
                 {
-                    if(closingTokenType != tokens.Last().Type)
-                        throw new HoconTokenizerException($"Expected {closingTokenType}, found {tokens.Last().Type} instead.", tokens.Last());
+                    if(closingTokenType != tokens[tokens.Count-1].Type)
+                        throw new HoconTokenizerException(
+                            $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.", 
+                            tokens[tokens.Count - 1]);
                     return tokens;
                 }
                 if (PullArrayStart(tokens))
@@ -221,8 +242,10 @@ namespace Hocon
                 }
                 if (PullArrayEnd(tokens))
                 {
-                    if (closingTokenType != tokens.Last().Type)
-                        throw new HoconTokenizerException($"Expected {closingTokenType}, found {tokens.Last().Type} instead.", tokens.Last());
+                    if (closingTokenType != tokens[tokens.Count - 1].Type)
+                        throw new HoconTokenizerException(
+                            $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.", 
+                            tokens[tokens.Count - 1]);
                     return tokens;
                 }
                 if (PullParenthesisStart(tokens))
@@ -232,8 +255,10 @@ namespace Hocon
                 }
                 if (PullParenthesisEnd(tokens))
                 {
-                    if (closingTokenType != tokens.Last().Type)
-                        throw new HoconTokenizerException($"Expected {closingTokenType}, found {tokens.Last().Type} instead.", tokens.Last());
+                    if (closingTokenType != tokens[tokens.Count - 1].Type)
+                        throw new HoconTokenizerException(
+                            $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.", 
+                            tokens[tokens.Count - 1]);
                     return tokens;
                 }
                 if (PullNonNewLineWhitespace(tokens))
@@ -267,7 +292,8 @@ namespace Hocon
             }
 
             if(closingTokenType != TokenType.EndOfFile)
-                throw new HoconTokenizerException($"Expected {closingTokenType}, found {TokenType.EndOfFile} instead.", tokens.Last());
+                throw new HoconTokenizerException(
+                    $"Expected {closingTokenType}, found {TokenType.EndOfFile} instead.", tokens[tokens.Count - 1]);
             return tokens;
         }
 
@@ -986,6 +1012,6 @@ namespace Hocon
 
         private bool IsStartOfComment() => Matches("//");
 
-        private bool IsUnquotedText() => !EoF && !Peek().IsHoconWhitespace() && !IsStartOfComment() && !Utils.NotInUnquotedText.Contains(Peek());
+        private bool IsUnquotedText() => !EoF && !Peek().IsHoconWhitespace() && !IsStartOfComment() && !Peek().IsNotInUnquotedText();
     }
 }
