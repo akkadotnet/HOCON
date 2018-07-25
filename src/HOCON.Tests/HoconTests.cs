@@ -383,6 +383,18 @@ h = 0377
         }
 
         [Fact]
+        public void FailedIncludeParsingShouldBeParsedAsLiteralInstead()
+        {
+            var hocon = @"{
+  include = include required file(not valid)
+  include file = not an include
+}";
+            var config = HoconParser.Parse(hocon);
+            Assert.Equal("include required file(not valid)", config.GetString("include"));
+            Assert.Equal("not an include", config.GetString("include file"));
+        }
+
+        [Fact]
         public void CanAssignQuotedStringToField()
         {
             var hocon = @"a=""hello""";

@@ -222,68 +222,76 @@ namespace Hocon
 
             while (!EoF)
             {
-                if (PullObjectStart(tokens))
+                switch (Peek())
                 {
-                    tokens.AddRange(Tokenize(TokenType.EndOfObject));
-                    continue;
+                    case '{':
+                        Take();
+                        tokens.Add(new Token("{", TokenType.StartOfObject, this));
+                        tokens.AddRange(Tokenize(TokenType.EndOfObject));
+                        continue;
+
+                    case '}':
+                        Take();
+                        tokens.Add(new Token("}", TokenType.EndOfObject, this));
+                        if (closingTokenType != tokens[tokens.Count - 1].Type)
+                            throw new HoconTokenizerException(
+                                $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.",
+                                tokens[tokens.Count - 1]);
+                        return tokens;
+
+                    case '[':
+                        Take();
+                        tokens.Add(new Token("[", TokenType.StartOfArray, this));
+                        tokens.AddRange(Tokenize(TokenType.EndOfArray));
+                        continue;
+
+                    case ']':
+                        Take();
+                        tokens.Add(new Token("]", TokenType.EndOfArray, this));
+                        if (closingTokenType != tokens[tokens.Count - 1].Type)
+                            throw new HoconTokenizerException(
+                                $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.",
+                                tokens[tokens.Count - 1]);
+                        return tokens;
+
+                    case ',':
+                        Take();
+                        tokens.Add(new Token(",", TokenType.Comma, TokenLiteralType.UnquotedLiteralValue, this));
+                        continue;
+
+                    case ':':
+                    case '=':
+                        var c = PeekAndTake();
+                        tokens.Add(new Token(c.ToString(), TokenType.Assign, this));
+                        continue;
+
+                    case '+':
+                        if (PullPlusEqualAssignment(tokens))
+                            continue;
+                        break;
+
+                    case '/':
+                    case '#':
+                        if (PullComment(tokens))
+                            continue;
+                        break;
+
+                    case '$':
+                        if (PullSubstitution(tokens))
+                            continue;
+                        break;
+
+                    case '\n':
+                        Take();
+                        tokens.Add(new Token("\n", TokenType.EndOfLine, this));
+                        continue;
+                    case 'i':
+                        if (PullInclude(tokens))
+                            continue;
+                        break;
                 }
-                if (PullObjectEnd(tokens))
-                {
-                    if(closingTokenType != tokens[tokens.Count-1].Type)
-                        throw new HoconTokenizerException(
-                            $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.", 
-                            tokens[tokens.Count - 1]);
-                    return tokens;
-                }
-                if (PullArrayStart(tokens))
-                {
-                    tokens.AddRange(Tokenize(TokenType.EndOfArray));
-                    continue;
-                }
-                if (PullArrayEnd(tokens))
-                {
-                    if (closingTokenType != tokens[tokens.Count - 1].Type)
-                        throw new HoconTokenizerException(
-                            $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.", 
-                            tokens[tokens.Count - 1]);
-                    return tokens;
-                }
-                if (PullParenthesisStart(tokens))
-                {
-                    tokens.AddRange(Tokenize(TokenType.ParenthesisEnd));
-                    continue;
-                }
-                if (PullParenthesisEnd(tokens))
-                {
-                    if (closingTokenType != tokens[tokens.Count - 1].Type)
-                        throw new HoconTokenizerException(
-                            $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.", 
-                            tokens[tokens.Count - 1]);
-                    return tokens;
-                }
+
                 if (PullNonNewLineWhitespace(tokens))
-                    continue;
-                if (PullComment(tokens))
-                    continue;
-                if(PullNewLine(tokens))
-                    continue;
-                if(PullSubstitution(tokens))
-                    continue;
-                if(PullComma(tokens))
-                    continue;
-                if(PullAssignment(tokens))
-                    continue;
-                if (PullPlusEqualAssignment(tokens))
-                    continue;
-                if(PullInclude(tokens))
-                    continue;
-                if(PullRequired(tokens))
-                    continue;
-                if(PullUrlInclude(tokens))
-                    continue;
-                if(PullFileInclude(tokens))
-                    continue;
-                if(PullResourceInclude(tokens))
                     continue;
                 if (PullLiteral(tokens))
                     continue;
@@ -298,106 +306,6 @@ namespace Hocon
         }
 
         /// <summary>
-        /// Retrieves a <see cref="TokenType.EndOfArray"/> token from the tokenizer's current position.
-        /// </summary>
-        /// <returns>A <see cref="TokenType.EndOfArray"/> token from the tokenizer's current position.</returns>
-        private bool PullArrayEnd(HoconTokenizerResult tokens)
-        {
-            if (!Matches(']'))
-                return false;
-
-            Take();
-            tokens.Add(new Token("]", TokenType.EndOfArray, this));
-            return true;
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="TokenType.StartOfArray"/> token from the tokenizer's current position.
-        /// </summary>
-        /// <returns>A <see cref="TokenType.StartOfArray"/> token from the tokenizer's current position.</returns>
-        private bool PullArrayStart(HoconTokenizerResult tokens)
-        {
-            if (!Matches('['))
-                return false;
-
-            Take();
-            tokens.Add(new Token("[", TokenType.StartOfArray, this));
-            return true;
-        }
-
-        private bool PullParenthesisStart(HoconTokenizerResult tokens)
-        {
-            if (!Matches('('))
-                return false;
-
-            Take();
-            tokens.Add(new Token("(", TokenType.ParenthesisStart, this));
-            return true;
-        }
-
-        private bool PullParenthesisEnd(HoconTokenizerResult tokens)
-        {
-            if (!Matches(')'))
-                return false;
-
-            Take();
-            tokens.Add(new Token(")", TokenType.ParenthesisEnd, this));
-            return true;
-        }
-
-        private bool PullNewLine(HoconTokenizerResult tokens)
-        {
-            if (!Matches(Utils.NewLine))
-                return false;
-
-            Take();
-            tokens.Add(new Token("\n", TokenType.EndOfLine, this));
-            return true;
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="TokenType.Comma"/> token from the tokenizer's current position.
-        /// </summary>
-        /// <returns>A <see cref="TokenType.Comma"/> token from the tokenizer's current position.</returns>
-        private bool PullComma(HoconTokenizerResult tokens)
-        {
-            if (!Matches(','))
-                return false;
-
-            Take();
-            tokens.Add(new Token(",", TokenType.Comma, TokenLiteralType.UnquotedLiteralValue, this));
-            return true;
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="TokenType.StartOfObject"/> token from the tokenizer's current position.
-        /// </summary>
-        /// <returns>A <see cref="TokenType.StartOfObject"/> token from the tokenizer's current position.</returns>
-        private bool PullObjectStart(HoconTokenizerResult tokens)
-        {
-            if (!Matches('{'))
-                return false;
-
-            Take();
-            tokens.Add(new Token("{", TokenType.StartOfObject, this));
-            return true;
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="TokenType.EndOfObject"/> token from the tokenizer's current position.
-        /// </summary>
-        /// <returns>A <see cref="TokenType.EndOfObject"/> token from the tokenizer's current position.</returns>
-        private bool PullObjectEnd(HoconTokenizerResult tokens)
-        {
-            if (!Matches('}'))
-                return false;
-
-            Take();
-            tokens.Add(new Token("}", TokenType.EndOfObject, this));
-            return true;
-        }
-
-        /// <summary>
         /// Retrieves a <see cref="TokenType.PlusEqualAssign"/> token from the tokenizer's current position.
         /// </summary>
         /// <returns>A <see cref="TokenType.PlusEqualAssign"/> token from the tokenizer's current position.</returns>
@@ -408,20 +316,6 @@ namespace Hocon
 
             Take(2);
             tokens.Add(new Token("+=", TokenType.PlusEqualAssign, this));
-            return true;
-        }
-
-        /// <summary>
-        /// Retrieves a <see cref="TokenType.Assign"/> token from the tokenizer's current position.
-        /// </summary>
-        /// <returns>A <see cref="TokenType.Assign"/> token from the tokenizer's current position.</returns>
-        private bool PullAssignment(HoconTokenizerResult tokens)
-        {
-            if (!Matches(':', '='))
-                return false;
-
-            var c = PeekAndTake();
-            tokens.Add(new Token(c.ToString(), TokenType.Assign, this));
             return true;
         }
 
@@ -446,10 +340,89 @@ namespace Hocon
             if (!Matches("include"))
                 return false;
 
+            PushIndex();
+            var includeTokens = new HoconTokenizerResult();
+
             Take("include".Length);
-            tokens.Add(new Token("include", TokenType.Include, this));
+            includeTokens.Add(new Token("include", TokenType.Include, this));
             PullWhitespaces();
 
+            var parenCount = 0;
+            if (PullRequired(includeTokens))
+            {
+                if (!PullParenthesisStart(includeTokens))
+                {
+                    ResetIndex();
+                    return false;
+                }
+                parenCount++;
+            }
+
+            if (PullFileInclude(includeTokens))
+            {
+                if (!PullParenthesisStart(includeTokens))
+                {
+                    ResetIndex();
+                    return false;
+                }
+                parenCount++;
+            } else if (PullUrlInclude(includeTokens))
+            {
+                if (!PullParenthesisStart(includeTokens))
+                {
+                    ResetIndex();
+                    return false;
+                }
+                parenCount++;
+            } else if (PullResourceInclude(includeTokens))
+            {
+                if (!PullParenthesisStart(includeTokens))
+                {
+                    ResetIndex();
+                    return false;
+                }
+                parenCount++;
+            }
+
+            if (!PullQuotedText(includeTokens))
+            {
+                ResetIndex();
+                return false;
+            }
+
+            for (; parenCount > 0; --parenCount)
+            {
+                if (!PullParenthesisEnd(includeTokens))
+                {
+                    ResetIndex();
+                    return false;
+                }
+            }
+
+            PopIndex();
+            tokens.AddRange(includeTokens);
+            return true;
+        }
+
+        private bool PullParenthesisStart(HoconTokenizerResult tokens)
+        {
+            if (Peek() != '(')
+                return false;
+
+            Take();
+            tokens.Add(new Token("(", TokenType.ParenthesisStart, this));
+            PullWhitespaces();
+            return true;
+        }
+
+        private bool PullParenthesisEnd(HoconTokenizerResult tokens)
+        {
+            if (Peek() != ')')
+                return false;
+
+            Take();
+            tokens.Add(new Token(")", TokenType.ParenthesisEnd, this));
+            PullWhitespaces();
             return true;
         }
 
