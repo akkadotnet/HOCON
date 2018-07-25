@@ -201,7 +201,7 @@ namespace Hocon.Tests
 x = 123
 y = ${x}
 ";
-            string IncludeCallback(HoconCallbackType t, string s) 
+            async Task<string> IncludeCallback(HoconCallbackType t, string s) 
                 => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
@@ -229,7 +229,7 @@ x = 123
 y = ${x}
 ";
 
-            string Include(HoconCallbackType t, string s)
+            async Task<string> Include(HoconCallbackType t, string s)
             {
                 switch (s)
                 {

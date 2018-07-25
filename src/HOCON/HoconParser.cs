@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Hocon
 {
-    public delegate string HoconIncludeCallback(HoconCallbackType callbackType, string value);
+    public delegate Task<string> HoconIncludeCallbackAsync(HoconCallbackType callbackType, string value);
 
     /// <summary>
     /// This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)
@@ -21,7 +21,7 @@ namespace Hocon
     public sealed class HoconParser
     {
         private readonly List<HoconSubstitution> _substitutions = new List<HoconSubstitution>();
-        private HoconIncludeCallback _includeCallback = (type, value) => "{}";
+        private HoconIncludeCallbackAsync _includeCallback = (type, value) => Task.FromResult("{}");
 
         private HoconTokenizerResult _tokens;
         private HoconValue _root;
@@ -38,12 +38,12 @@ namespace Hocon
         /// This exception is thrown when an unresolved substitution is encountered.
         /// It also occurs when any error is encountered while tokenizing or parsing the configuration string.
         /// </exception>
-        public static HoconRoot Parse(string text, HoconIncludeCallback includeCallback = null)
+        public static HoconRoot Parse(string text, HoconIncludeCallbackAsync includeCallback = null)
         {
             return new HoconParser().ParseText(text, true, includeCallback);
         }
 
-        private HoconRoot ParseText(string text, bool resolveSubstitutions, HoconIncludeCallback includeCallback)
+        private HoconRoot ParseText(string text, bool resolveSubstitutions, HoconIncludeCallbackAsync includeCallback)
         {
             if (string.IsNullOrWhiteSpace(text))
                 throw new HoconParserException(
@@ -434,7 +434,7 @@ namespace Hocon
             // Consume the last token
             _tokens.Next();
 
-            var includeHocon = _includeCallback(callbackType, fileName);
+            var includeHocon = AsyncHelper.RunSync( () => _includeCallback(callbackType, fileName) );
 
             if (string.IsNullOrWhiteSpace(includeHocon))
             {

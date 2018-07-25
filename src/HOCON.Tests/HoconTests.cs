@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -440,7 +441,7 @@ test.value = 456
 x = 123
 y = hello
 ";
-            string IncludeCallback(HoconCallbackType t, string s) 
+            async Task<string> IncludeCallback(HoconCallbackType t, string s) 
                 => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
@@ -457,7 +458,7 @@ y = hello
             var hocon = @"a : include ""foo""";
             var includeHocon = @"[1, 2, 3]";
 
-            string IncludeCallback(HoconCallbackType t, string s)
+            async Task<string> IncludeCallback(HoconCallbackType t, string s)
                 => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
@@ -470,7 +471,7 @@ y = hello
             var hocon = @"a : [ include ""foo"" ]";
             var includeHocon = @"[1, 2, 3]";
 
-            string IncludeCallback(HoconCallbackType t, string s)
+            async Task<string> IncludeCallback(HoconCallbackType t, string s)
                 => includeHocon;
 
             var config = HoconParser.Parse(hocon, IncludeCallback);

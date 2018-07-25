@@ -35,7 +35,7 @@ root {
 }
 ";
             //in this example we use a multi resolver as the include mechanism
-            string ConfigResolver(HoconCallbackType type, string fileName)
+            async Task<string> ConfigResolver(HoconCallbackType type, string fileName)
             {
                 switch (type)
                 {

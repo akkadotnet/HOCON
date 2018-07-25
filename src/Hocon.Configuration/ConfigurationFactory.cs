@@ -19,7 +19,7 @@ namespace Hocon.Configuration
     /// from a variety of sources including user-supplied strings, configuration
     /// files and assembly resources.
     /// </summary>
-    public class ConfigurationFactory
+    public static class ConfigurationFactory
     {
         /// <summary>
         /// Generates an empty configuration.
@@ -33,7 +33,7 @@ namespace Hocon.Configuration
         /// <param name="hocon">A string that contains configuration options to use.</param>
         /// <param name="includeCallback">callback used to resolve includes</param>
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
-        public static Config ParseString(string hocon, HoconIncludeCallback includeCallback)
+        public static Config ParseString(string hocon, HoconIncludeCallbackAsync includeCallback)
         {
             HoconRoot res = HoconParser.Parse(hocon, includeCallback);
             return new Config(res);
