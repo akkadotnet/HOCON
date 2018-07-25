@@ -434,7 +434,7 @@ namespace Hocon
             // Consume the last token
             _tokens.Next();
 
-            var includeHocon = AsyncHelper.RunSync( () => _includeCallback(callbackType, fileName) );
+            var includeHocon = _includeCallback(callbackType, fileName).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (string.IsNullOrWhiteSpace(includeHocon))
             {
