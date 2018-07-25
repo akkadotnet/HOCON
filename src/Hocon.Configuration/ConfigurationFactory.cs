@@ -10,9 +10,8 @@ using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 
-namespace Hocon.Configuration
+namespace Hocon
 {
     /// <summary>
     /// This class contains methods used to retrieve configuration information
@@ -35,7 +34,7 @@ namespace Hocon.Configuration
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
         public static Config ParseString(string hocon, HoconIncludeCallbackAsync includeCallback)
         {
-            HoconRoot res = HoconParser.Parse(hocon, includeCallback);
+            HoconRoot res = Parser.Parse(hocon, includeCallback);
             return new Config(res);
         }
 

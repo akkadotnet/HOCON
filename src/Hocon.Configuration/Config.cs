@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Hocon.Configuration
+namespace Hocon
 {
     /// <summary>
     /// This class represents the main configuration object used by a project

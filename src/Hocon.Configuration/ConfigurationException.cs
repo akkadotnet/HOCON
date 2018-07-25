@@ -6,10 +6,9 @@
 //-----------------------------------------------------------------------
 
 using System;
-
 using System.Runtime.Serialization;
 
-namespace Hocon.Configuration
+namespace Hocon
 {
     /// <summary>
     /// The exception that is thrown when a configuration is invalid.

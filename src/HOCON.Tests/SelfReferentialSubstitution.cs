@@ -29,7 +29,7 @@ namespace Hocon.Tests
 path : ""a:b:c""
 path : ${path}"":d""";
 
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal("a:b:c:d", config.GetString("path"));
         }
 
@@ -40,7 +40,7 @@ path : ${path}"":d""";
 path : [ /usr/etc, /usr/home ]
 path : ${path} [ /usr/bin ]";
 
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.True(new []{"/usr/etc", "/usr/home", "/usr/bin"}.SequenceEqual(config.GetStringList("path")));
         }
 
@@ -53,7 +53,7 @@ path : ${path} [ /usr/bin ]";
         {
             var hocon = "foo : ${foo}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -70,7 +70,7 @@ path : ${path} [ /usr/bin ]";
 foo : { a : 1 }
 foo : ${foo}";
 
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal("1", config.GetString("foo.a"));
         }
 
@@ -86,7 +86,7 @@ foo : ${foo}
 foo : { a : 1 }
 ";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -102,7 +102,7 @@ foo : { a : 1 }
             var hocon = "foo : ${?foo}";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
             // should not create a field
             Assert.False(config.HasPath("foo"));
@@ -120,7 +120,7 @@ foo : ${does-not-exist}
 foo : 42";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
             Assert.Equal(42, config.GetInt("foo"));
         }
@@ -141,7 +141,7 @@ b = [ 4, 5 ]
 ";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
             Assert.True( new []{1, 2, 3, 4, 5}.SequenceEqual(config.GetIntList("a")) );
         }
@@ -160,7 +160,7 @@ foo : ${foo.a}
 foo : { a : 2 }";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
             Assert.Equal(2, config.GetInt("foo.a"));
@@ -184,7 +184,7 @@ bar : { foo : 42,
 bar : { foo : 43 }";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
             Assert.Equal(43, config.GetInt("bar.foo"));
@@ -207,7 +207,7 @@ foo : { c : ${bar.b}, d : 2 }
 foo.d = 4";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
             Assert.Equal(4, config.GetInt("bar.a"));
@@ -224,7 +224,7 @@ foo.d = 4";
             var hocon = "a = ${?a}foo";
 
             HoconRoot config = null;
-            var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
             Assert.Equal("foo", config.GetString("a"));
@@ -241,7 +241,7 @@ foo.d = 4";
 bar : ${foo}
 foo : ${bar}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -255,7 +255,7 @@ a : ${b}
 b : ${c}
 c : ${a}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -270,7 +270,7 @@ b : 2
 a : ${b}
 b : ${a}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");

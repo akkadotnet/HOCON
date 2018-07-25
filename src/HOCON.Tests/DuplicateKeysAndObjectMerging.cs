@@ -20,7 +20,7 @@ namespace Hocon.Tests
 foo : literal
 foo : 42
 ";
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(42, config.GetInt("foo"));
         }
 
@@ -40,7 +40,7 @@ foo : { a : 42 },
 foo : { b : 43 }
 ";
 
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(42, config.GetInt("foo.a"));
             Assert.Equal(43, config.GetInt("foo.b"));
         }
@@ -57,7 +57,7 @@ foo : { a : 42 },
 foo : { a : 43 }
 ";
 
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(43, config.GetInt("foo.a"));
         }
 
@@ -91,7 +91,7 @@ foo
 }
 ";
 
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(42, config.GetInt("foo.bar.a"));
             Assert.Equal(44, config.GetInt("foo.bar.b"));
             Assert.Equal(45, config.GetInt("foo.bar.c"));
@@ -111,7 +111,7 @@ foo
     foo : null,
     foo : { b : 43 }
 }";
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.False(config.HasPath("foo.a"));
             Assert.Equal(43, config.GetInt("foo.b"));
         }

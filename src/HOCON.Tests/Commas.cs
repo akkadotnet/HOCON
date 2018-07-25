@@ -35,7 +35,7 @@ namespace Hocon.Tests
 array_1 : [1, 2, 3, ]
 array_2 : [1, 2, 3]
 ";
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.True(
                 config.GetIntList("array_1")
                 .SequenceEqual(config.GetIntList("array_2")));
@@ -55,7 +55,7 @@ array_1 : [
   3 ]
 array_2 : [1, 2, 3]
 ";
-            var config = HoconParser.Parse(hocon);
+            var config = Parser.Parse(hocon);
             Assert.True(
                 config.GetIntList("array_1")
                     .SequenceEqual(config.GetIntList("array_2")));
@@ -70,7 +70,7 @@ array_2 : [1, 2, 3]
         {
             var hocon = @"array : [1, 2, 3,, ]";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -85,7 +85,7 @@ array_2 : [1, 2, 3]
         {
             var hocon = @"array : [, 1, 2, 3]";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -100,7 +100,7 @@ array_2 : [1, 2, 3]
         {
             var hocon = @"array : [1,, 2, 3]";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -121,8 +121,8 @@ array_2 : [1, 2, 3]
             var hocon_2 = @"a:1, b:2, c:3";
 
             Assert.True(
-                HoconParser.Parse(hocon_1).AsEnumerable()
-                    .SequenceEqual(HoconParser.Parse(hocon_2).AsEnumerable()));
+                Parser.Parse(hocon_1).AsEnumerable()
+                    .SequenceEqual(Parser.Parse(hocon_2).AsEnumerable()));
         }
 
         /*
@@ -139,8 +139,8 @@ c:3";
             var hocon_2 = @"a:1, b:2, c:3";
 
             Assert.True(
-                HoconParser.Parse(hocon_1).AsEnumerable()
-                    .SequenceEqual(HoconParser.Parse(hocon_2).AsEnumerable()));
+                Parser.Parse(hocon_1).AsEnumerable()
+                    .SequenceEqual(Parser.Parse(hocon_2).AsEnumerable()));
         }
 
         /*
@@ -152,7 +152,7 @@ c:3";
         {
             var hocon = @"{a:1, b:2, c:3,,}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -167,7 +167,7 @@ c:3";
         {
             var hocon = @"{, a:1, b:2, c:3}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -182,7 +182,7 @@ c:3";
         {
             var hocon = @"{a:1,, b:2, c:3}";
 
-            var ex = Record.Exception(() => HoconParser.Parse(hocon));
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");

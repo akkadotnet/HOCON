@@ -114,12 +114,7 @@ namespace Hocon
 
         public static bool Contains(this string s, char c)
         {
-            foreach (var cc in s)
-            {
-                if (c == cc)
-                    return true;
-            }
-            return false;
+            return s.IndexOf(c) != -1;
         }
 
         #endregion

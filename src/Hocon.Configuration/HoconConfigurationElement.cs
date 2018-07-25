@@ -7,7 +7,7 @@
 
 using System.Configuration;
 
-namespace Hocon.Configuration
+namespace Hocon
 {
     /// <summary>
     /// This class represents a custom HOCON (Human-Optimized Config Object Notation)
@@ -17,13 +17,11 @@ namespace Hocon.Configuration
     /// <?xml version="1.0" encoding="utf-8" ?>
     /// <configuration>
     ///   <configSections>
-    ///     <section name="akka" type="Hocon.Configuration.HoconConfigurationSection, Hocon.Configuration" />
+    ///     <section name="hocon" type="Hocon.HoconConfigurationSection, Hocon.Configuration" />
     ///   </configSections>
-    ///   <akka>
-    ///     <hocon>
-    ///     ...
-    ///     </hocon>
-    ///   </akka>
+    ///   <hocon>
+    ///   ...
+    ///   </hocon>
     /// </configuration>
     /// ]]>
     /// </code>

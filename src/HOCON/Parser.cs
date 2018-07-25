@@ -18,7 +18,7 @@ namespace Hocon
     /// This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)
     /// configuration strings.
     /// </summary>
-    public sealed class HoconParser
+    public sealed class Parser
     {
         private readonly List<HoconSubstitution> _substitutions = new List<HoconSubstitution>();
         private HoconIncludeCallbackAsync _includeCallback = (type, value) => Task.FromResult("{}");
@@ -40,7 +40,7 @@ namespace Hocon
         /// </exception>
         public static HoconRoot Parse(string text, HoconIncludeCallbackAsync includeCallback = null)
         {
-            return new HoconParser().ParseText(text, true, includeCallback);
+            return new Parser().ParseText(text, true, includeCallback);
         }
 
         private HoconRoot ParseText(string text, bool resolveSubstitutions, HoconIncludeCallbackAsync includeCallback)
@@ -444,7 +444,7 @@ namespace Hocon
                 return new HoconEmptyValue(owner);
             }
 
-            var includeRoot = new HoconParser().ParseText(includeHocon, false, _includeCallback);
+            var includeRoot = new Parser().ParseText(includeHocon, false, _includeCallback);
             if (owner.Type != HoconType.Empty && owner.Type != includeRoot.Value.Type)
                 throw HoconParserException.Create(includeToken, Path,
                     $"Invalid Hocon include. Hocon config substitution type must be the same as the field it's merged into. " +

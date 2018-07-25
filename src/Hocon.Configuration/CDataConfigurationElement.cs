@@ -5,10 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Xml;
 using System.Configuration;
+using System.Xml;
 
-namespace Hocon.Configuration
+namespace Hocon
 {
     /// <summary>
     /// This class represents the base implementation for retrieving text from
