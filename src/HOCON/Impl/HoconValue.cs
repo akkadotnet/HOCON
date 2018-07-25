@@ -173,6 +173,7 @@ namespace Hocon
             var value = GetString();
             switch (value)
             {
+                case "+Infinity":
                 case "Infinity":
                 case "-Infinity":
                 case "NaN":
@@ -198,6 +199,7 @@ namespace Hocon
             var value = GetString();
             switch (value)
             {
+                case "+Infinity":
                 case "Infinity":
                     return float.PositiveInfinity;
                 case "-Infinity":
@@ -225,6 +227,7 @@ namespace Hocon
             var value = GetString();
             switch (value)
             {
+                case "+Infinity":
                 case "Infinity":
                     return double.PositiveInfinity;
                 case "-Infinity":
