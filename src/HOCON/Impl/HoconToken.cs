@@ -5,6 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace Hocon
 {
     /// <summary>
@@ -150,7 +152,7 @@ namespace Hocon
         /// a <see cref="TokenType.LiteralValue"/>, then this property
         /// holds the string literal.
         /// </summary>
-        public string Value { get; }
+        public ReadOnlyMemory<char> Value { get; }
 
         /// <summary>
         /// The type that represents this token.
@@ -163,36 +165,25 @@ namespace Hocon
         private Token()
         { }
 
-        public Token(string value, TokenType type, TokenLiteralType literalType, IHoconLineInfo source)
+        public Token(ReadOnlyMemory<char> value, TokenType type, TokenLiteralType literalType, IHoconLineInfo source)
         {
             Type = type;
             LiteralType = literalType;
             Value = value;
-
+            
             if (source != null)
             {
                 LineNumber = source.LineNumber;
-                LinePosition = source.LinePosition - (value?.Length ?? 0);
+                LinePosition = source.LinePosition - (Value.IsEmpty ? 0 : Value.Length);
             }
         }
 
         public override string ToString()
-            => $"Type:{Type}, Value:{Value ?? "null"}, Num:{LineNumber}, Pos:{LinePosition}";
+            => $"Type:{Type}, Value:{Value}, Num:{LineNumber}, Pos:{LinePosition}";
 
-        public Token(string value, TokenType type, IHoconLineInfo source) 
+        public Token(ReadOnlyMemory<char> value, TokenType type, IHoconLineInfo source) 
             : this(value, type, TokenLiteralType.None, source)
         { }
-
-        /*
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
-        /// </summary>
-        /// <param name="type">The type of token to associate with.</param>
-        /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
-        public Token(TokenType type, IHoconLineInfo source) 
-            : this(null, type, TokenLiteralType.None, source)
-        { }
-        */
 
         /// <summary>
         /// Creates a substitution token with a given <paramref name="path"/>.
@@ -201,7 +192,7 @@ namespace Hocon
         /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
         /// <param name="questionMarked">Designate whether the substitution <see cref="Token"/> was declared as `${?`.</param>
         /// <returns>A substitution token with the given path.</returns>
-        public static Token Substitution(string path, IHoconLineInfo source, bool questionMarked)
+        public static Token Substitution(ReadOnlyMemory<char> path, IHoconLineInfo source, bool questionMarked)
         {
             return new Token(path, questionMarked ? TokenType.SubstituteOptional : TokenType.SubstituteRequired, TokenLiteralType.None, source);
         }
@@ -213,29 +204,29 @@ namespace Hocon
         /// <param name="literalType">The <see cref="TokenLiteralType"/> of this <see cref="Token"/>.</param>
         /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
         /// <returns>A string literal token with the given value.</returns>
-        public static Token LiteralValue(string value, TokenLiteralType literalType, IHoconLineInfo source)
+        public static Token LiteralValue(ReadOnlyMemory<char> value, TokenLiteralType literalType, IHoconLineInfo source)
         {
             return new Token(value, TokenType.LiteralValue, literalType, source);
         }
 
-        public static Token QuotedLiteralValue(string value, IHoconLineInfo source)
+        public static Token QuotedLiteralValue(ReadOnlyMemory<char> value, IHoconLineInfo source)
         {
             return LiteralValue(value, TokenLiteralType.QuotedLiteralValue, source);
         }
 
-        public static Token TripleQuotedLiteralValue(string value, IHoconLineInfo source)
+        public static Token TripleQuotedLiteralValue(ReadOnlyMemory<char> value, IHoconLineInfo source)
         {
             return LiteralValue(value, TokenLiteralType.TripleQuotedLiteralValue, source);
         }
 
-        public static Token Include(string path, IHoconLineInfo source)
+        public static Token Include(ReadOnlyMemory<char> path, IHoconLineInfo source)
         {
             return new Token(path, TokenType.Include, TokenLiteralType.None, source);
         }
 
         public static Token Error(IHoconLineInfo source)
         {
-            return new Token("", TokenType.Error, TokenLiteralType.None, source);
+            return new Token(new ReadOnlyMemory<char>(), TokenType.Error, TokenLiteralType.None, source);
         }
     }
 }

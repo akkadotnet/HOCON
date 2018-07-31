@@ -126,6 +126,7 @@ namespace Hocon
                     break;
 
                 case HoconType.Literal:
+                    /*
                     if (v.Count == 1)
                         return;
 
@@ -139,6 +140,7 @@ namespace Hocon
                         v.Add(new HoconQuotedString(v, value));
                     else
                         v.Add(new HoconUnquotedString(v, value));
+                    */
                     break;
             }
         }
