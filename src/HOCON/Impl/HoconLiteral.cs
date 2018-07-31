@@ -104,18 +104,6 @@ namespace Hocon
                 case TokenLiteralType.TripleQuotedLiteralValue:
                     return (new HoconTripleQuotedString(owner, token.Value));
 
-                case TokenLiteralType.Long:
-                    return (new HoconLong(owner, token.Value));
-
-                case TokenLiteralType.Hex:
-                    return (new HoconHex(owner, token.Value));
-
-                case TokenLiteralType.Octal:
-                    return (new HoconOctal(owner, token.Value));
-
-                case TokenLiteralType.Double:
-                    return (new HoconDouble(owner, token.Value));
-
                 default:
                     throw new HoconException($"Unknown token literal type: {token.Value}");
             }
@@ -126,7 +114,7 @@ namespace Hocon
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Type == other.Type && string.Equals(Value, other.GetString());
+            return Type == other.Type && string.Equals(Value?.ToString(), other.GetString());
         }
 
         public override bool Equals(object obj)
@@ -172,46 +160,6 @@ namespace Hocon
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconBool(newParent, Value);
-    }
-
-    public sealed class HoconDouble : HoconLiteral
-    {
-        public override HoconLiteralType LiteralType => HoconLiteralType.Double;
-
-        public HoconDouble(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
-
-        public override IHoconElement Clone(IHoconElement newParent)
-            => new HoconDouble(newParent, Value);
-    }
-
-    public sealed class HoconLong : HoconLiteral
-    {
-        public override HoconLiteralType LiteralType => HoconLiteralType.Long;
-
-        public HoconLong(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
-
-        public override IHoconElement Clone(IHoconElement newParent)
-            => new HoconLong(newParent, Value);
-    }
-
-    public sealed class HoconHex : HoconLiteral
-    {
-        public override HoconLiteralType LiteralType => HoconLiteralType.Hex;
-
-        public HoconHex(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
-
-        public override IHoconElement Clone(IHoconElement newParent)
-            => new HoconHex(newParent, Value);
-    }
-
-    public sealed class HoconOctal : HoconLiteral
-    {
-        public override HoconLiteralType LiteralType => HoconLiteralType.Long;
-
-        public HoconOctal(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
-
-        public override IHoconElement Clone(IHoconElement newParent)
-            => new HoconOctal(newParent, Value);
     }
 
     public sealed class HoconUnquotedString : HoconLiteral

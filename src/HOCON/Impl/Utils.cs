@@ -70,24 +70,6 @@ namespace Hocon
 
         #region String extensions
 
-        public static string TrimWhitespace(this string value)
-        {
-            int index = 0;
-            while (Whitespaces.Contains(value[index]))
-            {
-                index++;
-            }
-
-            var trimmed = value.Substring(index);
-            index = trimmed.Length - 1;
-            while (Whitespaces.Contains(value[index]))
-            {
-                index--;
-            }
-            var res = trimmed.Substring(0, index + 1);
-            return res;
-        }
-
         public static bool IsNotInUnquotedText(this char c)
             => NotInUnquotedText.Contains(c);
 

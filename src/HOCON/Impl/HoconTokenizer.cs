@@ -25,20 +25,7 @@ namespace Hocon
         protected void ResetIndex() => Index = _indexStack.Pop();
         protected void PopIndex() => _indexStack.Pop();
 
-        private bool _dirty = true;
-        private char _peek;
-
-        protected char Peek
-        {
-            get
-            {
-                if (!_dirty) return _peek;
-
-                _dirty = false;
-                _peek = EoF ? (char) 0 : _text.Span[Index];
-                return _peek;
-            }
-        }
+        protected char Peek => EoF ? (char) 0 : _text.Span[Index];
 
         public int Length => _text.Length;
 
@@ -50,7 +37,6 @@ namespace Hocon
                 _index = value;
                 if (_index > _text.Length)
                     _index = _text.Length;
-                _dirty = true;
             }
         }
 
@@ -64,7 +50,6 @@ namespace Hocon
         protected Tokenizer(ReadOnlyMemory<char> text)
         {
             _text = text;
-            Index = 0;
         }
 
         /// <summary>

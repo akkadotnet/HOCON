@@ -130,10 +130,6 @@ namespace Hocon
         QuotedLiteralValue,
         TripleQuotedLiteralValue,
         Bool,
-        Long,
-        Hex,
-        Octal,
-        Double,
     }
 
     /// <summary>
