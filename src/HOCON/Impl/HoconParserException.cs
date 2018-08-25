@@ -12,10 +12,6 @@ namespace Hocon
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconParserException"/> class.
         /// </summary>
-        public HoconParserException()
-        {
-        }
-
         internal HoconParserException(IHoconLineInfo info)
         {
             LineNumber = info.LineNumber;
