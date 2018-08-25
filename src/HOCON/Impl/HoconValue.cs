@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace Hocon
@@ -105,13 +106,29 @@ namespace Hocon
         private string ConcatString()
         {
             var array = this.Select(l => l.GetString()).ToArray();
-            return array.All(value => value == null) ? null : string.Join("", array);
+            if (array.All(value => value == null))
+                return null;
+
+            var sb = new StringBuilder();
+            foreach (var s in array)
+            {
+                sb.Append(s);
+            }
+            return sb.ToString();
         }
 
         private string ConcatRawString()
         {
             var array = this.Select(l => l.Raw).ToArray();
-            return array.All(value => value == null) ? "null" : string.Join("", array);
+            if (array.All(value => value == null))
+                return "null";
+
+            var sb = new StringBuilder();
+            foreach (var s in array)
+            {
+                sb.Append(s);
+            }
+            return sb.ToString();
         }
 
         /// <summary>

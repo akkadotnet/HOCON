@@ -251,7 +251,8 @@ a {
         public void CanAssignValueToQuotedField()
         {
             var hocon = @"""a""=1";
-            Assert.Equal(1L, Parser.Parse(hocon).GetLong("a"));
+            var config = Parser.Parse(hocon);
+            Assert.Equal(1L, config.GetLong("a"));
         }
 
         [Fact]
@@ -360,7 +361,8 @@ h = 0377
         public void CanAssignNullToField()
         {
             var hocon = @"a=null";
-            Assert.Null(Parser.Parse(hocon).GetString("a"));
+            var config = Parser.Parse(hocon);
+            Assert.Null(config.GetString("a"));
         }
 
         [Fact]
@@ -426,13 +428,6 @@ test.value = 456
 ";
             var config = Parser.Parse(hocon);
             config.GetInt("test.value").Should().Be(456);
-        }
-
-        [Fact]
-        public void CanAssignNullStringToField()
-        {
-            var hocon = @"a=null";
-            Assert.Null(Parser.Parse(hocon).GetString("a"));
         }
 
         [Fact]
