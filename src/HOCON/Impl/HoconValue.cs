@@ -114,6 +114,7 @@ namespace Hocon
             {
                 sb.Append(s);
             }
+
             return sb.ToString();
         }
 
@@ -121,13 +122,14 @@ namespace Hocon
         {
             var array = this.Select(l => l.Raw).ToArray();
             if (array.All(value => value == null))
-                return "null";
+                return null;
 
             var sb = new StringBuilder();
             foreach (var s in array)
             {
                 sb.Append(s);
             }
+
             return sb.ToString();
         }
 

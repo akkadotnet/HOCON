@@ -12,7 +12,7 @@ namespace Hocon
         {
             LineNumber = token.LineNumber;
             LinePosition = token.LinePosition;
-            Value = token.Value.ToString();
+            Value = token.Value;
         }
 
     }

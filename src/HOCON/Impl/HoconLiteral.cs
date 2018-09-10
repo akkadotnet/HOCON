@@ -32,15 +32,15 @@ namespace Hocon
         /// <summary>
         /// Gets or sets the value of this element.
         /// </summary>
-        public virtual ReadOnlyMemory<char>? Value { get; }
+        public virtual string Value { get; }
 
         /// <summary>
         /// Retrieves the raw string representation of this element.
         /// </summary>
         /// <returns>The raw value of this element.</returns>
-        public virtual string Raw => Value.ToString();
+        public virtual string Raw => Value;
 
-        protected HoconLiteral(IHoconElement parent, ReadOnlyMemory<char>? value)
+        protected HoconLiteral(IHoconElement parent, string value)
         {
             Parent = parent;
             Value = value;
@@ -55,7 +55,7 @@ namespace Hocon
             => throw new HoconException("Hocon literal could not be converted to object.");
 
         /// <inheritdoc />
-        public string GetString() => Value?.ToString();
+        public string GetString() => Value;
 
         /// <summary>
         /// Retrieves a list of elements associated with this element.
@@ -114,7 +114,7 @@ namespace Hocon
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Type == other.Type && string.Equals(Value?.ToString(), other.GetString());
+            return Type == other.Type && string.Equals(Value, other.GetString());
         }
 
         public override bool Equals(object obj)
@@ -144,9 +144,9 @@ namespace Hocon
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Null;
         public override string Raw => "null";
-        public override ReadOnlyMemory<char>? Value => null;
+        public override string Value => null;
 
-        public HoconNull(IHoconElement parent) : base(parent, null) { }
+        public HoconNull(IHoconElement parent) : base(parent, "null") { }
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconNull(newParent);
@@ -156,17 +156,57 @@ namespace Hocon
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Bool;
 
-        public HoconBool(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
+        public HoconBool(IHoconElement parent, string value) : base(parent, value) { }
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconBool(newParent, Value);
+    }
+
+    public sealed class HoconDouble : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Double;
+
+        public HoconDouble(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconDouble(newParent, Value);
+    }
+
+    public sealed class HoconLong : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Long;
+
+        public HoconLong(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconLong(newParent, Value);
+    }
+
+    public sealed class HoconHex : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Hex;
+
+        public HoconHex(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconHex(newParent, Value);
+    }
+
+    public sealed class HoconOctal : HoconLiteral
+    {
+        public override HoconLiteralType LiteralType => HoconLiteralType.Long;
+
+        public HoconOctal(IHoconElement parent, string value) : base(parent, value) { }
+
+        public override IHoconElement Clone(IHoconElement newParent)
+            => new HoconOctal(newParent, Value);
     }
 
     public sealed class HoconUnquotedString : HoconLiteral
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.UnquotedString;
 
-        public HoconUnquotedString(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
+        public HoconUnquotedString(IHoconElement parent, string value) : base(parent, value) { }
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconUnquotedString(newParent, Value);
@@ -177,7 +217,7 @@ namespace Hocon
         public override HoconLiteralType LiteralType => HoconLiteralType.QuotedString;
         public override string Raw => "\"" + Value + "\"";
 
-        public HoconQuotedString(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
+        public HoconQuotedString(IHoconElement parent, string value) : base(parent, value) { }
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconQuotedString(newParent, Value);
@@ -188,7 +228,7 @@ namespace Hocon
         public override HoconLiteralType LiteralType => HoconLiteralType.TripleQuotedString;
         public override string Raw => "\"\"\"" + Value + "\"\"\"";
 
-        public HoconTripleQuotedString(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
+        public HoconTripleQuotedString(IHoconElement parent, string value) : base(parent, value) { }
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconTripleQuotedString(newParent, Value);
@@ -198,7 +238,7 @@ namespace Hocon
     {
         public override HoconLiteralType LiteralType => HoconLiteralType.Whitespace;
 
-        public HoconWhitespace(IHoconElement parent, ReadOnlyMemory<char>? value) : base(parent, value) { }
+        public HoconWhitespace(IHoconElement parent, string value) : base(parent, value) { }
 
         public override IHoconElement Clone(IHoconElement newParent)
             => new HoconWhitespace(newParent, Value);

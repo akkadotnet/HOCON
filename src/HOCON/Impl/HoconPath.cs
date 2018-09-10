@@ -65,20 +65,14 @@ namespace Hocon
                         break;
 
                     default:
-                        var start = 0;
-                        var val = tokens.Current.Value;
-                        for (int i = 0; i < val.Length; ++i)
+                        var split = tokens.Current.Value.Split('.');
+                        for(var i = 0; i < split.Length-1; ++i)
                         {
-                            if (val.Span[i] == '.')
-                            {
-                                sb.Append(val.Slice(start, i - start));
-                                result.Add(sb.ToString());
-                                sb.Clear();
-                                start = i + 1;
-                                continue;
-                            }
+                            sb.Append(split[i]);
+                            result.Add(sb.ToString());
+                            sb.Clear();
                         }
-                        sb.Append(val.Slice(start, val.Length - start));
+                        sb.Append(split[split.Length-1]);
                         break;
                 }
                 tokens.Next();
@@ -89,12 +83,7 @@ namespace Hocon
 
         public static HoconPath Parse(string path)
         {
-            return Parse(path.AsMemory());
-        }
-
-        public static HoconPath Parse(ReadOnlyMemory<char> path)
-        {
-            if(path.IsEmpty)
+            if(path == null)
                 throw new ArgumentNullException(nameof(path));
 
             return FromTokens(new HoconTokenizer(path).Tokenize());

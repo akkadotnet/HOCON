@@ -18,14 +18,12 @@ namespace Hocon
     {
         private readonly Stack<int> _indexStack = new Stack<int>();
 
-        private readonly ReadOnlyMemory<char> _text;
+        private readonly string _text;
         private int _index;
 
         protected void PushIndex() => _indexStack.Push(Index);
         protected void ResetIndex() => Index = _indexStack.Pop();
         protected void PopIndex() => _indexStack.Pop();
-
-        protected char Peek => EoF ? (char) 0 : _text.Span[Index];
 
         public int Length => _text.Length;
 
@@ -47,7 +45,7 @@ namespace Hocon
         /// Initializes a new instance of the <see cref="Tokenizer"/> class.
         /// </summary>
         /// <param name="text">The string that contains the text to tokenize.</param>
-        protected Tokenizer(ReadOnlyMemory<char> text)
+        protected Tokenizer(string text)
         {
             _text = text;
         }
@@ -70,7 +68,7 @@ namespace Hocon
 
             for (var i = 0; i < pattern.Length; ++i)
             {
-                if (pattern[i] != _text.Span[Index + i])
+                if (pattern[i] != _text[Index + i])
                     return false;
             }
             return true;
@@ -92,11 +90,32 @@ namespace Hocon
                 var match = true;
                 for (var i = 0; i < pattern.Length; ++i)
                 {
-                    if (pattern[i] == _text.Span[Index + i]) continue;
+                    if (pattern[i] == _text[Index + i]) continue;
                     match = false;
                     break;
                 }
                 if(match)
+                    return true;
+            }
+            return false;
+        }
+
+        protected bool Matches(char pattern)
+        {
+            if (EoF)
+                return false;
+
+            return _text[Index] == pattern;
+        }
+
+        protected bool Matches(params char[] patterns)
+        {
+            if (EoF)
+                return false;
+
+            foreach (var pattern in patterns)
+            {
+                if (_text[Index] == pattern)
                     return true;
             }
             return false;
@@ -110,20 +129,12 @@ namespace Hocon
         {
             Index++;
             if (EoF) return;
-
             LinePosition++;
-            if (_text.Span[Index] == Utils.NewLine)
+            if (_text[Index] == Utils.NewLine)
             {
                 LineNumber++;
                 LinePosition = 1;
             }
-        }
-
-        protected ReadOnlyMemory<char> Slice(int length)
-        {
-            var ret = _text.Slice(_index, length);
-            Index += length;
-            return ret;
         }
 
         /// <summary>
@@ -150,9 +161,23 @@ namespace Hocon
             if (Index + length > _text.Length)
                 return null;
 
-            var s = new string(_text.Span.Slice(Index, length).ToArray());
+            var s = _text.Substring(Index, length);
             Index += length;
             return s;
+        }
+
+        /// <summary>
+        /// Retrieves the next character in the tokenizer without advancing its position.
+        /// </summary>
+        /// <returns>The character at the tokenizer's current position.</returns>
+        protected char Peek => EoF ? (char) 0 : _text[Index];
+
+        protected char PeekAndTake()
+        {
+            if (EoF)
+                return (char)0;
+            Take();
+            return _text[Index - 1];
         }
 
         protected void PullWhitespaces()
@@ -175,16 +200,13 @@ namespace Hocon
         /// Initializes a new instance of the <see cref="HoconTokenizer"/> class.
         /// </summary>
         /// <param name="text">The string that contains the text to tokenize.</param>
-        public HoconTokenizer(ReadOnlyMemory<char> text)
-            : base(text) { }
-
         public HoconTokenizer(string text)
-            : base(text.AsMemory()) { }
+            : base(text) { }
 
         public HoconTokenizerResult Tokenize()
         {
             var tokens = Tokenize(TokenType.EndOfFile);
-            tokens.Add(new Token(new ReadOnlyMemory<char>(), TokenType.EndOfFile, this));
+            tokens.Add(new Token("", TokenType.EndOfFile, this));
             return tokens;
         }
 
@@ -197,12 +219,14 @@ namespace Hocon
                 switch (Peek)
                 {
                     case '{':
-                        tokens.Add(new Token(Slice(1), TokenType.StartOfObject, this));
+                        Take();
+                        tokens.Add(new Token("{", TokenType.StartOfObject, this));
                         tokens.AddRange(Tokenize(TokenType.EndOfObject));
                         continue;
 
                     case '}':
-                        tokens.Add(new Token(Slice(1), TokenType.EndOfObject, this));
+                        Take();
+                        tokens.Add(new Token("}", TokenType.EndOfObject, this));
                         if (closingTokenType != tokens[tokens.Count - 1].Type)
                             throw new HoconTokenizerException(
                                 $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.",
@@ -210,12 +234,14 @@ namespace Hocon
                         return tokens;
 
                     case '[':
-                        tokens.Add(new Token(Slice(1), TokenType.StartOfArray, this));
+                        Take();
+                        tokens.Add(new Token("[", TokenType.StartOfArray, this));
                         tokens.AddRange(Tokenize(TokenType.EndOfArray));
                         continue;
 
                     case ']':
-                        tokens.Add(new Token(Slice(1), TokenType.EndOfArray, this));
+                        Take();
+                        tokens.Add(new Token("]", TokenType.EndOfArray, this));
                         if (closingTokenType != tokens[tokens.Count - 1].Type)
                             throw new HoconTokenizerException(
                                 $"Expected {closingTokenType}, found {tokens[tokens.Count - 1].Type} instead.",
@@ -223,12 +249,14 @@ namespace Hocon
                         return tokens;
 
                     case ',':
-                        tokens.Add(new Token(Slice(1), TokenType.Comma, TokenLiteralType.UnquotedLiteralValue, this));
+                        Take();
+                        tokens.Add(new Token(",", TokenType.Comma, TokenLiteralType.UnquotedLiteralValue, this));
                         continue;
 
                     case ':':
                     case '=':
-                        tokens.Add(new Token(Slice(1), TokenType.Assign, this));
+                        var c = PeekAndTake();
+                        tokens.Add(new Token(c.ToString(), TokenType.Assign, this));
                         continue;
 
                     case '+':
@@ -248,7 +276,8 @@ namespace Hocon
                         break;
 
                     case '\n':
-                        tokens.Add(new Token(Slice(1), TokenType.EndOfLine, this));
+                        Take();
+                        tokens.Add(new Token("\n", TokenType.EndOfLine, this));
                         continue;
                     case 'i':
                         if (PullInclude(tokens))
@@ -279,7 +308,8 @@ namespace Hocon
             if (!Matches("+="))
                 return false;
 
-            tokens.Add(new Token(Slice(2), TokenType.PlusEqualAssign, this));
+            Take(2);
+            tokens.Add(new Token("+=", TokenType.PlusEqualAssign, this));
             return true;
         }
 
@@ -307,7 +337,8 @@ namespace Hocon
             PushIndex();
             var includeTokens = new HoconTokenizerResult();
 
-            includeTokens.Add(new Token(Slice("include".Length), TokenType.Include, this));
+            Take("include".Length);
+            includeTokens.Add(new Token("include", TokenType.Include, this));
             PullWhitespaces();
 
             var parenCount = 0;
@@ -372,7 +403,8 @@ namespace Hocon
             if (Peek != '(')
                 return false;
 
-            tokens.Add(new Token(Slice(1), TokenType.ParenthesisStart, this));
+            Take();
+            tokens.Add(new Token("(", TokenType.ParenthesisStart, this));
             PullWhitespaces();
             return true;
         }
@@ -382,7 +414,8 @@ namespace Hocon
             if (Peek != ')')
                 return false;
 
-            tokens.Add(new Token(Slice(1), TokenType.ParenthesisEnd, this));
+            Take();
+            tokens.Add(new Token(")", TokenType.ParenthesisEnd, this));
             PullWhitespaces();
             return true;
         }
@@ -392,7 +425,8 @@ namespace Hocon
             if (!Matches("required"))
                 return false;
 
-            tokens.Add(new Token(Slice("required".Length), TokenType.Required, this));
+            Take("required".Length);
+            tokens.Add(new Token("required", TokenType.Required, this));
             PullWhitespaces();
             return true;
 
@@ -403,7 +437,8 @@ namespace Hocon
             if (!Matches("url"))
                 return false;
 
-            tokens.Add(new Token(Slice("url".Length), TokenType.Url, this));
+            Take("url".Length);
+            tokens.Add(new Token("url", TokenType.Url, this));
             PullWhitespaces();
             return true;
         }
@@ -413,7 +448,8 @@ namespace Hocon
             if (!Matches("file"))
                 return false;
 
-            tokens.Add(new Token(Slice("file".Length), TokenType.File, this));
+            Take("file".Length);
+            tokens.Add(new Token("file", TokenType.File, this));
             PullWhitespaces();
             return true;
         }
@@ -423,7 +459,8 @@ namespace Hocon
             if (!Matches("classpath"))
                 return false;
 
-            tokens.Add(new Token(Slice("classpath".Length), TokenType.Classpath, this));
+            Take("classpath".Length);
+            tokens.Add(new Token("classpath", TokenType.Classpath, this));
             PullWhitespaces();
             return true;
         }
@@ -431,8 +468,7 @@ namespace Hocon
         private string PullEscapeSequence()
         {
             Take(); //consume "\"
-            char escaped = Peek;
-            Take();
+            char escaped = PeekAndTake();
             switch (escaped)
             {
                 case '"':
@@ -488,23 +524,17 @@ namespace Hocon
                 return false;
             }
 
-            PushIndex();
-            while (!EoF && Peek != '}')
+            var sb = new StringBuilder();
+            while (!EoF && !Matches("}"))
             {
-                Take();
+                sb.Append(PeekAndTake());
             }
 
             if (EoF)
-            {
-                ResetIndex();
-                throw new HoconTokenizerException("Expected end of substitution but found EoF instead.", Token.Error(this));
-            }
-
-            var end = Index;
-            ResetIndex();
-            tokens.Add(Token.Substitution(Slice(end - Index), this, questionMarked));
+                throw new HoconTokenizerException("Expected end of substitution but found EoF", Token.Error(this));
             Take();
 
+            tokens.Add(Token.Substitution(sb.ToString().TrimWhitespace(), this, questionMarked));
             return true;
         }
 
@@ -513,14 +543,12 @@ namespace Hocon
             if (!Peek.IsWhitespaceWithNoNewLine())
                 return false;
 
-            PushIndex();
+            var sb = new StringBuilder();
             while (Peek.IsWhitespaceWithNoNewLine())
             {
-                Take();
+                sb.Append(PeekAndTake());
             }
-            var end = Index;
-            ResetIndex();
-            tokens.Add(Token.LiteralValue(Slice(end - Index), TokenLiteralType.Whitespace, this));
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.Whitespace, this));
             return true;
         }
 
@@ -546,7 +574,8 @@ namespace Hocon
             if (!Matches("null"))
                 return false;
 
-            tokens.Add(Token.LiteralValue(Slice("null".Length), TokenLiteralType.Null, this));
+            Take(4);
+            tokens.Add(Token.LiteralValue("null", TokenLiteralType.Null, this));
             return true;
         }
 
@@ -555,14 +584,13 @@ namespace Hocon
             if (!IsUnquotedText())
                 return false;
 
-            PushIndex();
+            var sb = new StringBuilder();
             while (!EoF && IsUnquotedText())
             {
-                Take();
+                sb.Append(PeekAndTake());
             }
-            var end = Index;
-            ResetIndex();
-            tokens.Add(Token.LiteralValue(Slice(end - Index), TokenLiteralType.UnquotedLiteralValue, this));
+
+            tokens.Add(Token.LiteralValue(sb.ToString(), TokenLiteralType.UnquotedLiteralValue, this));
             return true;
         }
 
@@ -572,25 +600,28 @@ namespace Hocon
         /// <returns>A <see cref="TokenType.LiteralValue"/> token from the tokenizer's current position.</returns>
         private bool PullQuotedText(HoconTokenizerResult tokens)
         {
-            if (Peek !=  '\"' && Peek != '\'')
+            if (!Matches('\"', '\''))
                 return false;
 
+            var sb = new StringBuilder();
             Take();
-            PushIndex();
-            while (!EoF && Peek != '\"' && Peek != '\'')
+            while (!EoF && !Matches('\"', '\''))
             {
-                Take();
+                if (Matches("\\"))
+                {
+                    sb.Append(PullEscapeSequence());
+                }
+                else
+                {
+                    sb.Append(PeekAndTake());
+                }
             }
 
             if (EoF)
-            {
-                ResetIndex();
                 throw new HoconTokenizerException($"Expected end of quoted string, found {TokenType.EndOfFile} instead.", Token.Error(this));
-            }
-            var end = Index;
-            ResetIndex();
-            tokens.Add(Token.QuotedLiteralValue(Slice(end-Index), this));
             Take();
+
+            tokens.Add(Token.QuotedLiteralValue(sb.ToString(), this));
             return true;
         }
 
@@ -603,22 +634,25 @@ namespace Hocon
             if (!Matches("\"\"\"", "'''"))
                 return false;
 
+            var sb = new StringBuilder();
             Take(3);
-            PushIndex();
             while (!EoF && !Matches("\"\"\"", "'''"))
             {
-                Take();
+                if (Matches("\\"))
+                {
+                    sb.Append(PullEscapeSequence());
+                }
+                else
+                {
+                    sb.Append(PeekAndTake());
+                }
             }
 
             if (EoF)
-            {
-                ResetIndex();
                 throw new HoconTokenizerException($"Expected end of triple quoted string, found {TokenType.EndOfFile} instead.", Token.Error(this));
-            }
-            var end = Index;
-            ResetIndex();
-            tokens.Add(Token.TripleQuotedLiteralValue(Slice(end - Index), this));
             Take(3);
+
+            tokens.Add(Token.TripleQuotedLiteralValue(sb.ToString(), this));
             return true;
         }
 
@@ -627,16 +661,15 @@ namespace Hocon
         /// is located in the string.
         /// </summary>
         /// <returns>The current line from where the current token is located.</returns>
-        private ReadOnlyMemory<char> DiscardRestOfLine()
+        private string DiscardRestOfLine()
         {
-            PushIndex();
-            while (!EoF && Peek != Utils.NewLine)
+            var sb = new StringBuilder();
+            while (!EoF && !Matches(Utils.NewLine))
             {
-                Take();
+                sb.Append(PeekAndTake());
             }
-            var end = Index;
-            ResetIndex();
-            return Slice(end - Index);
+
+            return sb.ToString();
         }
 
         private bool IsStartOfComment() => Matches("//");

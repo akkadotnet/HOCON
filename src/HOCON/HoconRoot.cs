@@ -126,7 +126,6 @@ namespace Hocon
                     break;
 
                 case HoconType.Literal:
-                    /*
                     if (v.Count == 1)
                         return;
 
@@ -140,7 +139,6 @@ namespace Hocon
                         v.Add(new HoconQuotedString(v, value));
                     else
                         v.Add(new HoconUnquotedString(v, value));
-                    */
                     break;
             }
         }
@@ -319,7 +317,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetBooleanList();
         }
@@ -337,7 +335,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetDecimalList();
         }
@@ -355,7 +353,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetFloatList();
         }
@@ -373,7 +371,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetDoubleList();
         }
@@ -391,7 +389,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetIntList();
         }
@@ -409,7 +407,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetLongList();
         }
@@ -427,7 +425,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetByteList();
         }
@@ -445,7 +443,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array.");
 
             return value.GetStringList();
         }

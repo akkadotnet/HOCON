@@ -110,9 +110,9 @@ namespace Hocon
                     // undefined value resolved to an environment variable
                     res = new HoconValue(sub.Parent);
                     if (envValue.NeedQuotes())
-                        res.Add(new HoconQuotedString(sub.Parent, envValue.AsMemory()));
+                        res.Add(new HoconQuotedString(sub.Parent, envValue));
                     else
-                        res.Add(new HoconUnquotedString(sub.Parent, envValue.AsMemory()));
+                        res.Add(new HoconUnquotedString(sub.Parent, envValue));
 
                     sub.ResolvedValue = res;
                     continue;
@@ -316,7 +316,7 @@ namespace Hocon
             var parenthesisCount = 0;
             var required = false;
             var callbackType = HoconCallbackType.File;
-            ReadOnlyMemory<char> fileName = null;
+            string fileName = null;
             var includeToken = _tokens.Current;
 
             List<TokenType> expectedTokens = new List<TokenType>(new[]
@@ -427,14 +427,14 @@ namespace Hocon
                 throw HoconParserException.Create(_tokens.Current, Path,
                     $"Expected {TokenType.ParenthesisEnd}, found `{_tokens.Current.Type}`");
 
-            if (fileName.IsEmpty)
+            if (fileName == null)
                 throw HoconParserException.Create(_tokens.Current, Path,
                     "Include does not contain any quoted file name value.");
 
             // Consume the last token
             _tokens.Next();
 
-            var includeHocon = _includeCallback(callbackType, fileName.ToString()).ConfigureAwait(false).GetAwaiter().GetResult();
+            var includeHocon = _includeCallback(callbackType, fileName).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (string.IsNullOrWhiteSpace(includeHocon))
             {
@@ -609,7 +609,7 @@ namespace Hocon
             }
             keyTokens.Reverse();
 
-            keyTokens.Add(new Token(new ReadOnlyMemory<char>(), TokenType.EndOfFile, null));
+            keyTokens.Add(new Token("", TokenType.EndOfFile, null));
 
             return HoconPath.FromTokens(keyTokens);
         }
@@ -631,8 +631,8 @@ namespace Hocon
                 && _tokens.Current.Type != TokenType.StartOfObject
                 && _tokens.Current.Type != TokenType.PlusEqualAssign)
                 throw HoconParserException.Create(_tokens.Current, Path,
-                    $"Failed to parse Hocon field. Expected {nameof(TokenType.Assign)}, {nameof(TokenType.StartOfObject)} " +
-                    $"or {nameof(TokenType.PlusEqualAssign)}, found {_tokens.Current.Type} instead.");
+                    $"Failed to parse Hocon field. Expected {TokenType.Assign}, {TokenType.StartOfObject} " +
+                    $"or {TokenType.PlusEqualAssign}, found {{_tokens.Current.Type}} instead.");
 
             // sanity check
             if (pathDelta == null || pathDelta.Count == 0)
