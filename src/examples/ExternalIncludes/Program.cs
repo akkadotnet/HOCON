@@ -42,7 +42,7 @@ root {
                     case HoconCallbackType.Resource:
                         return ReadResource(fileName);
                     case HoconCallbackType.File:
-                        return File.ReadAllText(fileName);
+                        return await File.ReadAllTextAsync(fileName);
                     default:
                         return null;
                 }

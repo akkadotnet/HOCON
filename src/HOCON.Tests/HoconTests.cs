@@ -453,8 +453,8 @@ test.value = 456
 x = 123
 y = hello
 ";
-            async Task<string> IncludeCallback(HoconCallbackType t, string s) 
-                => includeHocon;
+            Task<string> IncludeCallback(HoconCallbackType t, string s) 
+                => Task.FromResult(includeHocon);
 
             var config = Parser.Parse(hocon, IncludeCallback);
 
@@ -470,8 +470,8 @@ y = hello
             var hocon = @"a : include ""foo""";
             var includeHocon = @"[1, 2, 3]";
 
-            async Task<string> IncludeCallback(HoconCallbackType t, string s)
-                => includeHocon;
+            Task<string> IncludeCallback(HoconCallbackType t, string s)
+                => Task.FromResult(includeHocon);
 
             var config = Parser.Parse(hocon, IncludeCallback);
             Assert.True(new[] { 1, 2, 3 }.SequenceEqual(config.GetIntList("a")));
@@ -483,8 +483,8 @@ y = hello
             var hocon = @"a : [ include ""foo"" ]";
             var includeHocon = @"[1, 2, 3]";
 
-            async Task<string> IncludeCallback(HoconCallbackType t, string s)
-                => includeHocon;
+            Task<string> IncludeCallback(HoconCallbackType t, string s)
+                => Task.FromResult(includeHocon);
 
             var config = Parser.Parse(hocon, IncludeCallback);
             // TODO: need to figure a better way to retrieve array inside array

@@ -201,8 +201,8 @@ namespace Hocon.Tests
 x = 123
 y = ${x}
 ";
-            async Task<string> IncludeCallback(HoconCallbackType t, string s) 
-                => includeHocon;
+            Task<string> IncludeCallback(HoconCallbackType t, string s) 
+                => Task.FromResult(includeHocon);
 
             var config = Parser.Parse(hocon, IncludeCallback);
 
@@ -229,16 +229,16 @@ x = 123
 y = ${x}
 ";
 
-            async Task<string> Include(HoconCallbackType t, string s)
+            Task<string> Include(HoconCallbackType t, string s)
             {
                 switch (s)
                 {
                     case "hocon1":
-                        return includeHocon;
+                        return Task.FromResult(includeHocon);
                     case "hocon2":
-                        return includeHocon2;
+                        return Task.FromResult(includeHocon2);
                     default:
-                        return "{}";
+                        return Task.FromResult("{}");
                 }
             }
 
