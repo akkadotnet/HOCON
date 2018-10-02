@@ -5,7 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if CONFIGURATION
 using System.Configuration;
 
 namespace Hocon
@@ -18,13 +17,11 @@ namespace Hocon
     /// <?xml version="1.0" encoding="utf-8" ?>
     /// <configuration>
     ///   <configSections>
-    ///     <section name="akka" type="Akka.Configuration.Hocon.HoconConfigurationSection, Akka.Hocon" />
+    ///     <section name="hocon" type="Hocon.HoconConfigurationSection, Hocon.Configuration" />
     ///   </configSections>
-    ///   <akka>
-    ///     <hocon>
-    ///     ...
-    ///     </hocon>
-    ///   </akka>
+    ///   <hocon>
+    ///   ...
+    ///   </hocon>
     /// </configuration>
     /// ]]>
     /// </code>
@@ -37,9 +34,8 @@ namespace Hocon
         [ConfigurationProperty(ContentPropertyName, IsRequired = true, IsKey = true)]
         public string Content
         {
-            get { return (string) base[ContentPropertyName]; }
-            set { base[ContentPropertyName] = value; }
+            get => (string) base[ContentPropertyName];
+            set => base[ContentPropertyName] = value;
         }
     }
 }
-#endif

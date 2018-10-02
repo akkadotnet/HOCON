@@ -7,10 +7,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
-using Hocon.Impl;
 
 namespace Hocon
 {
@@ -18,141 +19,144 @@ namespace Hocon
     /// This class represents the root type for a HOCON (Human-Optimized Config Object Notation)
     /// configuration object.
     /// </summary>
-    public class HoconValue : IMightBeAHoconObject
+    public class HoconValue : List<IHoconElement>, IHoconElement
     {
         public static readonly HoconValue Undefined;
 
         static HoconValue()
         {
-            Undefined = new HoconValue();
+            Undefined = new HoconEmptyValue(null);
         }
+
+        public IHoconElement Parent { get; }
+
+        public virtual HoconType Type { get; private set; } = HoconType.Empty;
+
+        public ReadOnlyCollection<IHoconElement> Childrens => AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconValue"/> class.
         /// </summary>
-        public HoconValue()
+        public HoconValue(IHoconElement parent)
         {
-            Values = new List<IHoconElement>();
+            Parent = parent;
+        }
+
+        public new void Clear()
+        {
+            Type = HoconType.Empty;
+            base.Clear();
         }
 
         /// <summary>
-        /// Returns true if this HOCON value doesn't contain any elements
+        /// Merge an <see cref="IHoconElement"/> into this <see cref="HoconValue"/>.
         /// </summary>
-        public bool IsEmpty => Values.Count == 0;
-
-        /// <summary>
-        /// The list of elements inside this HOCON value
-        /// </summary>
-        public List<IHoconElement> Values { get; }
-
-        /// <summary>
-        /// Wraps this <see cref="HoconValue"/> into a new <see cref="Config"/> object at the specified key.
-        /// </summary>
-        /// <param name="key">The key designated to be the new root element.</param>
-        /// <returns>A <see cref="Config"/> with the given key as the root element.</returns>
-        public Config AtKey(string key)
+        /// <param name="value">The <see cref="IHoconElement"/> value to be merged into this <see cref="HoconValue"/></param>
+        /// <exception cref="HoconParserException">
+        /// Throws when the merged <see cref="IHoconElement.Type"/> type did not match <see cref="HoconValue.Type"/>, 
+        /// if <see cref="HoconValue.Type"/> is not <see cref="HoconType.Empty"/>.
+        /// </exception>
+        public new virtual void Add(IHoconElement value)
         {
-            var o = new HoconObject();
-            o.GetOrCreateKey(key);
-            o.Items[key] = this;
-            var r = new HoconValue();
-            r.Values.Add(o);
-            return new Config(new HoconRoot(r));
-        }
-
-        /// <summary>
-        /// Retrieves the <see cref="HoconObject"/> from this <see cref="HoconValue"/>.
-        /// </summary>
-        /// <returns>The <see cref="HoconObject"/> that represents this <see cref="HoconValue"/>.</returns>
-        public HoconObject GetObject()
-        {
-            List<HoconObject> objects = new List<HoconObject>();
-            foreach (var value in Values)
+            if (Type == HoconType.Empty)
+                Type = value.Type;
+            else
             {
-                if (!(value is IMightBeAHoconObject o))
-                    continue;
-
-                if (o.IsObject())
-                    objects.Add(o.GetObject());
+                if(!value.IsSubstitution() && Type != value.Type)
+                    throw new HoconException($"Hocon value merge mismatch. Existing value: {Type}, merged item: {value.Type}");
             }
 
-            if (objects.Count == 0)
-                return null;
+            base.Add(value);
+        }
 
-            if (objects.Count == 1)
-                return objects[0];
+        public new virtual void AddRange(IEnumerable<IHoconElement> values)
+        {
+            foreach (var value in values)
+            {
+                Add(value);
+            }
+        }
 
-            return new HoconMergedObject(objects);
+        /// <inheritdoc />
+        public virtual HoconObject GetObject()
+        {
+            List<HoconObject> objects = this.Select(value => value.GetObject()).ToList();
+
+            switch (objects.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return objects[0];
+                default:
+                    return new HoconMergedObject(Parent, objects);
+            }
         }
 
         /// <summary>
-        /// Determines if this <see cref="HoconValue"/> is a <see cref="HoconObject"/>.
+        /// Retrieves the string value from this <see cref="T:Hocon.HoconValue" />.
         /// </summary>
-        /// <returns><c>true</c> if this value is a <see cref="HoconObject"/>, <c>false</c> otherwise.</returns>
-        public bool IsObject()
-        {
-            return GetObject() != null;
-        }
+        /// <returns>The string value represented by this <see cref="T:Hocon.HoconValue" />.</returns>
+        public virtual string GetString()
+            => Type != HoconType.Literal ? null : ConcatString();
 
-        /// <summary>
-        /// Adds the given element to the list of elements inside this <see cref="HoconValue"/>.
-        /// </summary>
-        /// <param name="value">The element to add to the list.</param>
-        public void AppendValue(IHoconElement value)
-        {
-            Values.Add(value);
-        }
-
-        /// <summary>
-        /// Clears the list of elements inside this <see cref="HoconValue"/>.
-        /// </summary>
-        public void Clear()
-        {
-            Values.Clear();
-        }
-
-        /// <summary>
-        /// Creates a fresh list of elements inside this <see cref="HoconValue"/>
-        /// and adds the given value to the list.
-        /// </summary>
-        /// <param name="value">The element to add to the list.</param>
-        public void NewValue(IHoconElement value)
-        {
-            Values.Clear();
-            Values.Add(value);
-        }
-
-        /// <summary>
-        /// Determines whether all the elements inside this <see cref="HoconValue"/>
-        /// are a string.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c>if all elements inside this <see cref="HoconValue"/> are a string; otherwise <c>false</c>.
-        /// </returns>
-        public bool IsString()
-        {
-            return Values.Any() && Values.All(v => v.IsString());
-        }
+        public virtual string Raw
+            => Type != HoconType.Literal ? null : ConcatRawString();
 
         private string ConcatString()
         {
-            string concat = string.Join("", Values.Select(l => l.GetString())).Trim();
-
-            if (concat == "null")
+            var array = this.Select(l => l.GetString()).ToArray();
+            if (array.All(value => value == null))
                 return null;
 
-            return concat;
+            var sb = new StringBuilder();
+            foreach (var s in array)
+            {
+                sb.Append(s);
+            }
+
+            return sb.ToString();
+        }
+
+        private string ConcatRawString()
+        {
+            var array = this.Select(l => l.Raw).ToArray();
+            if (array.All(value => value == null))
+                return null;
+
+            var sb = new StringBuilder();
+            foreach (var s in array)
+            {
+                sb.Append(s);
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>
-        /// Retrieves the child object located at the given key.
+        /// Retrieves a list of values from this <see cref="HoconValue"/>.
         /// </summary>
-        /// <param name="key">The key used to retrieve the child object.</param>
-        /// <returns>The element at the given key.</returns>
-        public HoconValue GetChildObject(string key)
+        /// <returns>A list of values represented by this <see cref="HoconValue"/>.</returns>
+        public virtual List<HoconValue> GetArray()
         {
-            return GetObject().GetKey(key);
+            IEnumerable<HoconValue> x = from value in this
+                where value.Type == HoconType.Array
+                from e in value.GetArray()
+                select e;
+
+            return x.ToList();
         }
+
+        internal List<HoconSubstitution> GetSubstitutions()
+        {
+            var x = from v in this
+                where v is HoconSubstitution
+                select v;
+
+            return x.Cast<HoconSubstitution>().ToList();
+        }
+
+        #region Value Getter methods
 
         /// <summary>
         /// Retrieves the boolean value from this <see cref="HoconValue"/>.
@@ -164,8 +168,7 @@ namespace Hocon
         /// </exception>
         public bool GetBoolean()
         {
-            string v = GetString();
-            switch (v)
+            switch (GetString())
             {
                 case "on":
                 case "true":
@@ -176,21 +179,8 @@ namespace Hocon
                 case "no":
                     return false;
                 default:
-                    throw new NotSupportedException("Unknown boolean format: " + v);
+                    throw new HoconException($"Unknown boolean format: {GetString()}");
             }
-        }
-
-        /// <summary>
-        /// Retrieves the string value from this <see cref="HoconValue"/>.
-        /// </summary>
-        /// <returns>The string value represented by this <see cref="HoconValue"/>.</returns>
-        public string GetString()
-        {
-            if (IsString())
-            {
-                return ConcatString();
-            }
-            return null; //TODO: throw exception?
         }
 
         /// <summary>
@@ -199,7 +189,24 @@ namespace Hocon
         /// <returns>The decimal value represented by this <see cref="HoconValue"/>.</returns>
         public decimal GetDecimal()
         {
-            return decimal.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            switch (value)
+            {
+                case "+Infinity":
+                case "Infinity":
+                case "-Infinity":
+                case "NaN":
+                    throw new HoconException($"Could not convert `{value}` to decimal. Decimal does not support Infinity and NaN");
+                default:
+                    try
+                    {
+                        return decimal.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new HoconException($"Could not convert `{value}` to decimal.", e);
+                    }
+            }
         }
 
         /// <summary>
@@ -208,7 +215,26 @@ namespace Hocon
         /// <returns>The float value represented by this <see cref="HoconValue"/>.</returns>
         public float GetFloat()
         {
-            return float.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            switch (value)
+            {
+                case "+Infinity":
+                case "Infinity":
+                    return float.PositiveInfinity;
+                case "-Infinity":
+                    return float.NegativeInfinity;
+                case "NaN":
+                    return float.NaN;
+                default:
+                    try
+                    {
+                        return float.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new HoconException($"Could not convert `{value}` to float.", e);
+                    }
+            }
         }
 
         /// <summary>
@@ -217,7 +243,26 @@ namespace Hocon
         /// <returns>The double value represented by this <see cref="HoconValue"/>.</returns>
         public double GetDouble()
         {
-            return double.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            switch (value)
+            {
+                case "+Infinity":
+                case "Infinity":
+                    return double.PositiveInfinity;
+                case "-Infinity":
+                    return double.NegativeInfinity;
+                case "NaN":
+                    return double.NaN;
+                default:
+                    try
+                    {
+                        return double.Parse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new HoconException($"Could not convert `{value}` to double.", e);
+                    }
+            }
         }
 
         /// <summary>
@@ -226,7 +271,39 @@ namespace Hocon
         /// <returns>The long value represented by this <see cref="HoconValue"/>.</returns>
         public long GetLong()
         {
-            return long.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            if (value.StartsWith("0x"))
+            {
+                try
+                {
+                    return Convert.ToInt64(value, 16);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                }
+            }
+
+            if (value.StartsWith("0"))
+            {
+                try
+                {
+                    return Convert.ToInt64(value, 8);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                }
+            }
+
+            try
+            {
+                return long.Parse(value, NumberStyles.Integer);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+            }
         }
 
         /// <summary>
@@ -235,7 +312,39 @@ namespace Hocon
         /// <returns>The integer value represented by this <see cref="HoconValue"/>.</returns>
         public int GetInt()
         {
-            return int.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            if (value.StartsWith("0x"))
+            {
+                try
+                {
+                    return Convert.ToInt32(value, 16);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                }
+            }
+
+            if (value.StartsWith("0"))
+            {
+                try
+                {
+                    return Convert.ToInt32(value, 8);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                }
+            }
+
+            try
+            {
+                return int.Parse(value, NumberStyles.Integer);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+            }
         }
 
         /// <summary>
@@ -244,7 +353,39 @@ namespace Hocon
         /// <returns>The byte value represented by this <see cref="HoconValue"/>.</returns>
         public byte GetByte()
         {
-            return byte.Parse(GetString(), NumberFormatInfo.InvariantInfo);
+            var value = GetString();
+            if (value.StartsWith("0x"))
+            {
+                try
+                {
+                    return Convert.ToByte(value, 16);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                }
+            }
+
+            if (value.StartsWith("0"))
+            {
+                try
+                {
+                    return Convert.ToByte(value, 8);
+                }
+                catch (Exception e)
+                {
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                }
+            }
+
+            try
+            {
+                return byte.Parse(value, NumberStyles.Integer);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+            }
         }
 
         /// <summary>
@@ -319,32 +460,6 @@ namespace Hocon
             return GetArray().Select(v => v.GetString()).ToList();
         }
 
-        /// <summary>
-        /// Retrieves a list of values from this <see cref="HoconValue"/>.
-        /// </summary>
-        /// <returns>A list of values represented by this <see cref="HoconValue"/>.</returns>
-        public IList<HoconValue> GetArray()
-        {
-            IEnumerable<HoconValue> x = from arr in Values
-                where arr.IsArray()
-                from e in arr.GetArray()
-                select e;
-
-            return x.ToList();
-        }
-
-        /// <summary>
-        /// Determines whether this <see cref="HoconValue"/> is an array.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if this <see cref="HoconValue"/> is an array; otherwise <c>false</c>.
-        /// </returns>
-        public bool IsArray()
-        {
-            return Values.Any() && Values.All(v => v.IsArray() || v.IsWhitespace());
-        }
-
-
         [Obsolete("Use GetTimeSpan instead")]
         public TimeSpan GetMillisDuration(bool allowInfinite = true)
         {
@@ -359,8 +474,8 @@ namespace Hocon
         public TimeSpan GetTimeSpan(bool allowInfinite = true)
         {
             string res = GetString();
-            if (res.EndsWith("ms"))
             //TODO: Add support for ns, us, and non abbreviated versions (second, seconds and so on) see https://github.com/typesafehub/config/blob/master/HOCON.md#duration-format
+            if (res.EndsWith("ms"))
             {
                 var v = res.Substring(0, res.Length - 2);
                 return TimeSpan.FromMilliseconds(ParsePositiveValue(v));
@@ -370,12 +485,12 @@ namespace Hocon
                 var v = res.Substring(0, res.Length - 1);
                 return TimeSpan.FromSeconds(ParsePositiveValue(v));
             }
-            if(res.EndsWith("m"))
+            if (res.EndsWith("m"))
             {
                 var v = res.Substring(0, res.Length - 1);
                 return TimeSpan.FromMinutes(ParsePositiveValue(v));
             }
-            if(res.EndsWith("h"))
+            if (res.EndsWith("h"))
             {
                 var v = res.Substring(0, res.Length - 1);
                 return TimeSpan.FromHours(ParsePositiveValue(v));
@@ -385,7 +500,7 @@ namespace Hocon
                 var v = res.Substring(0, res.Length - 1);
                 return TimeSpan.FromDays(ParsePositiveValue(v));
             }
-            if(allowInfinite && res.Equals("infinite", StringComparison.OrdinalIgnoreCase))  //Not in Hocon spec
+            if (allowInfinite && res.Equals("infinite", StringComparison.OrdinalIgnoreCase))  //Not in Hocon spec
             {
                 return Timeout.InfiniteTimeSpan;
             }
@@ -396,7 +511,7 @@ namespace Hocon
         private static double ParsePositiveValue(string v)
         {
             var value = double.Parse(v, NumberFormatInfo.InvariantInfo);
-            if(value < 0)
+            if (value < 0)
                 throw new FormatException("Expected a positive value instead of " + value);
             return value;
         }
@@ -417,47 +532,119 @@ namespace Hocon
             return long.Parse(res);
         }
 
+        #endregion
+
+        internal void ResolveValue(IHoconElement child)
+        {
+            if (child.Type == HoconType.Empty)
+            {
+                Remove(child);
+            }
+            else if (Type == HoconType.Empty)
+            {
+                Type = child.Type;
+            }
+            else if (Type != child.Type)
+            {
+                var sub = (HoconSubstitution) child;
+                throw HoconParserException.Create(sub, sub.Path, 
+                    "Invalid substitution, substituted type must match its sibling type. " +
+                    $"Sibling type:{Type}, substitution type:{child.Type}");
+            }
+
+            ((HoconField) Parent).ResolveValue(this);
+        }
+
         /// <summary>
         /// Returns a HOCON string representation of this <see cref="HoconValue"/>.
         /// </summary>
         /// <returns>A HOCON string representation of this <see cref="HoconValue"/>.</returns>
         public override string ToString()
         {
-            return ToString(0);
+            return ToString(0, 2);
         }
 
-        /// <summary>
-        /// Returns a HOCON string representation of this <see cref="HoconValue"/>.
-        /// </summary>
-        /// <param name="indent">The number of spaces to indent the string.</param>
-        /// <returns>A HOCON string representation of this <see cref="HoconValue"/>.</returns>
-        public virtual string ToString(int indent)
+        /// <inheritdoc />
+        public virtual string ToString(int indent, int indentSize)
         {
-            if (IsString())
+            switch (Type)
             {
-                string text = QuoteIfNeeded(GetString());
-                return text;
+                case HoconType.Literal:
+                    return ConcatRawString();
+                case HoconType.Object:
+                    return $"{{{Environment.NewLine}{GetObject().ToString(indent, indentSize)}{Environment.NewLine}{new string(' ', (indent - 1) * indentSize)}}}";
+                case HoconType.Array:
+                    return $"[{string.Join(",", GetArray().Select(e => e.ToString(indent, indentSize)))}]";
+                case HoconType.Empty:
+                    return "<<Empty>>";
+                default:
+                    return null;
             }
-            if (IsObject())
-            {
-                var i = new string(' ', indent*2);
-                return string.Format("{{\r\n{1}{0}}}", i, GetObject().ToString(indent + 1));
-            }
-            if (IsArray())
-            {
-                return string.Format("[{0}]", string.Join(",", GetArray().Select(e => e.ToString(indent + 1))));
-            }
-            return "<<unknown value>>";
         }
 
-        private string QuoteIfNeeded(string text)
+        public virtual IHoconElement Clone(IHoconElement newParent)
         {
-            if(text == null) return "";
-            if(text.ToCharArray().Intersect(" \t".ToCharArray()).Any())
+            var clone = new HoconValue(newParent);
+            foreach (var value in this)
             {
-                return "\"" + text + "\"";
+                clone.Add(value.Clone(clone));
             }
-            return text;
+            return clone;
+        }
+
+        protected bool Equals(HoconValue other)
+        {
+            return Type == other.Type && GetString() == other.GetString();
+        }
+
+        // HoconValue is an aggregate of same typed objects, so there are possibilities 
+        // where it can match with any other same typed objects (ie. a HoconLiteral can 
+        // have the same value as a HoconValue).
+        public virtual bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Type != other.Type) return false;
+
+            switch (Type)
+            {
+                case HoconType.Empty:
+                    return other.Type == HoconType.Empty;
+                case HoconType.Array:
+                    return GetArray().SequenceEqual(other.GetArray());
+                case HoconType.Literal:
+                    return string.Equals(GetString(), other.GetString());
+                case HoconType.Object:
+                    return GetObject().AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
+                default:
+                    throw new HoconException($"Unknown enumeration value: {Type}");
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is IHoconElement value && Equals(value);
+        }
+
+        public override int GetHashCode()
+        {
+            const int seed = 613;
+            const int modifier = 41;
+
+            unchecked
+            {
+                return this.Aggregate(seed, (current, item) => (current * modifier) + item.GetHashCode());
+            }
+        }
+
+        public static bool operator ==(HoconValue left, HoconValue right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(HoconValue left, HoconValue right)
+        {
+            return !Equals(left, right);
         }
     }
 }

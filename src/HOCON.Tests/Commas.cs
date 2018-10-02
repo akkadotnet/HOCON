@@ -4,11 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Tests
 {
     public class Commas
     {
+        private readonly ITestOutputHelper _output;
+
+        public Commas(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /*
          * Values in arrays, and fields in objects, need not have a comma between them 
          * as long as they have at least one ASCII newline (\n, decimal value 10) between them.
@@ -27,7 +35,7 @@ namespace Hocon.Tests
 array_1 : [1, 2, 3, ]
 array_2 : [1, 2, 3]
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.True(
                 config.GetIntList("array_1")
                 .SequenceEqual(config.GetIntList("array_2")));
@@ -47,7 +55,7 @@ array_1 : [
   3 ]
 array_2 : [1, 2, 3]
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.True(
                 config.GetIntList("array_1")
                     .SequenceEqual(config.GetIntList("array_2")));
@@ -57,33 +65,45 @@ array_2 : [1, 2, 3]
          * FACT:
          * [1, 2, 3,,] is invalid because it has two trailing commas.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleTrailingCommasInArray()
         {
             var hocon = @"array : [1, 2, 3,, ]";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
          * FACT:
          * [, 1, 2, 3] is invalid because it has an initial comma.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnIllegalCommaInFrontOfArray()
         {
             var hocon = @"array : [, 1, 2, 3]";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
          * FACT:
          * [1,, 2, 3] is invalid because it has two commas in a row.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleCommasInArray()
         {
             var hocon = @"array : [1,, 2, 3]";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -94,22 +114,22 @@ array_2 : [1, 2, 3]
          * FACT:
          * {a:1, b:2, c:3,} and {a:1, b:2, c:3} are the same object.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ExtraCommaAtTheEndIgnored()
         {
             var hocon_1 = @"a:1, b:2, c:3,";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            var config_1 = ConfigurationFactory.ParseString(hocon_1);
-            var config_2 = ConfigurationFactory.ParseString(hocon_2);
-            Assert.True(config_1.AsEnumerable().SequenceEqual(config_2.AsEnumerable()));
+            Assert.True(
+                Parser.Parse(hocon_1).AsEnumerable()
+                    .SequenceEqual(Parser.Parse(hocon_2).AsEnumerable()));
         }
 
         /*
          * FACT:
          * {a:1\nb:2\nc:3} and {a:1, b:2, c:3} are the same object.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void NewLineCanReplaceComma()
         {
             var hocon_1 = @"
@@ -118,42 +138,54 @@ b:2
 c:3";
             var hocon_2 = @"a:1, b:2, c:3";
 
-            var config_1 = ConfigurationFactory.ParseString(hocon_1);
-            var config_2 = ConfigurationFactory.ParseString(hocon_2);
-            Assert.True(config_1.AsEnumerable().SequenceEqual(config_2.AsEnumerable()));
+            Assert.True(
+                Parser.Parse(hocon_1).AsEnumerable()
+                    .SequenceEqual(Parser.Parse(hocon_2).AsEnumerable()));
         }
 
         /*
          * FACT:
          * {a:1, b:2, c:3,,} is invalid because it has two trailing commas.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleTrailingCommas()
         {
             var hocon = @"{a:1, b:2, c:3,,}";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
          * FACT:
          * {, a:1, b:2, c:3} is invalid because it has an initial comma.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnIllegalCommaInFront()
         {
             var hocon = @"{, a:1, b:2, c:3}";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
          * FACT:
          * {a:1,, b:2, c:3} is invalid because it has two commas in a row.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsParserExceptionOnMultipleCommas()
         {
             var hocon = @"{a:1,, b:2, c:3}";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
     }
 }

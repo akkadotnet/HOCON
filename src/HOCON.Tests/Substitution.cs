@@ -4,11 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Tests
 {
     public class Substitution
     {
+        private readonly ITestOutputHelper _output;
+
+        public Substitution(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /*
          * FACT:
          * The syntax is ${pathexpression} or ${?pathexpression}
@@ -25,7 +33,11 @@ namespace Hocon.Tests
     b = 1
     c = $ {a.b}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -33,14 +45,32 @@ namespace Hocon.Tests
          * - The ? in ${?pathexpression} must not have whitespace before it
          * - The three characters ${? must be exactly like that, grouped together.
          */
-        [Fact(Skip = "Failed, not in spec")]
-        public void ThrowsOnInvalidSubstitutionWithQuestionMarkStartToken()
+        [Fact]
+        public void ThrowsOnInvalidSubstitutionWithQuestionMarkStartToken_1()
         {
             var hocon = @"a{
     b = 1
     c = ${ ?a.b}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsOnInvalidSubstitutionWithQuestionMarkStartToken_2()
+        {
+            var hocon = @"a{
+    b = 1
+    c = $ {?a.b}
+}";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -48,7 +78,7 @@ namespace Hocon.Tests
          * For substitutions which are not found in the configuration tree, 
          * implementations may try to resolve them by looking at system environment variables.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ShouldFallbackToEnvironmentVariables()
         {
             var hocon = @"a {
@@ -58,7 +88,7 @@ namespace Hocon.Tests
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Equal(value, Parser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -76,7 +106,7 @@ namespace Hocon.Tests
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Equal(value, ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Equal(value, Parser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -102,7 +132,7 @@ namespace Hocon.Tests
     b = 5
     c = ""I have ${a.b} Tesla car(s).""
 }";
-            Assert.Equal("I have ${a.b} Tesla car(s).", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("I have ${a.b} Tesla car(s).", Parser.Parse(hocon).GetString("a.c"));
         }
 
         /*
@@ -117,7 +147,7 @@ namespace Hocon.Tests
   name = Roger
   c = Hello my name is ${a.name}
 }";
-            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("Hello my name is Roger", Parser.Parse(hocon).GetString("a.c"));
         }
 
         /*
@@ -131,7 +161,7 @@ namespace Hocon.Tests
   name = Roger
   c = ""Hello my name is ""${a.name}
 }";
-            Assert.Equal("Hello my name is Roger", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            Assert.Equal("Hello my name is Roger", Parser.Parse(hocon).GetString("a.c"));
         }
 
         /*
@@ -155,7 +185,7 @@ namespace Hocon.Tests
     b = ${a.c}
     c = 42
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(42, config.GetInt("a.b"));
         }
 
@@ -163,15 +193,18 @@ namespace Hocon.Tests
         public void CanResolveSubstitutesInInclude()
         {
             var hocon = @"a {
-  b { 
-       include ""foo""
-  }";
+    b { 
+        include ""foo""
+    }
+}";
             var includeHocon = @"
 x = 123
 y = ${x}
 ";
-            Func<string, HoconRoot> include = s => Parser.Parse(includeHocon, null);
-            var config = ConfigurationFactory.ParseString(hocon, include);
+            Task<string> IncludeCallback(HoconCallbackType t, string s) 
+                => Task.FromResult(includeHocon);
+
+            var config = Parser.Parse(hocon, IncludeCallback);
 
             Assert.Equal(123, config.GetInt("a.b.x"));
             Assert.Equal(123, config.GetInt("a.b.y"));
@@ -181,24 +214,35 @@ y = ${x}
         public void CanResolveSubstitutesInNestedIncludes()
         {
             var hocon = @"a.b.c {
-  d { 
-       include ""foo""
-  }";
+    d { 
+        include ""hocon1""
+    }
+}";
             var includeHocon = @"
 f = 123
 e {
-      include ""foo""
-}
-";
+      include ""hocon2""
+}";
 
             var includeHocon2 = @"
 x = 123
 y = ${x}
 ";
 
-            HoconRoot Include2(string s) => Parser.Parse(includeHocon2, null);
-            HoconRoot Include(string s) => Parser.Parse(includeHocon, Include2);
-            var config = ConfigurationFactory.ParseString(hocon, Include);
+            Task<string> Include(HoconCallbackType t, string s)
+            {
+                switch (s)
+                {
+                    case "hocon1":
+                        return Task.FromResult(includeHocon);
+                    case "hocon2":
+                        return Task.FromResult(includeHocon2);
+                    default:
+                        return Task.FromResult("{}");
+                }
+            }
+
+            var config = Parser.Parse(hocon, Include);
 
             Assert.Equal(123, config.GetInt("a.b.c.d.e.x"));
             Assert.Equal(123, config.GetInt("a.b.c.d.e.y"));
@@ -217,7 +261,7 @@ y = ${x}
          * FACT:
          * If a configuration sets a value to null then it should not be looked up in the external source.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void NullValueSubstitutionShouldNotLookUpExternalSource()
         {
             var hocon = @"
@@ -229,7 +273,7 @@ a {
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Null(ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Null(Parser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -237,20 +281,19 @@ a {
             }
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void NullValueQuestionMarkSubstitutionShouldNotLookUpExternalSource()
         {
             var hocon = @"
 MY_ENV_VAR = null
 a {
-  b = ""old value""
   b = ${?MY_ENV_VAR}
 }";
             var value = "Environment_Var";
             Environment.SetEnvironmentVariable("MY_ENV_VAR", value);
             try
             {
-                Assert.Equal("old value", ConfigurationFactory.ParseString(hocon).GetString("a.b"));
+                Assert.Null(Parser.Parse(hocon).GetString("a.b"));
             }
             finally
             {
@@ -270,7 +313,11 @@ a {
             var hocon = @"a{
     b = ${foo}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -278,14 +325,14 @@ a {
          * If a substitution with the ${?foo} syntax is undefined:
          * If it is the value of an object field then the field should not be created.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldNotCreateField()
         {
             var hocon = @"a{
     b = 1
     c = ${?foo}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.False(config.HasPath("a.c"));
         }
 
@@ -295,7 +342,7 @@ a {
             var hocon = @"a {
   b = ${?a.c}
 }";
-            ConfigurationFactory.ParseString(hocon);
+            Parser.Parse(hocon);
         }
 
         /*
@@ -304,14 +351,14 @@ a {
          * If the field would have overridden a previously-set value for the same field, 
          * then the previous value remains.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldNotChangeFieldValue()
         {
             var hocon = @"a{
     b = 2
     b = ${?foo}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(2, config.GetInt("a.b"));
         }
 
@@ -320,13 +367,13 @@ a {
          * If a substitution with the ${?foo} syntax is undefined:
          * If it is an array element then the element should not be added.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldNotAddArrayElement()
         {
             var hocon = @"a{
     b = [ 1, ${?foo}, 3, 4 ]
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.True(new []{1, 3, 4}.SequenceEqual(config.GetIntList("a.b")));
         }
 
@@ -335,13 +382,13 @@ a {
          * If a substitution with the ${?foo} syntax is undefined:
          * if it is part of a value concatenation with another string then it should become an empty string
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void UndefinedQuestionMarkSubstitutionShouldResolveToEmptyString()
         {
             var hocon = @"a{
     b = My name is ${?foo}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal("My name is ", config.GetString("a.b"));
         }
 
@@ -356,7 +403,7 @@ a {
             var hocon = @"a {
   c = ${?a.b} [4,5,6]
 }";
-            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
+            Assert.True(new[] { 4, 5, 6 }.SequenceEqual(Parser.Parse(hocon).GetIntList("a.c")));
         }
 
         [Fact]
@@ -364,11 +411,11 @@ a {
         {
             var hocon = @"
 foo : { a : 42 },
-foo : ${?foo}
+foo : ${?bar}
 ";
 
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.NotNull(config.GetConfig("foo"));
+            var config = Parser.Parse(hocon);
+            Assert.NotNull(config.GetValue("foo"));
             Assert.Equal(42, config.GetInt("foo.a"));
         }
 
@@ -385,26 +432,25 @@ bar : { a : 42 },
 foo : ${?bar}${?baz}
 ";
 
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.NotNull(config.GetConfig("foo"));
+            var config = Parser.Parse(hocon);
+            Assert.NotNull(config.GetValue("foo"));
             Assert.Equal(42, config.GetInt("foo.a"));
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void TwoUndefinedQuestionMarkSubstitutionShouldNotCreateField()
         {
             var hocon = @"a{
-    b = 1
     foo = ${?bar}${?baz}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.False(config.HasPath("a.foo"));
         }
 
         /*
          * Substitutions are not allowed in keys or nested inside other substitutions (path expressions)
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsOnSubstitutionInKeys()
         {
             var hocon = @"a{
@@ -412,10 +458,14 @@ foo : ${?bar}${?baz}
     c = b
     ${a.c} = 2;
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ThrowsOnSubstitutionWithQuestionMarkInKeys()
         {
             var hocon = @"a{
@@ -423,7 +473,11 @@ foo : ${?bar}${?baz}
     c = b
     ${?a.c} = 2;
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         [Fact]
@@ -433,7 +487,11 @@ foo : ${?bar}${?baz}
     bar = foo
     foo = ${?a.${?bar}}
 }";
-            Assert.Throws<HoconParserException>(() => ConfigurationFactory.ParseString(hocon));
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -441,7 +499,7 @@ foo : ${?bar}${?baz}
          * A substitution is replaced with any value type (number, object, string, array, true, false, null)
          */
 
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void CanAssignSubstitutionToField()
         {
             var hocon = @"a{
@@ -457,12 +515,12 @@ foo : ${?bar}${?baz}
     e = ${a.null}
     f = ${a.int}
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             Assert.Equal(10.0, config.GetFloat("a.b"));
             Assert.Equal("string", config.GetString("a.c"));
             Assert.True(config.GetBoolean("a.d"));
             Assert.Null(config.GetString("a.e"));
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.f"));
+            Assert.Equal(1, Parser.Parse(hocon).GetInt("a.f"));
         }
 
         [Fact]
@@ -478,19 +536,31 @@ foo : ${?bar}${?baz}
      e = ${a.b}
   }  
 }";
-            var ace = ConfigurationFactory.ParseString(hocon).GetConfig("a.c.e");
-            Assert.Equal("hello", ace.GetString("foo"));
-            Assert.Equal(123, ace.GetInt("bar"));
+            var config = Parser.Parse(hocon);
+            Assert.Equal("hello", config.GetString("a.c.e.foo"));
+            Assert.Equal(123, config.GetInt("a.c.e.bar"));
         }
 
         [Fact]
-        public void CanConcatenateArray()
+        public void CanConcatenateArray_1()
         {
             var hocon = @"a {
   b = [1,2,3]
   c = ${a.b} [4,5,6]
 }";
-            Assert.True(new[] { 1, 2, 3, 4, 5, 6 }.SequenceEqual(ConfigurationFactory.ParseString(hocon).GetIntList("a.c")));
+            var config = Parser.Parse(hocon);
+            Assert.True(new[] { 1, 2, 3, 4, 5, 6 }.SequenceEqual(config.GetIntList("a.c")));
+        }
+
+        [Fact]
+        public void CanConcatenateArray_2()
+        {
+            var hocon = @"a {
+  b = [4,5,6]
+  c = [1,2,3] ${a.b}
+}";
+            var config = Parser.Parse(hocon);
+            Assert.True(new[] { 1, 2, 3, 4, 5, 6 }.SequenceEqual(config.GetIntList("a.c")));
         }
 
         /*
@@ -504,9 +574,9 @@ foo : ${?bar}${?baz}
     b = 1
     c = ${a.b}23
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.b"));
-            Assert.Equal(123, ConfigurationFactory.ParseString(hocon).GetInt("a.c"));
+            var config = Parser.Parse(hocon);
+            Assert.Equal(1, config.GetInt("a.b"));
+            Assert.Equal(123, config.GetInt("a.c"));
         }
 
         [Fact]
@@ -516,9 +586,9 @@ foo : ${?bar}${?baz}
     b = 1
     c = ${a.b}foo
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal(1, ConfigurationFactory.ParseString(hocon).GetInt("a.b"));
-            Assert.Equal("1foo", ConfigurationFactory.ParseString(hocon).GetString("a.c"));
+            var config = Parser.Parse(hocon);
+            Assert.Equal(1, config.GetInt("a.b"));
+            Assert.Equal("1foo", config.GetString("a.c"));
         }
     }
 }

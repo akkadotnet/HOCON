@@ -6,10 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-
-#if NET45
 using System.Runtime.Serialization;
-#endif
 
 namespace Hocon
 {
@@ -35,7 +32,6 @@ namespace Hocon
         {
         }
 
-#if NET45
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigurationException"/> class.
         /// </summary>
@@ -45,7 +41,6 @@ namespace Hocon
             : base(info, context)
         {
         }
-#endif
     }
 }
 

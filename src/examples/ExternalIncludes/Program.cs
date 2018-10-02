@@ -7,42 +7,64 @@
 
 using System;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 using Hocon;
 
 namespace ExternalIncludes
 {
     class Program
     {
+        private static string ReadResource(string path)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream(path))
+            using (var reader = new StreamReader(stream))
+            {
+                return reader.ReadToEnd();
+            }
+        }
+
         static void Main(string[] args)
         {
-
-
             var hocon = @"
 root {
   some-property {
-    include ""ExternalHocon.txt"" 
+    include file(""ExternalHocon.txt"") 
   }
 }
 ";
-            //in this example we use a file resolver as the include mechanism
-            //but could be replaced with e.g. a resolver for assembly resources
-            Func<string, HoconRoot> fileResolver = null;
-            fileResolver = fileName =>
+            //in this example we use a multi resolver as the include mechanism
+            async Task<string> ConfigResolver(HoconCallbackType type, string fileName)
             {
-                var content = File.ReadAllText(fileName);
-                var parsed = Parser.Parse(content, fileResolver);
-                return parsed;
-            };
+                switch (type)
+                {
+                    case HoconCallbackType.Resource:
+                        return ReadResource(fileName);
+                    case HoconCallbackType.File:
+                        return await File.ReadAllTextAsync(fileName);
+                    default:
+                        return null;
+                }
+            }
 
-            var config = ConfigurationFactory.ParseString(hocon, fileResolver);
+            var config = Parser.Parse(hocon, ConfigResolver);
 
             var val1 = config.GetInt("root.some-property.foo");
             var val2 = config.GetInt("root.some-property.bar");
             var val3 = config.GetInt("root.some-property.baz");
 
+            Console.WriteLine("Hocon loaded from file:");
             Console.WriteLine("root.some-property.foo: " + val1);
             Console.WriteLine("root.some-property.bar: " + val2);
             Console.WriteLine("root.some-property.baz: " + val3);
+
+            var hocon2 = @"include classpath(""ExternalIncludes.reference.conf"")";
+            config = Parser.Parse(hocon2, ConfigResolver);
+
+            Console.WriteLine();
+            Console.WriteLine("Hocon loaded from resource path:");
+            Console.WriteLine(config.PrettyPrint(2));
             Console.ReadKey();
         }
     }

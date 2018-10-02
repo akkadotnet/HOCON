@@ -4,19 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Hocon.Impl
+namespace Hocon
 {
-    public class HoconMergedObject : HoconObject
+    public sealed class HoconMergedObject:HoconObject
     {
-        public HoconMergedObject(List<HoconObject> objects):base()
-        {
-            HoconObject.FloatingObjects.Remove(this);
-            Unscope();
+        public List<HoconObject> Objects { get; }
 
+        public HoconMergedObject(IHoconElement parent, List<HoconObject> objects) : base(parent)
+        {
+            Objects = objects;
             foreach (var obj in objects)
             {
-                Merge(obj);
+                base.Merge(obj);
             }
+        }
+
+        public override void Merge(HoconObject other)
+        {
+            ((HoconField)Parent).Value.Add(other.Clone(((HoconField)Parent).Value));
+            base.Merge(other);
         }
     }
 }

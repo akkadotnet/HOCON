@@ -17,11 +17,11 @@ namespace Hocon.Tests
          * FACT:
          * Whitespace before the first and after the last simple value must be discarded
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ShouldRemoveAllLeadingWhitespace()
         {
             var hocon = $"a = {Whitespace.Whitespaces}literal value";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
 
             Assert.Equal("literal value", config.GetString("a"));
         }
@@ -30,7 +30,7 @@ namespace Hocon.Tests
         public void ShouldRemoveAllTrailingWhitespace()
         {
             var hocon = $"a = literal value{Whitespace.Whitespaces}";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
 
             Assert.Equal("literal value", config.GetString("a"));
         }
@@ -41,11 +41,11 @@ namespace Hocon.Tests
          * the whitespace between them is preserved and the values, along with the whitespace, 
          * are concatenated into a string.
          */
-        [Fact(Skip = "Failed, not in spec")]
+        [Fact]
         public void ShouldPreserveWhitespacesInTheMiddle()
         {
             var hocon = $"a = literal{Whitespace.Whitespaces}value";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
 
             Assert.Equal($"literal{Whitespace.Whitespaces}value", config.GetString("a"));
         }
