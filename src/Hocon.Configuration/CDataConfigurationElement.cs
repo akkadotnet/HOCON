@@ -5,9 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if CONFIGURATION
-using System.Xml;
 using System.Configuration;
+using System.Xml;
 
 namespace Hocon
 {
@@ -35,7 +34,7 @@ namespace Hocon
     public abstract class CDataConfigurationElement : ConfigurationElement
     {
         protected const string ContentPropertyName = "content";
-
+        
         /// <summary>
         /// Deserializes the text located in a CDATA node of the configuration file.
         /// </summary>
@@ -61,4 +60,3 @@ namespace Hocon
         }
     }
 }
-#endif

@@ -5,56 +5,54 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace Hocon
 {
     /// <summary>
-    /// Marker interface to make it easier to retrieve HOCON
-    /// (Human-Optimized Config Object Notation) objects for
-    /// substitutions.
+    /// This interface defines the contract needed to implement
+    /// a HOCON (Human-Optimized Config Object Notation) element.
     /// </summary>
-    public interface IMightBeAHoconObject
+    public interface IHoconElement:IEquatable<IHoconElement>
     {
-        /// <summary>
-        /// Determines whether this element is a HOCON object.
-        /// </summary>
-        /// <returns><c>true</c> if this element is a HOCON object; otherwise <c>false</c></returns>
-        bool IsObject();
+        IHoconElement Parent { get; }
+
+        HoconType Type { get; }
+
+        string Raw { get; }
 
         /// <summary>
         /// Retrieves the HOCON object representation of this element.
         /// </summary>
         /// <returns>The HOCON object representation of this element.</returns>
         HoconObject GetObject();
-    }
 
-    /// <summary>
-    /// This interface defines the contract needed to implement
-    /// a HOCON (Human-Optimized Config Object Notation) element.
-    /// </summary>
-    public interface IHoconElement
-    {
-        /// <summary>
-        /// Determines whether this element is a string.
-        /// </summary>
-        /// <returns><c>true</c> if this element is a string; otherwise <c>false</c></returns>
-        bool IsString();
         /// <summary>
         /// Retrieves the string representation of this element.
         /// </summary>
         /// <returns>The string representation of this element.</returns>
         string GetString();
-        /// <summary>
-        /// Determines whether this element is an array.
-        /// </summary>
-        /// <returns><c>true</c> if this element is aan array; otherwise <c>false</c></returns>
-        bool IsArray();
+
         /// <summary>
         /// Retrieves a list of elements associated with this element.
         /// </summary>
         /// <returns>A list of elements associated with this element.</returns>
-        IList<HoconValue> GetArray();
+        List<HoconValue> GetArray();
+
+        /// <summary>
+        /// Do deep copy of this element.
+        /// </summary>
+        /// <returns>A deep company of this element.</returns>
+        IHoconElement Clone(IHoconElement newParent);
+
+        /// <summary>
+        /// Retrieves the string representation of this element, indented for pretty printing.
+        /// </summary>
+        /// <param name="indent">The number indents this element.</param>
+        /// <param name="indentSize">The number of spaces for each indent.</param>
+        /// <returns>A pretty printed HOCON string representation of this element.</returns>
+        string ToString(int indent, int indentSize);
     }
 }
 
