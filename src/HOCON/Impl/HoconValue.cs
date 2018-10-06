@@ -321,7 +321,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to int.", e);
                 }
             }
 
@@ -333,7 +333,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to int.", e);
                 }
             }
 
@@ -343,7 +343,7 @@ namespace Hocon
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+                throw new HoconException($"Could not convert `{GetString()}` to int.", e);
             }
         }
 
@@ -362,7 +362,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to byte.", e);
                 }
             }
 
@@ -374,7 +374,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to byte.", e);
                 }
             }
 
@@ -384,7 +384,7 @@ namespace Hocon
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+                throw new HoconException($"Could not convert `{GetString()}` to byte.", e);
             }
         }
 
