@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,10 +35,25 @@ a {
    }
 }";
             var config = Parser.Parse(hocon).Value.GetObject().Unwrapped;
+
             var a = config["a"] as IDictionary<string, object>;
+            Assert.NotNull(a);
+            Assert.IsType<Dictionary<string, object>>(a);
+            Assert.Contains("b", a.Keys);
+            Assert.IsType<Dictionary<string, object>>(a["b"]);
+
             var b = a["b"] as IDictionary<string, object>;
-            (b["c"] as HoconField).Value.GetInt().Should().Be(1);
-            (b["d"] as HoconField).Value.GetBoolean().Should().Be(true);
+            Assert.NotNull(b);
+            Assert.Contains("c", b.Keys);
+            Assert.Contains("d", b.Keys);
+
+            Assert.NotNull(b["c"]);
+            Assert.IsType<HoconField>(b["c"]);
+            Assert.Equal(1, ((HoconField)b["c"]).Value.GetInt());
+
+            Assert.NotNull(b["d"]);
+            Assert.IsType<HoconField>(b["d"]);
+            Assert.True(((HoconField)b["d"]).Value.GetBoolean());
         }
 
         [Fact]
@@ -90,7 +104,7 @@ a {
         public void GettingStringFromArrayReturnsNull() //undefined behavior in spec
         {
             var hocon = " array : [1,2,3]";
-            Parser.Parse(hocon).GetString("array").Should().Be(null);
+            Assert.Null(Parser.Parse(hocon).GetString("array"));
         }
 
         //TODO: not sure if this is the expected behavior but it is what we have established in Akka.NET
@@ -100,7 +114,7 @@ a {
             var hocon = " literal : a b c";
             var res = Parser.Parse(hocon).GetStringList("literal");
 
-            res.Should().BeEmpty();
+            Assert.Empty(res);
         }
 
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
@@ -425,7 +439,7 @@ test {
 test.value = 456
 ";
             var config = Parser.Parse(hocon);
-            config.GetInt("test.value").Should().Be(456);
+            Assert.Equal(456, config.GetInt("test.value"));
         }
 
         [Fact]

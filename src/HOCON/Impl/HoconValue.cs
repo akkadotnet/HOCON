@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Hocon
@@ -22,6 +23,7 @@ namespace Hocon
     public class HoconValue : List<IHoconElement>, IHoconElement
     {
         public static readonly HoconValue Undefined;
+        private static readonly Regex TimeSpanRegex = new Regex(@"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$", RegexOptions.Compiled);
 
         static HoconValue()
         {
@@ -321,7 +323,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to int.", e);
                 }
             }
 
@@ -333,7 +335,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to int.", e);
                 }
             }
 
@@ -343,7 +345,7 @@ namespace Hocon
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+                throw new HoconException($"Could not convert `{GetString()}` to int.", e);
             }
         }
 
@@ -362,7 +364,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert hex value `{GetString()}` to byte.", e);
                 }
             }
 
@@ -374,7 +376,7 @@ namespace Hocon
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{GetString()}` to long.", e);
+                    throw new HoconException($"Could not convert octal value `{GetString()}` to byte.", e);
                 }
             }
 
@@ -384,7 +386,7 @@ namespace Hocon
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{GetString()}` to long.", e);
+                throw new HoconException($"Could not convert `{GetString()}` to byte.", e);
             }
         }
 
@@ -474,32 +476,51 @@ namespace Hocon
         public TimeSpan GetTimeSpan(bool allowInfinite = true)
         {
             string res = GetString();
-            //TODO: Add support for ns, us, and non abbreviated versions (second, seconds and so on) see https://github.com/typesafehub/config/blob/master/HOCON.md#duration-format
-            if (res.EndsWith("ms"))
+
+            var match = TimeSpanRegex.Match(res);
+            if (match.Success)
             {
-                var v = res.Substring(0, res.Length - 2);
-                return TimeSpan.FromMilliseconds(ParsePositiveValue(v));
+                var u = match.Groups["unit"].Value;
+                var v = ParsePositiveValue(match.Groups["value"].Value);
+
+                switch (u)
+                {
+                    case "nanoseconds":
+                    case "nanosecond":
+                    case "nanos":
+                    case "nano":
+                    case "ns":
+                        return TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
+                    case "microseconds":
+                    case "microsecond":
+                    case "micros":
+                    case "micro":
+                        return TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
+                    case "milliseconds":
+                    case "millisecond":
+                    case "millis":
+                    case "milli":
+                    case "ms":
+                        return TimeSpan.FromMilliseconds(v);
+                    case "seconds":
+                    case "second":
+                    case "s":
+                        return TimeSpan.FromSeconds(v);
+                    case "minutes":
+                    case "minute":
+                    case "m":
+                        return TimeSpan.FromMinutes(v);
+                    case "hours":
+                    case "hour":
+                    case "h":
+                        return TimeSpan.FromHours(v);
+                    case "days":
+                    case "day":
+                    case "d":
+                        return TimeSpan.FromDays(v);
+                }
             }
-            if (res.EndsWith("s"))
-            {
-                var v = res.Substring(0, res.Length - 1);
-                return TimeSpan.FromSeconds(ParsePositiveValue(v));
-            }
-            if (res.EndsWith("m"))
-            {
-                var v = res.Substring(0, res.Length - 1);
-                return TimeSpan.FromMinutes(ParsePositiveValue(v));
-            }
-            if (res.EndsWith("h"))
-            {
-                var v = res.Substring(0, res.Length - 1);
-                return TimeSpan.FromHours(ParsePositiveValue(v));
-            }
-            if (res.EndsWith("d"))
-            {
-                var v = res.Substring(0, res.Length - 1);
-                return TimeSpan.FromDays(ParsePositiveValue(v));
-            }
+
             if (allowInfinite && res.Equals("infinite", StringComparison.OrdinalIgnoreCase))  //Not in Hocon spec
             {
                 return Timeout.InfiniteTimeSpan;
@@ -516,6 +537,32 @@ namespace Hocon
             return value;
         }
 
+        private struct ByteSize
+        {
+            public long Factor { get; set; }
+            public string[] Suffixes { get; set; }
+        }
+
+        private static ByteSize[] ByteSizes { get; } =
+            {
+                new ByteSize { Factor = 1000L * 1000L * 1000L * 1000L * 1000L * 1000L, Suffixes = new[] { "EB", "exabyte", "exabytes" } },
+                new ByteSize { Factor = 1024L * 1024L * 1024L * 1024L * 1024L * 1024L, Suffixes = new[] { "E", "e", "Ei", "EiB", "exbibyte", "exbibytes" } },
+                new ByteSize { Factor = 1000L * 1000L * 1000L * 1000L * 1000L * 1000L, Suffixes = new[] { "EB", "exabyte", "exabytes" } },
+                new ByteSize { Factor = 1024L * 1024L * 1024L * 1024L * 1024L, Suffixes = new[] { "P", "p", "Pi", "PiB", "pebibyte", "pebibytes" } },
+                new ByteSize { Factor = 1000L * 1000L * 1000L * 1000L * 1000L, Suffixes = new[] { "PB", "petabyte", "petabytes" } },
+                new ByteSize { Factor = 1024L * 1024L * 1024L * 1024L, Suffixes = new[] { "T", "t", "Ti", "TiB", "tebibyte", "tebibytes" } },
+                new ByteSize { Factor = 1000L * 1000L * 1000L * 1000L, Suffixes = new[] { "TB", "terabyte", "terabytes" } },
+                new ByteSize { Factor = 1024L * 1024L * 1024L, Suffixes = new[] { "G", "g", "Gi", "GiB", "gibibyte", "gibibytes" } },
+                new ByteSize { Factor = 1000L * 1000L * 1000L, Suffixes = new[] { "GB", "gigabyte", "gigabytes" } },
+                new ByteSize { Factor = 1024L * 1024L, Suffixes = new[] { "M", "m", "Mi", "MiB", "mebibyte", "mebibytes" } },
+                new ByteSize { Factor = 1000L * 1000L, Suffixes = new[] { "MB", "megabyte", "megabytes" } },
+                new ByteSize { Factor = 1024L, Suffixes = new[] { "K", "k", "Ki", "KiB", "kibibyte", "kibibytes" } },
+                new ByteSize { Factor = 1000L, Suffixes = new[] { "kB", "kilobyte", "kilobytes" } },
+                new ByteSize { Factor = 1, Suffixes = new[] { "b", "B", "byte", "bytes" } }
+            };
+
+        private static char[] Digits { get; } = "0123456789".ToCharArray();
+
         /// <summary>
         /// Retrieves the long value, optionally suffixed with a 'b', from this <see cref="HoconValue"/>.
         /// </summary>
@@ -523,13 +570,26 @@ namespace Hocon
         public long? GetByteSize()
         {
             var res = GetString();
-            if (res.EndsWith("b"))
+            if (string.IsNullOrEmpty(res))
+                return null;
+            res = res.Trim();
+            var index = res.LastIndexOfAny(Digits);
+            if (index == -1 || index + 1 >= res.Length)
+                return long.Parse(res);
+
+            var value = res.Substring(0, index + 1);
+            var unit = res.Substring(index + 1).Trim();
+
+            foreach (var byteSize in ByteSizes)
             {
-                var v = res.Substring(0, res.Length - 1);
-                return long.Parse(v);
+                foreach (var suffix in byteSize.Suffixes)
+                {
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                        return (long)(byteSize.Factor * double.Parse(value));
+                }
             }
 
-            return long.Parse(res);
+            throw new FormatException($"{unit} is not a valid byte size suffix");
         }
 
         #endregion
