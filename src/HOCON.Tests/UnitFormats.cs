@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
 using Xunit;
 
 namespace Hocon.Tests
@@ -145,9 +144,9 @@ namespace Hocon.Tests
             var config = Parser.Parse(hocon);
             var actual = config.GetByteSize("byte-size");
             if (expected.HasValue)
-                actual.Should().Be(expected, $"'{value}' is {expected} bytes");
+                Assert.True(expected.Equals(actual), $"'{value}' is {expected} bytes");
             else
-                actual.Should().Be(null, $"'{value}' should be null");
+                Assert.True(null == actual, $"'{value}' should be null");
         }
 
 
@@ -159,7 +158,7 @@ namespace Hocon.Tests
             var hocon = $"timespan = {value}";
 
             var res = Parser.Parse(hocon).GetTimeSpan("timespan");
-            res.Should().Be(expected, $"'{value}' rounds to 12 ticks");
+            Assert.True(expected.Equals(res), $"'{value}' should rounds to 12 ticks");
         }
 
         [Fact]
@@ -170,7 +169,7 @@ namespace Hocon.Tests
             var hocon = $"timespan = {value}";
 
             var res = Parser.Parse(hocon).GetTimeSpan("timespan");
-            res.Should().Be(expected, $"'{value}' is {expected}");
+            Assert.True(expected.Equals(res), $"'{value}' is {expected}");
         }
 
     }
