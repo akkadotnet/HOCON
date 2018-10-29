@@ -87,22 +87,34 @@ namespace Hocon
             switch (token.LiteralType)
             {
                 case TokenLiteralType.Null:
-                    return (new HoconNull(owner));
+                    return new HoconNull(owner);
 
                 case TokenLiteralType.Bool:
-                    return (new HoconBool(owner, token.Value));
+                    return new HoconBool(owner, token.Value);
 
                 case TokenLiteralType.Whitespace:
-                    return (new HoconWhitespace(owner, token.Value));
+                    return new HoconWhitespace(owner, token.Value);
 
                 case TokenLiteralType.UnquotedLiteralValue:
-                    return (new HoconUnquotedString(owner, token.Value));
+                    return new HoconUnquotedString(owner, token.Value);
 
                 case TokenLiteralType.QuotedLiteralValue:
-                    return (new HoconQuotedString(owner, token.Value));
+                    return new HoconQuotedString(owner, token.Value);
 
                 case TokenLiteralType.TripleQuotedLiteralValue:
-                    return (new HoconTripleQuotedString(owner, token.Value));
+                    return new HoconTripleQuotedString(owner, token.Value);
+
+                case TokenLiteralType.Long:
+                    return new HoconLong(owner, token.Value);
+
+                case TokenLiteralType.Double:
+                    return new HoconDouble(owner, token.Value);
+
+                case TokenLiteralType.Hex:
+                    return new HoconHex(owner, token.Value);
+
+                case TokenLiteralType.Octal:
+                    return new HoconOctal(owner, token.Value);
 
                 default:
                     throw new HoconException($"Unknown token literal type: {token.Value}");
