@@ -9,6 +9,10 @@ The performance has significantly improved, as have the range of features suppor
 
 This library will be developed and released independently from Akka.NET itself, but beginning with Akka.NET v1.4 it will be taken as a dependency by the core Akka libraries.
 
+HOCON ships as two NuGet packages:
+* `HOCON` - includes all core parser, substitution, tokenization, and other functionality;
+* `HOCON.Configuration` - adds `App.config` and `System.Configuration` integration to HOCON.
+
 #### 0.1.0 November 9th 2017 ####
 * .NET Standard 1.2 and .NET 4.5 dual support for core HOCON library.
 * Dropped dependency on JSON.NET.

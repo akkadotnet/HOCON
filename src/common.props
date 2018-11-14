@@ -9,7 +9,10 @@ Built-in enviroment variable substitution;
 [Support for better byte and time formats](https://github.com/akkadotnet/akka.net/pull/3600);
 [Improved object substitution and merging](https://github.com/akkadotnet/HOCON/pull/55);
 and many more features.
-This library will be developed and released independently from Akka.NET itself, but beginning with Akka.NET v1.4 it will be taken as a dependency by the core Akka libraries.</PackageReleaseNotes>
+This library will be developed and released independently from Akka.NET itself, but beginning with Akka.NET v1.4 it will be taken as a dependency by the core Akka libraries.
+HOCON ships as two NuGet packages:
+`HOCON` - includes all core parser, substitution, tokenization, and other functionality;
+`HOCON.Configuration` - adds `App.config` and `System.Configuration` integration to HOCON.</PackageReleaseNotes>
     <PackageIconUrl>http://getakka.net/images/akkalogo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</PackageLicenseUrl>
