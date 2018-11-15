@@ -5,8 +5,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Akka.Configuration;
 using System;
+using Hocon;
 
 namespace ObjectMerge
 {
@@ -23,7 +23,7 @@ root {
   }
 }
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             var val1 = config.GetString("root.some-object.property1");
             var val2 = config.GetString("root.some-object.property2");
             var val3 = config.GetString("root.some-object.property3");

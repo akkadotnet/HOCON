@@ -6,8 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
-
-using Akka.Configuration;
+using Hocon;
 
 namespace SimpleSubstitutions
 {
@@ -21,7 +20,7 @@ root {
   simple-string = ${root.some-value} ""Hocon""  
 }
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = Parser.Parse(hocon);
             var val = config.GetString("root.simple-string");
             Console.WriteLine("Hocon says: " + val);
             Console.ReadKey();
