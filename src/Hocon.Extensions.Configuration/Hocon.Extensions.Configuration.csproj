@@ -3,9 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Microsoft.Extensions.Configuration.Hocon</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RootNamespace>Hocon.Extensions.Configuration</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
