@@ -896,7 +896,7 @@ namespace Hocon
                                 currentArray.Add(lastValue);
                                 break;
                             default:
-                                currentArray.Add((HoconValue) lastValue);
+                                currentArray.Add(lastValue);
                                 break;
                         }
                         lastValue = null;
@@ -930,7 +930,7 @@ namespace Hocon
                                     currentArray.Add(lastValue);
                                     break;
                                 default:
-                                    currentArray.Add((HoconValue) lastValue);
+                                    currentArray.Add(lastValue);
                                     break;
                             }
                             lastValue = null;
