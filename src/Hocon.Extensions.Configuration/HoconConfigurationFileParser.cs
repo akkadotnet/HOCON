@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using Hocon;
+using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.Extensions.Configuration.Hocon
+namespace Hocon.Extensions.Configuration
 {
     internal class HoconConfigurationFileParser
     {

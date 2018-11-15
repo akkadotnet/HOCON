@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Text;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Resources;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace Microsoft.Extensions.Configuration.Hocon.Tests
+namespace Hocon.Extensions.Configuration.Tests
 {
     public class HoconConfigurationTest
     {

@@ -1,15 +1,16 @@
 ﻿using System;
 using System.IO;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace Microsoft.Extensions.Configuration.Hocon.Tests
+namespace Hocon.Extensions.Configuration.Tests
 {
     public class HoconConfigurationExtensionsTest
     {
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void AddJsonFile_ThrowsIfFilePathIsNullOrEmpty(string path)
+        public void AddHoconFile_ThrowsIfFilePathIsNullOrEmpty(string path)
         {
             // Arrange
             var configurationBuilder = new ConfigurationBuilder();
@@ -21,7 +22,7 @@ namespace Microsoft.Extensions.Configuration.Hocon.Tests
         }
 
         [Fact]
-        public void AddJsonFile_ThrowsIfFileDoesNotExistAtPath()
+        public void AddHoconFile_ThrowsIfFileDoesNotExistAtPath()
         {
             // Arrange
             var path = "file-does-not-exist.conf";

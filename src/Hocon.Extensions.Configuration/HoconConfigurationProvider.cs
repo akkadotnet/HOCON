@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Hocon;
+using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.Extensions.Configuration.Hocon
+namespace Hocon.Extensions.Configuration
 {
     /// <summary>
     /// A HOCON file based <see cref="FileConfigurationProvider"/>.

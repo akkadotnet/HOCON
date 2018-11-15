@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Primitives;
 
-namespace Microsoft.Extensions.Configuration.Hocon.Tests
+namespace Hocon.Extensions.Configuration.Tests
 {
     public static class TestStreamHelpers
     {

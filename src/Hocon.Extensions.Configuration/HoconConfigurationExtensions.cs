@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 
-namespace Microsoft.Extensions.Configuration.Hocon
+namespace Hocon.Extensions.Configuration
 {
     /// <summary>
     /// Extension methods for adding <see cref="HoconConfigurationProvider"/>.

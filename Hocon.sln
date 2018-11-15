@@ -25,9 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Configuration", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Configuration.Tests", "src\Hocon.Configuration.Test\Hocon.Configuration.Tests.csproj", "{9CAF3978-7827-4FD0-8D23-2AADDE648CBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Extensions.Configuration.Hocon", "src\Microsoft.Extensions.Configuration.Hocon\Microsoft.Extensions.Configuration.Hocon.csproj", "{2E3E3522-45BA-4FF1-AA68-7A685E62956E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Extensions.Configuration", "src\Hocon.Extensions.Configuration\Hocon.Extensions.Configuration.csproj", "{2E3E3522-45BA-4FF1-AA68-7A685E62956E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Extensions.Configuration.Hocon.Tests", "src\Microsoft.Extensions.Configuration.Hocon.Tests\Microsoft.Extensions.Configuration.Hocon.Tests.csproj", "{F7862234-3330-43DE-86BB-D6E67F2146BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Extensions.Configuration.Tests", "src\Hocon.Extensions.Configuration.Tests\Hocon.Extensions.Configuration.Tests.csproj", "{F7862234-3330-43DE-86BB-D6E67F2146BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

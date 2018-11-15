@@ -1,7 +1,7 @@
-using System;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
-namespace Microsoft.Extensions.Configuration.Hocon.Tests
+namespace Hocon.Extensions.Configuration.Tests
 {
     public class ConfigurationSpec
     {

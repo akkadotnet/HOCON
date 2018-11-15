@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.Extensions.Configuration.Hocon.Tests
+namespace Hocon.Extensions.Configuration.Tests
 {
     public static class ConfigurationProviderExtensions
     {

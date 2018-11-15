@@ -1,9 +1,9 @@
-﻿using System.Diagnostics;
-using System.Linq;
-//using Microsoft.Extensions.Configuration.Test;
+﻿using System.Linq;
+using Microsoft.Extensions.Configuration;
 using Xunit;
+//using Microsoft.Extensions.Configuration.Test;
 
-namespace Microsoft.Extensions.Configuration.Hocon.Tests
+namespace Hocon.Extensions.Configuration.Tests
 {
     public class ArrayTest
     {

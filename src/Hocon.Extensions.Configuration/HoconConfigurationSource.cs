@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Extensions.Configuration.Hocon
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Hocon.Extensions.Configuration
 {
     /// <summary>
     /// Represents a HOCON file as an <see cref="IConfigurationSource"/>.
