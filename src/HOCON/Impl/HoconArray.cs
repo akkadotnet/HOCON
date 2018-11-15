@@ -60,12 +60,17 @@ namespace Hocon
                     case HoconValue value:
                         result.Add(value);
                         break;
+                    case HoconObject obj:
+                        var val = new HoconValue(this);
+                        val.Add(obj);
+                        result.Add(val);
+                        break;
                     case HoconSubstitution sub:
                         if(sub.ResolvedValue != null)
                             result.AddRange(sub.ResolvedValue.GetArray());
                         break;
                     default:
-                        throw new HoconException("Unknown ");
+                        throw new HoconException($"Unknown type: {item.Type}");
                 }
             }
             return result;
