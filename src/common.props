@@ -11,8 +11,9 @@ Built-in enviroment variable substitution;
 and many more features.
 This library will be developed and released independently from Akka.NET itself, but beginning with Akka.NET v1.4 it will be taken as a dependency by the core Akka libraries.
 HOCON ships as two NuGet packages:
-`HOCON` - includes all core parser, substitution, tokenization, and other functionality;
-`HOCON.Configuration` - adds `App.config` and `System.Configuration` integration to HOCON.</PackageReleaseNotes>
+`Hocon` - includes all core parser, substitution, tokenization, and other functionality;
+`Hocon.Configuration` - adds `App.config` and `System.Configuration` integration to HOCON.
+`Hocon.Extensions.Configuration` - adds HOCON support for the popular `Microsoft.Extensions.Configuration` library used in ASP.NET Core and other parts of the new .NET Core runtime.</PackageReleaseNotes>
     <PackageIconUrl>http://getakka.net/images/akkalogo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</PackageLicenseUrl>
