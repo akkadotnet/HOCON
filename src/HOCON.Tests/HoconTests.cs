@@ -478,6 +478,32 @@ y = hello
             Assert.Equal("hello", config.GetString("a.b.y"));
         }
 
+        [Theory]
+        [InlineData(@"{
+    include ""foo""
+    a : include ""foo""
+}")]
+        [InlineData(@"
+    include ""foo""
+    a : include ""foo""
+")]
+        public void CanParseIncludeInRoot(string hocon)
+        {
+            var includeHocon = @"
+x = 123
+y = hello
+";
+            Task<string> IncludeCallback(HoconCallbackType t, string s)
+                => Task.FromResult(includeHocon);
+
+            var config = Parser.Parse(hocon, IncludeCallback);
+
+            Assert.Equal(123, config.GetInt("x"));
+            Assert.Equal("hello", config.GetString("y"));
+            Assert.Equal(123, config.GetInt("a.x"));
+            Assert.Equal("hello", config.GetString("a.y"));
+        }
+
         [Fact]
         public void CanParseArrayInclude()
         {
