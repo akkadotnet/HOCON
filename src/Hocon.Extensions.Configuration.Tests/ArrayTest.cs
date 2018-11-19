@@ -1,7 +1,13 @@
-﻿using System.Linq;
+﻿//-----------------------------------------------------------------------
+// <copyright file="ArrayTest.cs" company="Hocon Project">
+//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+// </copyright>
+//-----------------------------------------------------------------------
+
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Xunit;
-//using Microsoft.Extensions.Configuration.Test;
 
 namespace Hocon.Extensions.Configuration.Tests
 {
