@@ -1,8 +1,8 @@
 ﻿#region copyright
 // -----------------------------------------------------------------------
 //  <copyright file="LookupBenchmark.cs" company="Hocon Project">
-//      Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
-//      Copyright (C) 2018-2018 Akka.NET project <https://github.com/akkadotnet/hocon>
+//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
 //  </copyright>
 // -----------------------------------------------------------------------
 #endregion
