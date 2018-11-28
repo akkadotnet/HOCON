@@ -16,7 +16,30 @@ namespace Hocon
     public sealed class HoconPath:List<string>, IEquatable<HoconPath>
     {
         public bool IsEmpty => Count == 0;
-        public string Value => string.Join(".", this);
+
+        public string Value
+        {
+            get
+            {
+                if (IsEmpty)
+                    return string.Empty;
+
+                List<string> pathSegments = new List<string>();
+                foreach (string subPath in this)
+                {
+                    // #todo escape newline chars in path?
+                    if (subPath.NeedTripleQuotes())
+                        throw new HoconException("Unable to convert the path to string because a sub path contains newline character.");
+
+                    pathSegments.Add(subPath.Contains('.') || subPath.ContainsHoconWhitespaceExceptNewLine()
+                        ? subPath.AddQuotes()
+                        : subPath.AddQuotesIfRequired());
+                }
+
+                return string.Join(".", pathSegments);
+            }
+        }
+
         public string Key => this[Count - 1];
 
         public HoconPath() { }
