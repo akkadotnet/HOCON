@@ -123,5 +123,21 @@ foo
             Assert.Equal(43, config.GetInt("foo.b"));
         }
 
+        /// <summary>
+        /// The `a.b.c` dot syntax may be used to add new fields or override old fields of a HOCON object.
+        /// </summary>
+        [Fact]
+        public void ObjectCanMixBraceAndDotSyntax()
+        {
+            var hocon = @"
+    foo { x = 1 }
+    foo { y = 2 }
+    foo.z = 32
+";
+            var config = Parser.Parse(hocon);
+            Assert.Equal(1, config.GetInt("foo.x"));
+            Assert.Equal(2, config.GetInt("foo.y"));
+            Assert.Equal(32, config.GetInt("foo.z"));
+        }
     }
 }
