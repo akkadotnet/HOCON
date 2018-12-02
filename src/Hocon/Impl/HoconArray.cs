@@ -83,6 +83,20 @@ namespace Hocon
             return result;
         }
 
+        public new void Add(IHoconElement element)
+        {
+            if (element.Type != HoconType.Empty)
+            {
+                if(_arrayType == HoconType.Empty)
+                    _arrayType = element.Type;
+                else if (element.Type != _arrayType)
+                    throw new HoconException(
+                        $"Array value must match the rest of the array type or empty. Array value type: {_arrayType}, inserted type: {element.Type}");
+            }
+
+            base.Add(element);
+        }
+
         internal void ResolveValue(HoconSubstitution sub)
         {
             if (sub.Type == HoconType.Empty)
