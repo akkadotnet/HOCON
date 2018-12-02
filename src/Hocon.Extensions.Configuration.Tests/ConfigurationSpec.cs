@@ -24,31 +24,37 @@ namespace Hocon.Extensions.Configuration.Tests
         [Fact]
         public void ShouldBeAbleToReadHoconFile()
         {
-            var filePath = Path.Combine(Path.GetTempPath(), "reference.conf");
-            File.WriteAllText(filePath, ConfigString);
-            var config = new ConfigurationBuilder().AddHoconFile(filePath, optional:false, reloadOnChange:true).Build();
-            Assert.Equal("0.0.1 Akka", config["akka:version"]);
-            Assert.Equal("Akka.Actor.LocalActorRefProvider", config["akka:actor:provider"]);
-            Assert.Equal("512", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+            using (var fileSystem = new DisposableFileSystem())
+            {
+                fileSystem.CreateFile("reference.conf", ConfigString);
+                var filePath = Path.Combine(fileSystem.RootPath, "reference.conf");
+                var config = new ConfigurationBuilder().AddHoconFile(filePath, optional: false, reloadOnChange: true).Build();
+                Assert.Equal("0.0.1 Akka", config["akka:version"]);
+                Assert.Equal("Akka.Actor.LocalActorRefProvider", config["akka:actor:provider"]);
+                Assert.Equal("512", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+            }
         }
 
         [Fact]
         public void ShouldReloadConfigurationOnFileChange()
         {
-            var filePath = Path.Combine(Path.GetTempPath(), "reference.conf");
-            File.WriteAllText(filePath, ConfigString);
+            using (var fileSystem = new DisposableFileSystem())
+            {
+                fileSystem.CreateFile("reference.conf", ConfigString);
+                var filePath = Path.Combine(fileSystem.RootPath, "reference.conf");
 
-            var config = new ConfigurationBuilder().AddHoconFile(filePath, optional:false, reloadOnChange:true).Build();
-            Assert.Equal("0.0.1 Akka", config["akka:version"]);
-            Assert.Equal("Akka.Actor.LocalActorRefProvider", config["akka:actor:provider"]);
-            Assert.Equal("512", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+                var config = new ConfigurationBuilder().AddHoconFile(filePath, optional: false, reloadOnChange: true).Build();
+                Assert.Equal("0.0.1 Akka", config["akka:version"]);
+                Assert.Equal("Akka.Actor.LocalActorRefProvider", config["akka:actor:provider"]);
+                Assert.Equal("512", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
 
-            File.WriteAllText(filePath, ModifiedConfigString);
-            // The default reload delay is 250 ms, add 100 ms to give the file monitoring system time to catch up and load the new config.
-            Task.Delay(350).Wait();
-            Assert.Equal("0.0.2 Akka", config["akka:version"]);
-            Assert.Equal("Akka.Actor.RemoteActorRefProvider", config["akka:actor:provider"]);
-            Assert.Equal("1024", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+                fileSystem.CreateFile("reference.conf", ModifiedConfigString);
+                // The default reload delay is 250 ms, add 100 ms to give the file monitoring system time to catch up and load the new config.
+                Task.Delay(350).Wait();
+                Assert.Equal("0.0.2 Akka", config["akka:version"]);
+                Assert.Equal("Akka.Actor.RemoteActorRefProvider", config["akka:actor:provider"]);
+                Assert.Equal("1024", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+            }
         }
 
         private static readonly string ConfigString = ReadResource("Hocon.Extensions.Configuration.Tests.reference.conf");
