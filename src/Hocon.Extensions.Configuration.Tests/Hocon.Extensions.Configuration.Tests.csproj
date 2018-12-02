@@ -9,12 +9,16 @@
 
   <ItemGroup>
     <None Remove="reference.conf" />
+    <None Remove="reference_modified.conf" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="reference.conf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="reference_modified.conf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="reference.conf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
