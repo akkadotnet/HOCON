@@ -114,7 +114,7 @@ namespace Hocon
             => Hexadecimal.Contains(c);
 
         public static string ToHoconSafe(this string s)
-            => s.NeedTripleQuotes() ? $"\"\"\"{s}\"\"\"" : s.NeedQuotes() ? $"\"{s}\"" : s;
+            => s.NeedTripleQuotes() ? $"\"\"\"{s}\"\"\"" : s.NeedQuotes() ? s.AddQuotes() : s;
 
         public static HoconPath ToHoconPath(this string path)
             => HoconPath.Parse(path);
@@ -122,17 +122,6 @@ namespace Hocon
         public static bool Contains(this string s, char c)
         {
             return s.IndexOf(c) != -1;
-        }
-
-        public static bool ContainsHoconWhitespaceExceptNewLine(this string s)
-        {
-            foreach (char c in s)
-            {
-                if (c.IsWhitespaceWithNoNewLine())
-                    return true;
-            }
-
-            return false;
         }
 
         #endregion
@@ -192,13 +181,6 @@ namespace Hocon
 
         public static bool NeedTripleQuotes(this string s)
             => s.NeedQuotes() && s.Contains(Utils.NewLine);
-
-        public static string AddQuotesIfRequired(this string s)
-        {
-            return s.NeedTripleQuotes() ? ("\"\"\"" + s + "\"\"\"")
-                : s.NeedQuotes() ? AddQuotes(s)
-                : s;
-        }
 
         public static string AddQuotes(this string s)
         {

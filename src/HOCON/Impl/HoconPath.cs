@@ -24,16 +24,41 @@ namespace Hocon
                 if (IsEmpty)
                     return string.Empty;
 
-                List<string> pathSegments = new List<string>();
-                foreach (string subPath in this)
-                {
-                    // #todo escape newline chars in path?
-                    if (subPath.NeedTripleQuotes())
-                        throw new HoconException("Unable to convert the path to string because a sub path contains newline character.");
+                // this is chosen to encode \ in a key
+                // anything will do, but if the key contains a lot of this we'll need to do many escapes and impact perf.
+                // let's hope this sequence appears rare enough for most situations
+                const string encodeBackslashAs = "^";
 
-                    pathSegments.Add(subPath.Contains('.') || subPath.ContainsHoconWhitespaceExceptNewLine()
-                        ? subPath.AddQuotes()
-                        : subPath.AddQuotesIfRequired());
+                List<string> pathSegments = new List<string>();
+                foreach (string subKey in this)
+                {
+                    if (subKey == string.Empty)
+                    {
+                        pathSegments.Add("\"\"");
+                        continue;
+                    }
+
+                    bool hasEscapeChar = subKey.Contains('\\');
+                    string escapedSubKey = hasEscapeChar 
+                        ? subKey.Replace(encodeBackslashAs, encodeBackslashAs + "2").Replace("\\", encodeBackslashAs + "1") 
+                        : subKey;
+
+                    if (escapedSubKey.Contains(Utils.NewLine))
+                    {
+                        // escape chars that can't be expressed quote/unquoted (e.g. \n)
+                        escapedSubKey = escapedSubKey.Replace(Utils.NewLine.ToString(), "\\n").ToHoconSafe();
+                    }
+                    else
+                    {
+                        if (escapedSubKey.Contains('.'))
+                            escapedSubKey = escapedSubKey.AddQuotes();
+                        else
+                            escapedSubKey = escapedSubKey.ToHoconSafe();
+                    }
+
+                    pathSegments.Add(hasEscapeChar
+                        ? escapedSubKey.Replace(encodeBackslashAs + "1", "\\\\").Replace(encodeBackslashAs + "2", encodeBackslashAs) 
+                        : escapedSubKey);
                 }
 
                 return string.Join(".", pathSegments);
