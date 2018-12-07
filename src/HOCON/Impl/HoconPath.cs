@@ -16,7 +16,55 @@ namespace Hocon
     public sealed class HoconPath:List<string>, IEquatable<HoconPath>
     {
         public bool IsEmpty => Count == 0;
-        public string Value => string.Join(".", this);
+
+        public string Value
+        {
+            get
+            {
+                if (IsEmpty)
+                    return string.Empty;
+
+                // this is chosen to encode \ in a key
+                // anything will do, but if the key contains a lot of this we'll need to do many escapes and impact perf.
+                // let's hope this sequence appears rare enough for most situations
+                const string encodeBackslashAs = "^";
+
+                List<string> pathSegments = new List<string>();
+                foreach (string subKey in this)
+                {
+                    if (subKey == string.Empty)
+                    {
+                        pathSegments.Add("\"\"");
+                        continue;
+                    }
+
+                    bool hasEscapeChar = subKey.Contains('\\');
+                    string escapedSubKey = hasEscapeChar 
+                        ? subKey.Replace(encodeBackslashAs, encodeBackslashAs + "2").Replace("\\", encodeBackslashAs + "1") 
+                        : subKey;
+
+                    if (escapedSubKey.Contains(Utils.NewLine))
+                    {
+                        // escape chars that can't be expressed quote/unquoted (e.g. \n)
+                        escapedSubKey = escapedSubKey.Replace(Utils.NewLine.ToString(), "\\n").ToHoconSafe();
+                    }
+                    else
+                    {
+                        if (escapedSubKey.Contains('.'))
+                            escapedSubKey = escapedSubKey.AddQuotes();
+                        else
+                            escapedSubKey = escapedSubKey.ToHoconSafe();
+                    }
+
+                    pathSegments.Add(hasEscapeChar
+                        ? escapedSubKey.Replace(encodeBackslashAs + "1", "\\\\").Replace(encodeBackslashAs + "2", encodeBackslashAs) 
+                        : escapedSubKey);
+                }
+
+                return string.Join(".", pathSegments);
+            }
+        }
+
         public string Key => this[Count - 1];
 
         public HoconPath() { }

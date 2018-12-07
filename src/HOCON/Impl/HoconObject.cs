@@ -284,7 +284,10 @@ namespace Hocon
                     return result;
 
                 child.EnsureFieldIsObject();
-                currentObject = child.GetObject();
+
+                // cannot use child.GetObject() because it would return a new merged object instance, which 
+                // breaks autoref with the parent object in the previous loop
+                currentObject = child.Value.GetObject();
             }
         }
 
