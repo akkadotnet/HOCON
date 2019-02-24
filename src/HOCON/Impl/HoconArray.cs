@@ -24,6 +24,8 @@ namespace Hocon
     /// </summary>
     public sealed class HoconArray : List<IHoconElement>, IHoconElement
     {
+        private HoconType _arrayType = HoconType.Empty;
+
         public IHoconElement Parent { get; }
         public HoconType Type => HoconType.Array;
 
@@ -66,14 +68,33 @@ namespace Hocon
                         result.Add(val);
                         break;
                     case HoconSubstitution sub:
-                        if(sub.ResolvedValue != null)
-                            result.AddRange(sub.ResolvedValue.GetArray());
+                        if (sub.ResolvedValue != null)
+                        {
+                            if(sub.ResolvedValue.Type == HoconType.Array)
+                                result.AddRange(sub.ResolvedValue.GetArray());
+                            else
+                                result.Add(sub.ResolvedValue);
+                        }
                         break;
                     default:
                         throw new HoconException($"Unknown type: {item.Type}");
                 }
             }
             return result;
+        }
+
+        public new void Add(IHoconElement element)
+        {
+            if (element.Type != HoconType.Empty)
+            {
+                if(_arrayType == HoconType.Empty)
+                    _arrayType = element.Type;
+                else if (element.Type != _arrayType)
+                    throw new HoconException(
+                        $"Array value must match the rest of the array type or empty. Array value type: {_arrayType}, inserted type: {element.Type}");
+            }
+
+            base.Add(element);
         }
 
         internal void ResolveValue(HoconSubstitution sub)
@@ -84,10 +105,10 @@ namespace Hocon
                 return;
             }
 
-            if (sub.Type != HoconType.Array)
+            if (_arrayType != HoconType.Empty && sub.Type != _arrayType)
             {
                 throw HoconParserException.Create(sub, sub.Path,
-                    $"Substitution value must match the rest of the field type or empty. Parent value type: {Type}, substitution type: {sub.Type}");
+                    $"Substitution value must match the rest of the field type or empty. Array value type: {_arrayType}, substitution type: {sub.Type}");
             }
         }
 

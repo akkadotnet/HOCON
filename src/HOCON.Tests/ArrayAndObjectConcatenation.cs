@@ -191,6 +191,21 @@ a : { c : 2 }";
             Assert.Equal(2, config.GetInt("a.c"));
         }
 
+        // Undefined behavior in spec.
+        // In this implementation, mixed value types in an array will throw an exception.
+        [Theory]
+        [InlineData("b = [{a = 1}, test]")]
+        [InlineData("b = [test, {a = 1}]")]
+        [InlineData("b = [foo, [bar]]")]
+        [InlineData("b = [[foo], bar]")]
+        public void ThrowsWhenArrayItemTypesAreDifferent(string hocon)
+        {
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
         #region Array and object concatenation exception spec
         [Fact]
         public void ThrowsWhenArrayAndObjectAreConcatenated_1()
