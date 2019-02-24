@@ -18,11 +18,11 @@ namespace Hocon
 
         public Token Current => this[Index];
 
-        public void Push() => _indexStack.Push(Index);
+        public void PushPosition() => _indexStack.Push(Index);
 
-        public void Pop() => Index = _indexStack.Pop();
+        public void PopPosition() => Index = _indexStack.Pop();
 
-        public void Reset() => Index = 0;
+        public void ResetPosition() => Index = 0;
 
         public void Insert(Token token)
         {
@@ -50,34 +50,39 @@ namespace Hocon
             return this[Index];
         }
 
-        public bool GetNextSignificant(TokenType tokenType)
+        // It is assumed that comments are ignored completely
+        public void ToNextSignificant()
         {
-            while(Next().LiteralType == TokenLiteralType.Whitespace) { }
-            return Current.Type == tokenType;
+            Next();
+            while (Current.LiteralType == TokenLiteralType.Whitespace || Current.Type == TokenType.Comment )
+                Next();
         }
 
-        public bool GetNextSignificant(params TokenType[] tokenTypes)
+        public void ToNextSignificantLine()
         {
-            while (Next().LiteralType == TokenLiteralType.Whitespace) { }
-            return tokenTypes.Any(tokenType => Current.Type == tokenType);
+            Next();
+            while (Current.LiteralType == TokenLiteralType.Whitespace 
+                   || Current.Type == TokenType.Comment 
+                   || Current.Type == TokenType.EndOfLine)
+                Next();
         }
 
         public bool BackMatch(TokenType token)
         {
-            Push();
+            PushPosition();
             Back();
             while (Current.LiteralType == TokenLiteralType.Whitespace)
             {
                 Back();
             }
             var current = Current;
-            Pop();
+            PopPosition();
             return current.Type == token;
         }
 
         public bool BackMatch(params TokenType[] tokens)
         {
-            Push();
+            PushPosition();
             Back();
             while (Current.LiteralType == TokenLiteralType.Whitespace)
             {
@@ -85,37 +90,37 @@ namespace Hocon
             }
             var c = Current;
             if (tokens.Any(token => token == c.Type)) {
-                Pop();
+                PopPosition();
                 return true;
             }
-            Pop();
+            PopPosition();
             return false;
         }
 
         public bool ForwardMatch(TokenType token)
         {
-            Push();
+            PushPosition();
             Next();
             while (Current.LiteralType == TokenLiteralType.Whitespace)
             {
                 Next();
             }
             var current = Current;
-            Pop();
+            PopPosition();
             return current.Type == token;
         }
 
         public bool ForwardMatch(params TokenType[] tokens)
         {
-            Push();
+            PushPosition();
             while (Next() != null)
             {
                 var c = Current;
                 if (tokens.All(token => c.Type != token)) continue;
-                Pop();
+                PopPosition();
                 return true;
             }
-            Pop();
+            PopPosition();
             return false;
         }
     }

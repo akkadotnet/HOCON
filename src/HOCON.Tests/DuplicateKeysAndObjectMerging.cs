@@ -78,8 +78,7 @@ foo : { a : 43 }
             var hocon = @"
 foo
 {
-  bar 
-  {
+  bar {
     a : 42
     b : 43 
   }
