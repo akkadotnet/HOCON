@@ -130,9 +130,7 @@ namespace Hocon
 
         [DebuggerStepThrough]
         public static bool IsSignificant(this Token token)
-            => token.Type != TokenType.Comment
-               && token.Type != TokenType.EndOfLine
-               && token.LiteralType != TokenLiteralType.Whitespace;
+            => token.Type != TokenType.Comment && token.LiteralType != TokenLiteralType.Whitespace;
 
         [DebuggerStepThrough]
         public static bool IsNonSignificant(this Token token)
