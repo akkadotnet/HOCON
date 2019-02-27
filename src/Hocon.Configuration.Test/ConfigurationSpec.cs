@@ -9,15 +9,26 @@ using System;
 using System.Configuration;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Configuration.Tests
 {
     public class ConfigurationSpec
     {
+        private readonly ITestOutputHelper _output;
+
+        public ConfigurationSpec(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void DeserializesHoconConfigurationFromNetConfigFile()
         {
+#if NETCOREAPP2_0
+            var configPath = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath;
+            _output.WriteLine($"Config file output directory:{configPath}");
+#endif
             var raw = ConfigurationManager.GetSection("akka");
             var section = (HoconConfigurationSection)raw;
             Assert.NotNull(section);
