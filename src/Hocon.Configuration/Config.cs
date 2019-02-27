@@ -195,7 +195,7 @@ namespace Hocon
         /// Determines if the supplied configuration has any usable content period.
         /// </summary>
         /// <param name="config">The configuration used as the source.</param>
-        /// <returns><c>true></c> if the <see cref="Config" /> is null or <see cref="Config.IsEmpty" />; otherwise <c>false</c>.</returns>
+        /// <returns><c>true></c> if the <see cref="Config" /> is null or <see cref="HoconRoot.IsEmpty" />; otherwise <c>false</c>.</returns>
         public static bool IsNullOrEmpty(this Config config)
             => config == null || config.IsEmpty;
     }
