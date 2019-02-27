@@ -155,11 +155,6 @@ $Arguments = @{
     dryrun=$WhatIf;
 }.GetEnumerator() | %{"--{0}=`"{1}`"" -f $_.key, $_.value };
 
-# debug parser.cs
-Write-Host "============================================================="
-get-Content "src/HOCON/Parser.cs" | foreach { Write-Host $_ }
-Write-Host "============================================================="
-
 # Start Fake
 Write-Host "Running build script..."
 Invoke-Expression "$FakeExePath `"build.fsx`" $ScriptArgs $Arguments"

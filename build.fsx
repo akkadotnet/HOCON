@@ -105,8 +105,8 @@ Target "RunTests" (fun _ ->
     let runSingleProject project =
         let arguments =
             match (hasTeamCity) with
-            | true -> (sprintf "xunit -c Release -nobuild -parallel none -teamcity -xml %s_xunit.xml" (outputTests @@ fileNameWithoutExt project))
-            | false -> (sprintf "xunit -c Release -nobuild -parallel none -xml %s_xunit.xml" (outputTests @@ fileNameWithoutExt project))
+            | true -> (sprintf "xunit -c Release -parallel none -teamcity -xml %s_xunit.xml" (outputTests @@ fileNameWithoutExt project))
+            | false -> (sprintf "xunit -c Release -parallel none -xml %s_xunit.xml" (outputTests @@ fileNameWithoutExt project))
 
         let result = ExecProcess(fun info ->
             info.FileName <- "dotnet"
