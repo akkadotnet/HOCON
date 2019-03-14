@@ -42,4 +42,14 @@
     </EmbeddedResource>
   </ItemGroup>
 
+   <ItemGroup Condition=" '$(MSBuildRuntimeType)'=='Mono' ">
+    <!--
+      Workaround for AppDomain issues on Mono
+    -->
+    <Content Include="xunit.runner.mono.json">
+      <Link>xunit.runner.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
