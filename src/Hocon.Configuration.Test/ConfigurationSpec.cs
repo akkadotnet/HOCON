@@ -15,6 +15,7 @@ namespace Hocon.Configuration.Tests
     public class ConfigurationSpec
     {
 
+#if !NETCORE
         [Fact]
         public void DeserializesHoconConfigurationFromNetConfigFile()
         {
@@ -25,6 +26,7 @@ namespace Hocon.Configuration.Tests
             var config = section.Config;
             Assert.NotNull(config);
         }
+#endif
 
         [Fact]
         public void CanMergeObjects()
