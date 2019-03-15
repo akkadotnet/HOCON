@@ -89,7 +89,7 @@ Target "RunTests" (fun _ ->
         match (isWindows) with 
         | true -> !! "./src/**/*.Tests.csproj"
         | _ -> !! "./src/**/*.Tests.csproj" 
-                 // -- "./src/**/Hocon.Configuration.Tests.csproj" // Mono barfs on this spec
+                  -- "./src/**/Hocon.Configuration.Tests.csproj" // Mono barfs on this spec
 
     let runSingleProject project =
         let arguments =
