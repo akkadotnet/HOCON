@@ -14,18 +14,18 @@ variables:
   - group: signingSecrets #create this group with SECRET variables `signingUsername` and `signingPassword`
   - group: nugetKeys #create this group with SECRET variables `nugetKey`
   - name: githubConnectionName
-    value: yourConnection #replace this
+    value: AkkaDotNet #replace this
   - name: projectName
-    value: yourProjectName #replace this
+    value: HOCON #replace this
   - name: githubRepositoryName
-    value: yourOrganization/yourRepo #replace this
+    value: akkadotnet/HOCON #replace this
 
 steps:
 - task: BatchScript@1
   displayName: 'FAKE Build'
   inputs:
     filename: build.cmd
-    arguments: 'All SignClientUser=$(signingUsername) SignClientSecret=$(signingPassword) nugetpublishurl=https://www.nuget.org/api/v2/package nugetkey=$(nugetKey)'
+    arguments: 'All nugetpublishurl=https://www.nuget.org/api/v2/package nugetkey=$(nugetKey)'
 
 - task: GitHubRelease@0
   displayName: 'GitHub release (create)'
