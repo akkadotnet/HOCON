@@ -2,7 +2,7 @@
   <Import Project="..\common.props" />
 
   <PropertyGroup>    
-    <TargetFrameworks>net452;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

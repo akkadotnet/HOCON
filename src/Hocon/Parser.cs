@@ -234,7 +234,7 @@ namespace Hocon
 
         private void ParseTokens()
         {
-            if (_tokens.Current.IsNonSignificant())
+            if (_tokens.Current.IsNonSignificant() || _tokens.Current.Type == TokenType.EndOfLine)
                 _tokens.ToNextSignificantLine();
 
             // Array Hocon files are handled differently than normal Hocon file.
@@ -244,7 +244,7 @@ namespace Hocon
                 _root.Add(ParseArray(_root));
 
                 // Sanity check
-                if (_tokens.Current.IsNonSignificant())
+                if (_tokens.Current.IsNonSignificant() || _tokens.Current.Type == TokenType.EndOfLine)
                     _tokens.ToNextSignificantLine();
 
                 if (_tokens.Current.Type != TokenType.EndOfFile)
