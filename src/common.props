@@ -21,6 +21,7 @@ HOCON ships as two NuGet packages:
   </PropertyGroup>
   <PropertyGroup>
     <XunitVersion>2.4.1</XunitVersion>
+    <XunitCliVersion>2.3.1</XunitCliVersion>
     <TestSdkVersion>15.9.0</TestSdkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">

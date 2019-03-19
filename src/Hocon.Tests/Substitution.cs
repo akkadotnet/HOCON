@@ -597,5 +597,17 @@ foo : ${?bar}${?baz}
             Assert.Equal(1, config.GetInt("a.b"));
             Assert.Equal("1foo", config.GetString("a.c"));
         }
+
+        [Theory]
+        [InlineData("[${foo}]", new[] { "hello" })]
+        [InlineData("[${foo},world]", new[] { "hello", "world" })]
+        public void SimpleSubstitutionBetweenBracketsShouldResolveToArray(string bar, string[] expected)
+        {
+            var hocon = $@"foo = hello
+bar = {bar}";
+
+            var config = Parser.Parse(hocon);
+            Assert.Equal(expected, config.GetStringList("bar").ToArray());
+        }
     }
 }
