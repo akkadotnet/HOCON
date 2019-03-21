@@ -1,20 +1,30 @@
 <Project>
   <PropertyGroup>
-    <Copyright>Copyright © 2014-2017 Akka.NET Project</Copyright>
-    <Authors>Akka</Authors>
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <PackageReleaseNotes>.NET Standard 1.2 and .NET 4.5 dual support for core HOCON library.
-Dropped dependency on JSON.NET.
-Separated HOCON from Akka conceptually and in terms of namespaces.</PackageReleaseNotes>
-    <PackageIconUrl>
-    </PackageIconUrl>
+    <Copyright>Copyright © 2014-2018 Akka.NET Team</Copyright>
+    <Authors>Akka.NET Team</Authors>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <PackageReleaseNotes>HOCON 1.0.0 is a complete and total rewrite of the HOCON parsing engine, designed to work with both the .NET Framework (4.5 and later) and .NET Standard 1.3.
+The performance has significantly improved, as have the range of features supported by this library, including:
+Built-in enviroment variable substitution;
+[Support for better byte and time formats](https://github.com/akkadotnet/akka.net/pull/3600);
+[Improved object substitution and merging](https://github.com/akkadotnet/HOCON/pull/55);
+and many more features.
+This library will be developed and released independently from Akka.NET itself, but beginning with Akka.NET v1.4 it will be taken as a dependency by the core Akka libraries.
+HOCON ships as two NuGet packages:
+`Hocon` - includes all core parser, substitution, tokenization, and other functionality;
+`Hocon.Configuration` - adds `App.config` and `System.Configuration` integration to HOCON.
+`Hocon.Extensions.Configuration` - adds HOCON support for the popular `Microsoft.Extensions.Configuration` library used in ASP.NET Core and other parts of the new .NET Core runtime.</PackageReleaseNotes>
+    <PackageIconUrl>http://getakka.net/images/akkalogo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</PackageLicenseUrl>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <XunitVersion>2.3.0</XunitVersion>
-    <TestSdkVersion>15.3.0</TestSdkVersion>
-    <FluentAssertionsVersion>4.19.4</FluentAssertionsVersion>
+    <XunitVersion>2.4.1</XunitVersion>
+    <XunitCliVersion>2.3.1</XunitCliVersion>
+    <TestSdkVersion>15.9.0</TestSdkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
   </PropertyGroup>
 </Project>

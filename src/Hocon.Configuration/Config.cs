@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Config.cs" company="Hocon Project">
-//     Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
-//     Copyright (C) 2013-2015 Akka.NET project <https://github.com/akkadotnet/hocon>
+//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -195,7 +195,7 @@ namespace Hocon
         /// Determines if the supplied configuration has any usable content period.
         /// </summary>
         /// <param name="config">The configuration used as the source.</param>
-        /// <returns><c>true></c> if the <see cref="Config" /> is null or <see cref="Config.IsEmpty" />; otherwise <c>false</c>.</returns>
+        /// <returns><c>true></c> if the <see cref="Config" /> is null or <see cref="HoconRoot.IsEmpty" />; otherwise <c>false</c>.</returns>
         public static bool IsNullOrEmpty(this Config config)
             => config == null || config.IsEmpty;
     }

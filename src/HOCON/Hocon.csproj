@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
-
-
-  <PropertyGroup>
-    <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-</Project>
