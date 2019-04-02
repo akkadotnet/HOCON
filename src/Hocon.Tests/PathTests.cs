@@ -70,15 +70,15 @@ akka {
         }
         event-adapter-bindings
         {
-          ""Demo.IMyEvent"" = json-adapter #this line makes a invalid token exception
+          ""Demo.IMyEvent, MyDemoAssembly"" = json-adapter #this line makes a invalid token exception
         }
       }
     }
   }
 }";
             var config = Parser.Parse(hocon);
-            var path = HoconPath.Parse("akka.persistence.journal.sql-server.event-adapter-bindings.\"Demo.IMyEvent\"");
-            Assert.Equal("Demo.IMyEvent", path.Last());
+            var path = HoconPath.Parse("akka.persistence.journal.sql-server.event-adapter-bindings.\"Demo.IMyEvent, MyDemoAssembly\"");
+            Assert.Equal("Demo.IMyEvent, MyDemoAssembly", path.Last());
             Assert.Equal("json-adapter", config.GetString(path));
         }
 
