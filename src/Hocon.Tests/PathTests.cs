@@ -18,16 +18,16 @@ namespace Hocon.Tests
         }
 
         [Theory]
-        [InlineData(new string[] { "foo", "bar" }, "foo.bar")]
-        [InlineData(new string[] { "foo", "bar.baz" }, "foo.\"bar.baz\"")]
-        [InlineData(new string[] { "shoot", "a \"laser\" beam" }, "shoot.\"a \\\"laser\\\" beam\"")]
-        [InlineData(new string[] { "foo", "bar\nbaz" }, "foo.\"bar\\nbaz\"")]
-        [InlineData(new string[] { "foo", "bar baz", " wis " }, "foo.bar baz. wis ")]
-        [InlineData(new string[] { "foo", "bar\tbaz"}, "foo.bar\tbaz")]
-        [InlineData(new string[] { "foo", "bar\r\nbaz", "x\r" }, "foo.\"bar\r\\nbaz\".x\r")]
-        [InlineData(new string[] { "foo", "" }, "foo.\"\"")]
-        [InlineData(new string[] { "foo", "\\" }, "foo.\"\\\\\"")]
-        [InlineData(new string[] { "$\"{}[]:=,#`^?!@*&\\" }, "\"" + "$\\\"{}[]:=,#`^?!@*&\\\\" + "\"")]
+        [InlineData(new [] { "foo", "bar" }, "foo.bar")]
+        [InlineData(new [] { "foo", "bar.baz" }, "foo.\"bar.baz\"")]
+        [InlineData(new [] { "shoot", "a \"laser\" beam" }, "shoot.\"a \\\"laser\\\" beam\"")]
+        [InlineData(new [] { "foo", "bar\nbaz" }, "foo.\"bar\\nbaz\"")]
+        [InlineData(new [] { "foo", "bar baz", " wis " }, "foo.bar baz. wis ")]
+        [InlineData(new [] { "foo", "bar\tbaz"}, "foo.bar\tbaz")]
+        [InlineData(new [] { "foo", "bar\r\nbaz", "x\r" }, "foo.\"bar\r\\nbaz\".x\r")]
+        [InlineData(new [] { "foo", "" }, "foo.\"\"")]
+        [InlineData(new [] { "foo", "\\" }, "foo.\"\\\\\"")]
+        [InlineData(new [] { "$\"{}[]:=,#`^?!@*&\\" }, "\"" + "$\\\"{}[]:=,#`^?!@*&\\\\" + "\"")]
         public void CanParseAndSerialize(string[] pathKeys, string path)
         {
             HoconPath hoconPath = new HoconPath(pathKeys);
@@ -47,19 +47,51 @@ namespace Hocon.Tests
                 Assert.Equal(pathKeys[i], hoconPath2[i]);
             }
 
-            _output.WriteLine(string.Format("Path [{0}] serialized from: {1}", path, string.Join(", ", pathKeys)));
+            _output.WriteLine($"Path [{path}] serialized from: {string.Join(", ", pathKeys)}");
+        }
+
+        // Test that #79 invalid token exception does not happen.
+        [Fact]
+        public void DotAndCommaInQuotedKeyShouldBePreserved_79()
+        {
+            const string hocon = @"
+akka {
+  persistence {
+    journal {
+      plugin = ""akka.persistence.journal.sql - server""
+      sql-server {
+        class = ""Akka.Persistence.SqlServer.Journal.BatchingSqlServerJournal, Akka.Persistence.SqlServer""
+        schema-name = dbo
+        table-name = EventJournal
+        auto-initialize = off
+        event-adapters
+        {
+          json-adapter = ""Demo.EventAdapter, Demo""
+        }
+        event-adapter-bindings
+        {
+          ""Demo.IMyEvent, MyDemoAssembly"" = json-adapter #this line makes a invalid token exception
+        }
+      }
+    }
+  }
+}";
+            var config = Parser.Parse(hocon);
+            var path = HoconPath.Parse("akka.persistence.journal.sql-server.event-adapter-bindings.\"Demo.IMyEvent, MyDemoAssembly\"");
+            Assert.Equal("Demo.IMyEvent, MyDemoAssembly", path.Last());
+            Assert.Equal("json-adapter", config.GetString(path));
         }
 
         [Fact]
         public void PathToStringQuoteKeysContainingDot()
         {
-            var path1 = new HoconPath(new string[] {
+            var path1 = new HoconPath(new [] {
                 "i am",
                 "kong.fu",
                 "panda"
             });
 
-            var path2 = new HoconPath(new string[]
+            var path2 = new HoconPath(new []
             {
                 "i am",
                 "kong",
