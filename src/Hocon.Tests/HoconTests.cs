@@ -101,20 +101,23 @@ a {
         }
 
         [Fact]
-        public void GettingStringFromArrayReturnsNull() //undefined behavior in spec
+        public void GettingStringFromArrayReturnsNull()
         {
             var hocon = " array : [1,2,3]";
             Assert.Null(Parser.Parse(hocon).GetString("array"));
         }
 
-        //TODO: not sure if this is the expected behavior but it is what we have established in Akka.NET
+        // TODO: This behavior is incorrect, anything to array should throw instead.
+        // see https://github.com/lightbend/config/blob/master/HOCON.md#automatic-type-conversions
+        // see https://github.com/lightbend/config/blob/v1.3.3/config/src/main/java/com/typesafe/config/Config.java#L936
+        // OLD BEHAVIOR:(not sure if this is the expected behavior but it is what we have established in Akka.NET)
         [Fact]
-        public void GettingArrayFromLiteralsReturnsNull() //undefined behavior in spec
+        public void GettingArrayFromLiteralsReturnsNull()
         {
             var hocon = " literal : a b c";
             var res = Parser.Parse(hocon).GetStringList("literal");
 
-            Assert.Empty(res);
+            Assert.Null(res);
         }
 
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
@@ -528,7 +531,7 @@ y = hello
 
             var config = Parser.Parse(hocon, IncludeCallback);
             // TODO: need to figure a better way to retrieve array inside array
-            var array = config.GetValue("a").GetArray()[0].GetArray().Select(v => v.GetInt());
+            var array = config.GetValue("a").GetArray()[0].GetIntList();
             Assert.True(new[] { 1, 2, 3 }.SequenceEqual(array));
         }
     }
