@@ -141,12 +141,30 @@ namespace Hocon
         /// <returns>A list of values represented by this <see cref="HoconValue"/>.</returns>
         public virtual List<HoconValue> GetArray()
         {
-            IEnumerable<HoconValue> x = from value in this
-                where value.Type == HoconType.Array
-                from e in value.GetArray()
-                select e;
+            switch (Type)
+            {
+                case HoconType.Array:
+                    IEnumerable<HoconValue> x = from value in this
+                        where value.Type == HoconType.Array
+                        from e in value.GetArray()
+                        select e;
 
-            return x.ToList();
+                    return x.ToList();
+
+                case HoconType.Object:
+                    return GetObject().GetArray();
+
+                case HoconType.Literal:
+                    return null;
+                    // TODO: this should throw according to spec
+                    // throw new HoconException("Hocon literal could not be converted to array.");
+
+                case HoconType.Empty:
+                    throw new HoconException("HoconValue is empty.");
+
+                default:
+                    throw new Exception($"Unknown HoconType: {Type}");
+            }
         }
 
         internal List<HoconSubstitution> GetSubstitutions()
@@ -459,7 +477,17 @@ namespace Hocon
         /// <returns>A list of string values represented by this <see cref="HoconValue"/>.</returns>
         public IList<string> GetStringList()
         {
-            return GetArray().Select(v => v.GetString()).ToList();
+            // TODO: this should throw, remove the ?
+            return GetArray()?.Select(v => v.GetString()).ToList();
+        }
+
+        /// <summary>
+        /// Retrieves a list of objects from this <see cref="HoconValue"/>.
+        /// </summary>
+        /// <returns>A list of objects represented by this <see cref="HoconValue"/>.</returns>
+        public IList<HoconObject> GetObjectList()
+        {
+            return GetArray().Select(v => v.GetObject()).ToList();
         }
 
         [Obsolete("Use GetTimeSpan instead")]
