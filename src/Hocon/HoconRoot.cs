@@ -305,6 +305,26 @@ namespace Hocon
         }
 
         /// <summary>
+        /// Retrieves an object from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the value to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The double value defined in the specified path.</returns>
+        public HoconObject GetObject(string path, HoconObject @default = null)
+            => GetObject(HoconPath.Parse(path), @default);
+
+        /// <inheritdoc cref="GetObject(string,HoconObject)"/>
+        public HoconObject GetObject(HoconPath path, HoconObject @default = null)
+        {
+            HoconValue value = GetNode(path);
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                return @default;
+
+            return value.GetObject();
+        }
+
+
+        /// <summary>
         /// Retrieves a list of boolean values from the specified path in the configuration.
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
@@ -317,7 +337,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetBooleanList();
         }
@@ -335,7 +355,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetDecimalList();
         }
@@ -353,7 +373,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetFloatList();
         }
@@ -371,7 +391,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetDoubleList();
         }
@@ -389,7 +409,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetIntList();
         }
@@ -407,7 +427,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetLongList();
         }
@@ -425,7 +445,7 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetByteList();
         }
@@ -443,9 +463,27 @@ namespace Hocon
         {
             HoconValue value = GetNode(path);
             if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array.");
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
 
             return value.GetStringList();
+        }
+
+        /// <summary>
+        /// Retrieves a list of objects from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the objects to retrieve.</param>
+        /// <returns>The list of objects defined in the specified path.</returns>
+        public IList<HoconObject> GetObjectList(string path)
+            => GetObjectList(HoconPath.Parse(path));
+
+        public IList<HoconObject> GetObjectList(HoconPath path)
+        {
+            var value = GetNode(path);
+
+            if (ReferenceEquals(value, HoconValue.Undefined))
+                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+
+            return value.GetObjectList();
         }
 
         /// <summary>

@@ -6,15 +6,20 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Hocon
 {
     public sealed class HoconPath:List<string>, IEquatable<HoconPath>
     {
+        public static readonly HoconPath Empty;
+
+        static HoconPath()
+        {
+            Empty = new HoconPath();
+        }
+
         public bool IsEmpty => Count == 0;
 
         public string Value
@@ -67,7 +72,7 @@ namespace Hocon
 
         public string Key => this[Count - 1];
 
-        public HoconPath() { }
+        internal HoconPath() { }
 
         public HoconPath(IEnumerable<string> path)
         {
