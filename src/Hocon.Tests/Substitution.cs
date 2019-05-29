@@ -173,6 +173,35 @@ namespace Hocon.Tests
 
         /*
          * FACT:
+         * To get a string containing a substitution as an array element, 
+         * you must use value concatenation with the substitution in the unquoted portion
+         */
+        [Fact]
+        public void CanConcatenateUnquotedStringOfArrayElement()
+        {
+            var hocon = @"a {
+  name = Roger
+  c = [Hello my name is ${a.name}]
+}";
+            Assert.Equal("Hello my name is Roger", Parser.Parse(hocon).GetStringList("a.c")[0]);
+        }
+
+        /*
+         * FACT:
+         * or can use value concatenation of a substitution and a quoted string.
+         */
+        [Fact]
+        public void CanConcatenateQuotedStringOfArrayElement()
+        {
+            var hocon = @"a {
+  name = Roger
+  c = [""Hello my name is ""${a.name}]
+}";
+            Assert.Equal("Hello my name is Roger", Parser.Parse(hocon).GetStringList("a.c")[0]);
+        }
+
+        /*
+         * FACT:
          * Substitutions are resolved by looking up the path in the configuration. 
          * The path begins with the root configuration object, i.e. it is "absolute" rather than "relative."
          */
