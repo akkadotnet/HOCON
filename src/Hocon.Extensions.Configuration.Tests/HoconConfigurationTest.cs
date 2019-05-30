@@ -43,6 +43,18 @@ namespace Hocon.Extensions.Configuration.Tests
         }
 
         [Fact]
+        public void LoadHoconWithConcatenateObjects()
+        {
+            var hocon = @"
+a : { b : 1 } 
+a : { c : 2 }";
+
+            var hoconConfigSrc = LoadProvider(hocon);
+            Assert.Equal("1", hoconConfigSrc.Get("a:b"));
+            Assert.Equal("2", hoconConfigSrc.Get("a:c"));
+        }
+
+        [Fact]
         public void LoadMethodCanHandleEmptyValue()
         {
             var hocon = @"

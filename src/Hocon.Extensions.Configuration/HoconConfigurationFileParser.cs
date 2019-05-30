@@ -45,7 +45,15 @@ namespace Hocon.Extensions.Configuration
 
         private void VisitHoconField(HoconField property)
         {
-            VisitObject(property.Value);
+            var hObject = property.GetObject();
+            if (hObject != null)
+            {
+                VisitHoconObject(hObject);
+            }
+            else
+            {
+                VisitObject(property.Value);
+            }
         }
 
         private void VisitObject(HoconValue value)
