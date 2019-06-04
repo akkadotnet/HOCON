@@ -11,11 +11,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hocon.Tests
 {
     public class DuplicateKeysAndObjectMerging
     {
+        private readonly ITestOutputHelper _output;
+
+        public DuplicateKeysAndObjectMerging(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         /*
          * FACT:
          * duplicate keys that appear later override those that appear earlier, unless both values are objects
@@ -137,6 +145,40 @@ foo
             Assert.Equal(1, config.GetInt("foo.x"));
             Assert.Equal(2, config.GetInt("foo.y"));
             Assert.Equal(32, config.GetInt("foo.z"));
+        }
+
+        [Fact]
+        public void CanMixObjectMergeAndSubstitutions_Issue92()
+        {
+            var hocon = 
+@"x={ q : 10 }
+y=5
+
+a=1
+a.q.r.s=${b}
+a=${y}
+a=${x}
+a={ c : 3 }
+
+b=${x}
+b=${y}
+
+// nesting ConfigDelayed inside another one
+c=${x}
+c={ d : 600, e : ${a}, f : ${b} }";
+
+            var config = Parser.Parse(hocon);
+            _output.WriteLine(config.PrettyPrint(2));
+            Assert.Equal(3, config.GetInt("a.c"));
+            Assert.Equal(10, config.GetInt("a.q"));
+            Assert.Equal(5, config.GetInt("b"));
+            Assert.Equal(600, config.GetInt("c.d"));
+            Assert.Equal(3, config.GetInt("c.e.c"));
+            Assert.Equal(10, config.GetInt("c.e.q"));
+            Assert.Equal(5, config.GetInt("c.f"));
+            Assert.Equal(10, config.GetInt("c.q"));
+            Assert.Equal(10, config.GetInt("x.q"));
+            Assert.Equal(5, config.GetInt("y"));
         }
     }
 }
