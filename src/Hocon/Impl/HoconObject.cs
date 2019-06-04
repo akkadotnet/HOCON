@@ -39,6 +39,31 @@ namespace Hocon
         /// <returns><see cref="HoconType.Object"/>.</returns>
         public HoconType Type => HoconType.Object;
 
+        public new HoconField this[string key]
+            => GetField(key);
+
+        public HoconField this[HoconPath path]
+            => GetField(path);
+
+        public HoconPath Path
+        {
+            get
+            {
+                var parent = Parent;
+                while (parent != null)
+                {
+                    if (parent is HoconField field)
+                    {
+                        return field.Path;
+                    }
+
+                    parent = parent.Parent;
+                }
+
+                return HoconPath.Empty;
+            }
+        }
+
         /// <summary>
         /// Retrieves the underlying map that contains the barebones
         /// object values.
@@ -56,6 +81,9 @@ namespace Hocon
         }
 
         /// <inheritdoc />
+        /// <summary>
+        /// Retrieves a list of elements associated with this element.
+        /// </summary>
         public HoconObject GetObject() => this;
 
         /// <inheritdoc />
@@ -69,11 +97,31 @@ namespace Hocon
             => throw new HoconException("Can not convert Hocon object into a string.");
 
         /// <inheritdoc />
-        /// <exception cref="HoconException">
-        /// This element is an object, it is not an array, Therefore this method will throw an exception.
-        /// </exception>
+        /// <summary>
+        /// Converts a numerically indexed object into an array where its elements are sorted
+        /// based on the numerically sorted order of the key.
+        /// </summary>
         public List<HoconValue> GetArray()
-            => throw new HoconException("Can not convert Hocon object into an array.");
+        {
+            var sortedDict = new SortedDictionary<int, HoconValue>();
+            var type = HoconType.Empty;
+            foreach (var field in Values)
+            {
+                if (ReferenceEquals(field.Value, HoconValue.Undefined) || !int.TryParse(field.Key, out var index) || index < 0)
+                    continue;
+                if (type == HoconType.Empty)
+                    type = field.Type;
+                else if(type != field.Type)
+                    throw new HoconException($"Array element mismatch. Expected: {type} Found: {field.Type} Path:{Path}");
+
+                sortedDict[index] = field.Value;
+            }
+
+            if(sortedDict.Count == 0)
+                throw new HoconException("Object is empty, does not contain any numerically indexed fields, or contains only non-positive integer indices");
+
+            return sortedDict.Values.ToList();
+        }
 
         /// <summary>
         /// Retrieves the <see cref="HoconField"/> field associated with the supplied <see cref="string"/> key.
@@ -89,17 +137,8 @@ namespace Hocon
             if(key == null)
                 throw new ArgumentNullException(nameof(key));
 
-            if (!TryGetValue(key, out var item))
-            {
-                var p = Parent;
-                while (p != null && !(p is HoconField))
-                    p = p.Parent;
-
-                throw new KeyNotFoundException($"Object does not contain a field with key `{key}`. " +
-                                         $"Path: `{ (p != null ? $"{((HoconField)p).Path.Value}.{key}" : key) }`");
-            }
-
-            return item;
+            var path = HoconPath.Parse(key);
+            return GetField(path);
         }
 
         /// <summary>
@@ -114,7 +153,12 @@ namespace Hocon
         /// </returns>
         public bool TryGetField(string key, out HoconField result)
         {
-            return TryGetValue(key, out result);
+            result = null;
+            if (string.IsNullOrWhiteSpace(key))
+                return false;
+
+            var path = HoconPath.Parse(key);
+            return TryGetField(path, out result);
         }
 
         public HoconField GetField(HoconPath path)
@@ -144,6 +188,9 @@ namespace Hocon
                 pathIndex = pathIndex + 1;
             }
         }
+
+        internal void SetField(string key, HoconField value)
+            => base[key] = value;
 
         public bool TryGetField(HoconPath path, out HoconField result)
         {
@@ -325,7 +372,7 @@ namespace Hocon
                         continue;
                     }
                 }
-                this[key] = other[key];
+                SetField(key, other[key]);
             }
         }
 
@@ -346,7 +393,7 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this)
             {
-                clone[kvp.Key] = (HoconField)kvp.Value.Clone(clone);
+                clone.SetField(kvp.Key, (HoconField)kvp.Value.Clone(clone));
             }
             return clone;
         }

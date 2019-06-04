@@ -473,8 +473,6 @@ namespace Hocon
                         lastValue = ParseField(hoconObject);
                         break;
 
-                    // TODO: can an object be declared floating without being assigned to a field?
-                    //case TokenType.StartOfObject:
                     case TokenType.Comment:
                     case TokenType.EndOfLine:
                         if(lastValue != null && !(lastValue is HoconField))
