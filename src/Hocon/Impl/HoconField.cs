@@ -57,8 +57,44 @@ namespace Hocon
 
         public HoconValue Value
         {
-            get => _internalValues.Count > 0 ? _internalValues.Last() : HoconValue.Undefined;
-            //set => _internalValues.Add(value);
+            get
+            {
+                switch (_internalValues.Count)
+                {
+                    case 0:
+                        return HoconValue.Undefined;
+                    case 1:
+                        return _internalValues[0];
+                    default:
+                        var lastValue = _internalValues.Last();
+                        if (lastValue.Type != HoconType.Object)
+                            return lastValue;
+
+                        var objects = new List<HoconObject>();
+                        foreach (var val in _internalValues)
+                        {
+                            if (val.Type != HoconType.Object)
+                                objects.Clear();
+                            else
+                                objects.Add(val.GetObject());
+                        }
+
+                        var value = new HoconValue(this);
+                        switch (objects.Count)
+                        {
+                            case 0:
+                                throw new HoconException("Should never reach this line.");
+                            case 1:
+                                value.Add(objects[0]);
+                                break;
+                            default:
+                                var resultObject = new HoconMergedObject(value, objects);
+                                value.Add(resultObject);
+                                break;
+                        }
+                        return value;
+                }
+            }
         }
 
         public HoconField(HoconPath path, HoconObject parent)
@@ -84,19 +120,39 @@ namespace Hocon
         internal List<HoconSubstitution> SetValue(HoconValue value)
         {
             var removedSubs = new List<HoconSubstitution>();
-            if (value.Type == HoconType.Array || value.Type == HoconType.Literal)
+
+            if (_internalValues.Count == 0)
             {
-                var subs = value.GetSubstitutions();
-                if (subs.All(sub => sub.Path != Path))
-                {
-                    foreach (var item in _internalValues)
-                    {
-                        removedSubs.AddRange(item.GetSubstitutions());
-                    }
-                    _internalValues.Clear();
-                }
+                _internalValues.Add(value);
+                return removedSubs;
             }
-            _internalValues.Add(value);
+
+            switch (value.Type)
+            {
+                case HoconType.Array:
+                case HoconType.Literal:
+                    var subs = value.GetSubstitutions();
+                    if (subs.All(sub => sub.Path != Path))
+                    {
+                        foreach (var item in _internalValues)
+                        {
+                            removedSubs.AddRange(item.GetSubstitutions());
+                        }
+                        _internalValues.Clear();
+                    }
+                    _internalValues.Add(value);
+                    break;
+                case HoconType.Object:
+                    var lastValue = _internalValues.Last();
+                    if (lastValue.Type != HoconType.Object)
+                        _internalValues.Add(value);
+                    else
+                        lastValue.GetObject().Merge(value.GetObject());
+                    break;
+                default:
+                    _internalValues.Add(value);
+                    break;
+            }
             return removedSubs;
         }
 

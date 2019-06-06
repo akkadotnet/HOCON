@@ -191,6 +191,33 @@ a : { c : 2 }";
             Assert.Equal(2, config.GetInt("a.c"));
         }
 
+        [Fact]
+        public void CanConcatenateObjectsWhenMerged_Issue89()
+        {
+            var hocon = @"
+a {
+  aa: 1
+  bb: ""2""
+        }
+
+        a {
+            cc: 3.3
+        }
+";
+            var config = Parser.Parse(hocon);
+            Assert.Equal(1, config.GetInt("a.aa"));
+            Assert.Equal("2", config.GetString("a.bb"));
+            Assert.Equal(3.3, config.GetDouble("a.cc"));
+            _output.WriteLine(config.PrettyPrint(2));
+            Assert.Equal(@"{
+  a : {
+    aa : 1,
+    bb : ""2"",
+    cc : 3.3
+  }
+}", config.PrettyPrint(2));
+        }
+
         // Undefined behavior in spec.
         // In this implementation, mixed value types in an array will throw an exception.
         [Theory]
