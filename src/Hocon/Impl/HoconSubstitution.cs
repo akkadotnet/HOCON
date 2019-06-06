@@ -99,10 +99,10 @@ namespace Hocon
         public string Raw => ResolvedValue?.Raw;
 
         /// <inheritdoc />
-        public List<HoconValue> GetArray() => ResolvedValue?.GetArray() ?? new List<HoconValue>();
+        public List<HoconValue> GetArray() => ResolvedValue?.GetArray();
 
         /// <inheritdoc />
-        public HoconObject GetObject() => ResolvedValue?.GetObject() ?? new HoconObject(Parent);
+        public HoconObject GetObject() => ResolvedValue?.GetObject();
 
         /// <summary>
         /// Returns the string representation of this element.
