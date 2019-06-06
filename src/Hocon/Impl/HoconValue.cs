@@ -640,7 +640,10 @@ namespace Hocon
                     $"Sibling type:{Type}, substitution type:{child.Type}");
             }
 
-            ((HoconField) Parent).ResolveValue(this);
+            if (Parent is HoconField hoconField)
+            {
+                hoconField.ResolveValue(this);
+            }
         }
 
         /// <summary>
