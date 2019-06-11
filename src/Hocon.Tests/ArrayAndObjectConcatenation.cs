@@ -210,13 +210,17 @@ a {
             Assert.Equal("2", config.GetString("a.bb"));
             Assert.Equal(3.3, config.GetDouble("a.cc"));
             _output.WriteLine(config.PrettyPrint(2));
-            Assert.Equal(@"{
-  a : {
-    aa : 1,
-    bb : ""2"",
-    cc : 3.3
-  }
-}".Replace("\n", Environment.NewLine), config.PrettyPrint(2));
+            Assert.Equal(
+                string.Join(
+                    Environment.NewLine,
+                    "{",
+                    "  a : {",
+                    "    aa : 1,",
+                    "    bb : \"2\",",
+                    "    cc : 3.3",
+                    "  }",
+                    "}"),
+                config.PrettyPrint(2));
         }
 
         // Undefined behavior in spec.
