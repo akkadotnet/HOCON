@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -215,7 +216,7 @@ a {
     bb : ""2"",
     cc : 3.3
   }
-}", config.PrettyPrint(2));
+}".Replace("\n", Environment.NewLine), config.PrettyPrint(2));
         }
 
         // Undefined behavior in spec.
