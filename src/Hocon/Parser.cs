@@ -571,7 +571,7 @@ namespace Hocon
             // sanity check
             if (pathDelta == null || pathDelta.Count == 0)
                 throw HoconParserException.Create(_tokens.Current, Path,
-                    "Failed to parse Hocon field. ParseField() was called with null or empty path");
+                    "Failed to parse Hocon field. Null or empty path");
 
             List<HoconField> childInPath = owner.TraversePath(pathDelta);
 

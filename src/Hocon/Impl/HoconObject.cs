@@ -316,18 +316,25 @@ namespace Hocon
             return child;
         }
 
-        internal List<HoconField> TraversePath(HoconPath path)
+        internal List<HoconField> TraversePath(HoconPath relativePath)
         {
             var result = new List<HoconField>();
+            var absolutePath = new HoconPath();
             var pathLength = 1;
+            if (Path != HoconPath.Empty)
+            {
+                absolutePath.AddRange(Path);
+                pathLength = absolutePath.Count + 1;
+            }
+            absolutePath.AddRange(relativePath);
             var currentObject = this;
             while (true)
             {
-                var child = currentObject.GetOrCreateKey(new HoconPath(path.GetRange(0, pathLength)));
+                var child = currentObject.GetOrCreateKey(new HoconPath(absolutePath.GetRange(0, pathLength)));
                 result.Add(child);
 
                 pathLength++;
-                if (pathLength > path.Count)
+                if (pathLength > absolutePath.Count)
                     return result;
 
                 child.EnsureFieldIsObject();

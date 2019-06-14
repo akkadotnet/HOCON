@@ -33,7 +33,7 @@ namespace Hocon.Tests
         {
             var hocon = @"
 path : ""a:b:c""
-path : ${path}"":d""";
+path : ${path} "":d""";
 
             var config = Parser.Parse(hocon);
             Assert.Equal("a:b:c:d", config.GetString("path"));
@@ -48,6 +48,40 @@ path : ${path} [ /usr/bin ]";
 
             var config = Parser.Parse(hocon);
             Assert.True(new []{"/usr/etc", "/usr/home", "/usr/bin"}.SequenceEqual(config.GetStringList("path")));
+        }
+
+        [Theory]
+        [InlineData(@"{
+  a {
+    b: ""a:b:c""
+  }
+  a.b: ${a.b} "":d""
+}")]
+        [InlineData(@"{
+  a.b: ""a:b:c""
+  a.b: ${a.b} "":d""
+}")]
+        public void CanValueConcatenateOlderValueInsideObject_Issue_95(string hocon)
+        {
+            var config = Parser.Parse(hocon);
+            Assert.Equal("a:b:c:d", config.GetString("a.b"));
+        }
+
+        [Theory]
+        [InlineData(@"{
+  a {
+    b: [1, 2]
+  }
+  a.b: ${a.b} [3, 4]
+}")]
+        [InlineData(@"{
+  a.b: [1, 2]
+  a.b: ${a.b} [3, 4]
+}")]
+        public void CanValueConcatenateOlderArrayInsideObject_Issue_95(string hocon)
+        {
+            var config = Parser.Parse(hocon);
+            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("a.b")));
         }
 
         /*
@@ -240,47 +274,26 @@ foo.d = 4";
          * FACT:
          * A cyclic or circular loop substitution should be detected as invalid.
          */
-        [Fact]
-        public void ThrowsOnCyclicSubstitutionDetection_1()
-        {
-            var hocon = @"
+        [Theory]
+        [InlineData(@"
 bar : ${foo}
-foo : ${bar}";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsOnCyclicSubstitutionDetection_2()
-        {
-            var hocon = @"
+foo : ${bar}")]
+        [InlineData(@"
 a : ${b}
 b : ${c}
-c : ${a}";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsOnCyclicSubstitutionDetection_3()
-        {
-            var hocon = @"
+c : ${a}")]
+        [InlineData(@"
 a : 1
 b : 2
 a : ${b}
-b : ${a}";
-
+b : ${a}")]
+        public void ThrowsOnCyclicSubstitutionDetection(string hocon)
+        {
             var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
+            Assert.Contains("cyclic", ex.Message);
             _output.WriteLine($"Exception message: {ex.Message}");
         }
-
     }
 }
