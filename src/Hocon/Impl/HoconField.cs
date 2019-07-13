@@ -97,12 +97,12 @@ namespace Hocon
             }
         }
 
-        public HoconField(HoconPath path, HoconObject parent)
+        public HoconField(string key, HoconObject parent)
         {
-            if(path == null)
-                throw new ArgumentNullException(nameof(path));
+            if(string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
 
-            Path = new HoconPath(path);
+            Path = new HoconPath(parent.Path) {key};
             Parent = parent;
             _internalValues = new List<HoconValue>();
         }
@@ -117,43 +117,20 @@ namespace Hocon
             _internalValues.Add(v);
         }
 
-        internal List<HoconSubstitution> SetValue(HoconValue value)
+        internal void SetValue(HoconValue value)
         {
-            var removedSubs = new List<HoconSubstitution>();
-
-            if (_internalValues.Count == 0)
+            if (value.Type == HoconType.Literal)
             {
-                _internalValues.Add(value);
-                return removedSubs;
-            }
-
-            switch (value.Type)
-            {
-                case HoconType.Array:
-                case HoconType.Literal:
-                    var subs = value.GetSubstitutions();
-                    if (subs.All(sub => sub.Path != Path))
+                foreach (var item in _internalValues)
+                {
+                    var subs = item.GetSubstitutions();
+                    foreach (var sub in subs)
                     {
-                        foreach (var item in _internalValues)
-                        {
-                            removedSubs.AddRange(item.GetSubstitutions());
-                        }
-                        _internalValues.Clear();
+                        sub.Removed = true;
                     }
-                    _internalValues.Add(value);
-                    break;
-                case HoconType.Object:
-                    var lastValue = _internalValues.Last();
-                    if (lastValue.Type != HoconType.Object)
-                        _internalValues.Add(value);
-                    else
-                        lastValue.GetObject().Merge(value.GetObject());
-                    break;
-                default:
-                    _internalValues.Add(value);
-                    break;
+                }
             }
-            return removedSubs;
+            _internalValues.Add(value);
         }
 
         internal void RestoreOldValue()
@@ -246,8 +223,11 @@ namespace Hocon
 
         public IHoconElement Clone(IHoconElement newParent)
         {
-            var newField = new HoconField(Path, (HoconObject)newParent);
-            newField._internalValues.AddRange(_internalValues);
+            var newField = new HoconField(Key, (HoconObject)newParent);
+            foreach (var internalValue in _internalValues)
+            {
+                newField._internalValues.Add((HoconValue)internalValue.Clone(newField));
+            }
             return newField;
         }
 

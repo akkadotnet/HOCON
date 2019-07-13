@@ -58,8 +58,22 @@ path : ${path} [ /usr/bin ]";
   a.b: ${a.b} "":d""
 }")]
         [InlineData(@"{
+  a {
+    b: ""a:b:c""
+  }
+  a {
+    b: ${a.b} "":d""
+  }
+}")]
+        [InlineData(@"{
   a.b: ""a:b:c""
   a.b: ${a.b} "":d""
+}")]
+        [InlineData(@"{
+  a.b: ""a:b:c""
+  a {
+    b: ${a.b} "":d""
+  }
 }")]
         public void CanValueConcatenateOlderValueInsideObject_Issue_95(string hocon)
         {
@@ -75,8 +89,22 @@ path : ${path} [ /usr/bin ]";
   a.b: ${a.b} [3, 4]
 }")]
         [InlineData(@"{
+  a {
+    b: [1, 2]
+  }
+  a {
+    b: ${a.b} [3, 4]
+  }
+}")]
+        [InlineData(@"{
   a.b: [1, 2]
   a.b: ${a.b} [3, 4]
+}")]
+        [InlineData(@"{
+  a.b: [1, 2]
+  a {
+    b: ${a.b} [3, 4]
+  }
 }")]
         public void CanValueConcatenateOlderArrayInsideObject_Issue_95(string hocon)
         {
@@ -150,7 +178,8 @@ foo : { a : 1 }
 
         /*
          * FACT:
-         *  the optional substitution syntax ${?foo} does not create a cycle
+         * If a substitution is hidden by a value that could not be merged with it
+         * (by a non-object value) then it is never evaluated and no error will be reported
          */
         [Fact]
         public void HiddenSubstitutionShouldNeverBeEvaluated()

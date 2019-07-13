@@ -39,6 +39,8 @@ namespace Hocon
 
         public bool Required { get; }
 
+        internal bool Removed { get; set; }
+
         internal HoconField ParentField
         {
             get  {
@@ -71,6 +73,8 @@ namespace Hocon
                     case HoconArray a:
                         a.ResolveValue(this);
                         break;
+                    default:
+                        throw new Exception($"Invalid parent type while resolving substitution:{Parent.GetType()}");
                 }
             }
         }
@@ -116,8 +120,16 @@ namespace Hocon
             => ResolvedValue.ToString(indent, indentSize);
 
         // Substitution can not be cloned because it is resolved at the end of the parsing process.
+        // TODO: check for possible bugs
         public IHoconElement Clone(IHoconElement newParent)
         {
+#if DEBUG
+            var parent = newParent;
+            while (parent != null && !(parent is HoconField))
+                parent = parent.Parent;
+            var parentField = parent as HoconField;
+            Console.WriteLine($"Substitution node was cloned. Path:{Path} to new path:{parentField?.Path}");
+#endif
             Parent = newParent;
             return this;
         }

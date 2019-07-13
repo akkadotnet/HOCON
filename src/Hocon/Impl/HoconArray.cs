@@ -110,6 +110,23 @@ namespace Hocon
                 throw HoconParserException.Create(sub, sub.Path,
                     $"Substitution value must match the rest of the field type or empty. Array value type: {_arrayType}, substitution type: {sub.Type}");
             }
+
+            var childIndex = IndexOf(sub);
+            Remove(sub);
+
+            if (sub.ResolvedValue.Type == HoconType.Array)
+            {
+                var array = sub.ResolvedValue.GetArray();
+                foreach (var arrayElement in array)
+                {
+                    Insert(childIndex, arrayElement.Clone(this));
+                    childIndex++;
+                }
+            }
+            else
+            {
+                Insert(childIndex, sub.ResolvedValue.Clone(this));
+            }
         }
 
         /// <summary>
@@ -126,9 +143,12 @@ namespace Hocon
 
         public IHoconElement Clone(IHoconElement newParent)
         {
-            var clone = new HoconArray(newParent);
-            clone.AddRange(this);
-            return clone;
+            var newArray = new HoconArray(newParent);
+            foreach (var element in this)
+            {
+                newArray.Add(element.Clone(newArray));
+            }
+            return newArray;
         }
 
         private bool Equals(HoconArray other)

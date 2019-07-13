@@ -28,8 +28,11 @@ namespace Hocon
 
         public override void Merge(HoconObject other)
         {
-            ((HoconField)Parent).Value.Add(other.Clone(((HoconField)Parent).Value));
+            var owner = Objects.Last();
+            owner.Merge(other);
+            //((HoconField)Parent).Value.Add(other.Clone(((HoconField)Parent).Value));
             base.Merge(other);
         }
+        
     }
 }

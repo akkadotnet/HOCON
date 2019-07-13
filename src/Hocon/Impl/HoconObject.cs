@@ -189,7 +189,7 @@ namespace Hocon
             }
         }
 
-        internal void SetField(string key, HoconField value)
+        internal virtual void SetField(string key, HoconField value)
             => base[key] = value;
 
         public bool TryGetField(HoconPath path, out HoconField result)
@@ -304,21 +304,35 @@ namespace Hocon
         /// If the supplied key is not found, then one is created
         /// with a blank value.
         /// </summary>
-        /// <param name="path">The path associated with the value to retrieve.</param>
+        /// <param name="key">The path associated with the value to retrieve.</param>
         /// <returns>The value associated with the supplied key.</returns>
-        private HoconField GetOrCreateKey(HoconPath path)
+        protected virtual HoconField GetOrCreateKey(string key)
         {
-            if (TryGetValue(path.Key, out var child))
+            if (TryGetValue(key, out var child))
                 return child;
 
-            child = new HoconField(path, this);
-            Add(path.Key, child);
+            child = new HoconField(key, this);
+            Add(key, child);
             return child;
         }
 
         internal List<HoconField> TraversePath(HoconPath relativePath)
         {
             var result = new List<HoconField>();
+
+            var currentObject = this;
+            var index = 0;
+            while (true)
+            {
+                var child = currentObject.GetOrCreateKey(relativePath[index]);
+                result.Add(child);
+                index++;
+                if (index > relativePath.Count - 1)
+                    return result;
+                child.EnsureFieldIsObject();
+                currentObject = child.Value.GetObject();
+            }
+            /*
             var absolutePath = new HoconPath();
             var pathLength = 1;
             if (Path != HoconPath.Empty)
@@ -343,6 +357,7 @@ namespace Hocon
                 // breaks autoref with the parent object in the previous loop
                 currentObject = child.Value.GetObject();
             }
+            */
         }
 
         /// <summary>

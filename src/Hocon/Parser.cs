@@ -75,8 +75,15 @@ namespace Hocon
 
         private void ResolveSubstitutions()
         {
+            var removedSubstitution = new List<HoconSubstitution>();
             foreach (var sub in _substitutions)
             {
+                if (sub.Removed)
+                {
+                    removedSubstitution.Add(sub);
+                    continue;
+                }
+
                 // Retrieve value
                 HoconValue res;
                 try
@@ -123,6 +130,11 @@ namespace Hocon
                     throw HoconParserException.Create(sub, sub.Path, $"Unresolved substitution: {sub.Path}");
 
                 sub.ResolvedValue = new HoconEmptyValue(sub.Parent);
+            }
+
+            foreach (var sub in removedSubstitution)
+            {
+                _substitutions.Remove(sub);
             }
         }
 
@@ -555,7 +567,7 @@ namespace Hocon
                     $"Failed to parse Hocon field. Expected start of field {TokenType.LiteralValue}, " +
                     $"found {_tokens.Current.Type} instead.");
 
-            var pathDelta = ParseKey();
+            var relativePath = ParseKey();
 
             if(_tokens.Current.Type == TokenType.EndOfLine)
                 _tokens.ToNextSignificantLine();
@@ -569,23 +581,17 @@ namespace Hocon
                     $"or {TokenType.PlusEqualAssign}, found {_tokens.Current.Type} instead.");
 
             // sanity check
-            if (pathDelta == null || pathDelta.Count == 0)
+            if (relativePath == null || relativePath.Count == 0)
                 throw HoconParserException.Create(_tokens.Current, Path,
                     "Failed to parse Hocon field. Null or empty path");
 
-            List<HoconField> childInPath = owner.TraversePath(pathDelta);
+            var childInPath = owner.TraversePath(relativePath);
 
-            Path.AddRange(pathDelta);
-            HoconField currentField = childInPath[childInPath.Count - 1];
+            Path.AddRange(relativePath);
+            var currentField = childInPath[childInPath.Count - 1];
+            currentField.SetValue(ParseValue(currentField));
 
-            var parsedValue = ParseValue(currentField);
-
-            foreach (var removedSub in currentField.SetValue(parsedValue))
-            {
-                _substitutions.Remove(removedSub);
-            }
-
-            Path.RemoveRange(Path.Count - pathDelta.Count, pathDelta.Count);
+            Path.RemoveRange(Path.Count - relativePath.Count, relativePath.Count);
             return childInPath[0];
         }
 

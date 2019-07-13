@@ -622,22 +622,27 @@ namespace Hocon
 
         #endregion
 
-        internal void ResolveValue(IHoconElement child)
+        internal void ResolveValue(HoconSubstitution child)
         {
             if (child.Type == HoconType.Empty)
             {
                 Remove(child);
             }
-            else if (Type == HoconType.Empty)
+            else
             {
-                Type = child.Type;
-            }
-            else if (Type != child.Type)
-            {
-                var sub = (HoconSubstitution) child;
-                throw HoconParserException.Create(sub, sub.Path, 
-                    "Invalid substitution, substituted type must match its sibling type. " +
-                    $"Sibling type:{Type}, substitution type:{child.Type}");
+                if (Type == HoconType.Empty)
+                {
+                    Type = child.Type;
+                }
+                else if (Type != child.Type)
+                {
+                    throw HoconParserException.Create(child, child.Path,
+                        "Invalid substitution, substituted type must match its sibling type. " +
+                        $"Sibling type:{Type}, substitution type:{child.Type}");
+                }
+
+                var childIndex = IndexOf(child);
+                this[childIndex] = child.ResolvedValue.Clone(this);
             }
 
             if (Parent is HoconField hoconField)
