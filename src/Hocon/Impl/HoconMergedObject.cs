@@ -22,16 +22,38 @@ namespace Hocon
             Objects = objects;
             foreach (var obj in objects)
             {
-                base.Merge(obj);
+                foreach (var kvp in obj)
+                {
+                    base.SetField(kvp.Key, kvp.Value);
+                }
+            }
+        }
+
+        internal override void SetField(string key, HoconField value)
+        {
+            Objects.Last().SetField(key, value);
+        }
+
+        private void SoftMerge(HoconObject other)
+        {
+            foreach (var kvp in other)
+            {
+                base.SetField(kvp.Key, kvp.Value);
             }
         }
 
         public override void Merge(HoconObject other)
         {
-            var owner = Objects.Last();
-            owner.Merge(other);
+            var value = new HoconValue(Parent);
+            value.Add(other.Clone(value));
+            ((HoconField)Parent).SetValue(value);
+
             //((HoconField)Parent).Value.Add(other.Clone(((HoconField)Parent).Value));
-            base.Merge(other);
+            foreach (var kvp in other)
+            {
+                base.SetField(kvp.Key, kvp.Value);
+            }
+            //base.Merge(other);
         }
         
     }

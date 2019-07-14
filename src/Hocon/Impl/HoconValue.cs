@@ -20,7 +20,7 @@ namespace Hocon
     /// This class represents the root type for a HOCON (Human-Optimized Config Object Notation)
     /// configuration object.
     /// </summary>
-    public class HoconValue : List<IHoconElement>, IHoconElement
+    public class HoconValue : List<IHoconElement>, IHoconElement 
     {
         public static readonly HoconValue Undefined;
         private static readonly Regex TimeSpanRegex = new Regex(@"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$", RegexOptions.Compiled);
@@ -34,13 +34,15 @@ namespace Hocon
 
         public virtual HoconType Type { get; private set; } = HoconType.Empty;
 
-        public ReadOnlyCollection<IHoconElement> Childrens => AsReadOnly();
+        public ReadOnlyCollection<IHoconElement> Children => AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HoconValue"/> class.
         /// </summary>
         public HoconValue(IHoconElement parent)
         {
+            if(parent != null && !(parent is HoconField) && !(parent is HoconArray))
+                throw new HoconException("HoconValue parent must be HoconField, HoconArray, or null");
             Parent = parent;
         }
 
@@ -82,7 +84,9 @@ namespace Hocon
         /// <inheritdoc />
         public virtual HoconObject GetObject()
         {
-            List<HoconObject> objects = this.Select(value => value.GetObject()).ToList();
+            var objects = this
+                .Where(value => value.Type == HoconType.Object)
+                .Select(value => value.GetObject()).ToList();
 
             switch (objects.Count)
             {
@@ -91,7 +95,7 @@ namespace Hocon
                 case 1:
                     return objects[0];
                 default:
-                    return new HoconMergedObject(Parent, objects);
+                    return new HoconMergedObject(this, objects);
             }
         }
 
@@ -642,12 +646,19 @@ namespace Hocon
                 }
 
                 var childIndex = IndexOf(child);
-                this[childIndex] = child.ResolvedValue.Clone(this);
+                this[childIndex] = child.ResolvedValue.Clone(Parent);
             }
 
-            if (Parent is HoconField hoconField)
+            switch (Parent)
             {
-                hoconField.ResolveValue(this);
+                case HoconField v:
+                    v.ResolveValue(this);
+                    break;
+                case HoconArray a:
+                    a.ResolveValue(child);
+                    break;
+                default:
+                    throw new Exception($"Invalid parent type while resolving substitution:{Parent.GetType()}");
             }
         }
 
@@ -681,9 +692,9 @@ namespace Hocon
         public virtual IHoconElement Clone(IHoconElement newParent)
         {
             var clone = new HoconValue(newParent);
-            foreach (var value in this)
+            foreach (var element in this)
             {
-                clone.Add(value.Clone(clone));
+                clone.Add(element.Clone(element is HoconValue ? newParent : clone));
             }
             return clone;
         }

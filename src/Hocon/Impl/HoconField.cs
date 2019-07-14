@@ -59,41 +59,27 @@ namespace Hocon
         {
             get
             {
-                switch (_internalValues.Count)
+                var lastValue = _internalValues.LastOrDefault();
+
+                if (lastValue == null)
+                    return HoconValue.Undefined;
+
+                if (lastValue.Type != HoconType.Object)
+                    return lastValue;
+
+                var filteredValues = new List<HoconValue>();
+                foreach (var value in _internalValues)
                 {
-                    case 0:
-                        return HoconValue.Undefined;
-                    case 1:
-                        return _internalValues[0];
-                    default:
-                        var lastValue = _internalValues.Last();
-                        if (lastValue.Type != HoconType.Object)
-                            return lastValue;
-
-                        var objects = new List<HoconObject>();
-                        foreach (var val in _internalValues)
-                        {
-                            if (val.Type != HoconType.Object)
-                                objects.Clear();
-                            else
-                                objects.Add(val.GetObject());
-                        }
-
-                        var value = new HoconValue(this);
-                        switch (objects.Count)
-                        {
-                            case 0:
-                                throw new HoconException("Should never reach this line.");
-                            case 1:
-                                value.Add(objects[0]);
-                                break;
-                            default:
-                                var resultObject = new HoconMergedObject(value, objects);
-                                value.Add(resultObject);
-                                break;
-                        }
-                        return value;
+                    if (value.Type != HoconType.Object && value.Type != HoconType.Empty)
+                        filteredValues.Clear();
+                    else
+                        filteredValues.Add(value);
                 }
+
+                var returnValue = new HoconValue(this);
+                foreach (var value in filteredValues)
+                    returnValue.AddRange(value);
+                return returnValue;
             }
         }
 
@@ -141,7 +127,7 @@ namespace Hocon
 
         internal HoconValue OlderValueThan(IHoconElement marker)
         {
-            var objectList = new List<HoconObject>();
+            var filteredObjectValue = new List<HoconValue>();
             var index = 0;
             while (index < _internalValues.Count)
             {
@@ -154,27 +140,24 @@ namespace Hocon
                 switch (value.Type)
                 {
                     case HoconType.Object:
-                        objectList.Add(value.GetObject());
+                        filteredObjectValue.Add(value);
                         break;
                     case HoconType.Literal:
                     case HoconType.Array:
-                        objectList.Clear();
+                        filteredObjectValue.Clear();
                         break;
                 }
 
                 index++;
             }
 
-            if(objectList.Count == 0)
+            if(filteredObjectValue.Count == 0)
                 return index == 0 ? null : _internalValues[index - 1];
 
-            var result = new HoconValue(null);
-            var o = new HoconObject(result);
-            result.Add(o);
-
-            foreach (var obj in objectList)
+            var result = new HoconValue(this);
+            foreach (var value in filteredObjectValue)
             {
-                o.Merge(obj);
+                result.AddRange(value);
             }
 
             return result;
@@ -182,30 +165,7 @@ namespace Hocon
 
         public HoconObject GetObject()
         {
-            List<HoconObject> objectList = new List<HoconObject>();
-            foreach (var value in _internalValues)
-            {
-                switch (value.Type)
-                {
-                    case HoconType.Object:
-                        objectList.Add(value.GetObject());
-                        break;
-                    case HoconType.Literal:
-                    case HoconType.Array:
-                        objectList.Clear();
-                        break;
-                }
-            }
-
-            switch (objectList.Count)
-            {
-                case 0:
-                    return null;
-                case 1:
-                    return objectList[0];
-                default:
-                    return new HoconMergedObject(this, objectList);
-            }
+            return Value.GetObject();
         }
 
         public string GetString()

@@ -65,17 +65,7 @@ namespace Hocon
             internal set
             {
                 _resolvedValue = value;
-                switch (Parent)
-                {
-                    case HoconValue v:
-                        v.ResolveValue(this);
-                        break;
-                    case HoconArray a:
-                        a.ResolveValue(this);
-                        break;
-                    default:
-                        throw new Exception($"Invalid parent type while resolving substitution:{Parent.GetType()}");
-                }
+                ((HoconValue)Parent).ResolveValue(this);
             }
         }
 
@@ -90,7 +80,13 @@ namespace Hocon
         /// /// <param name="lineInfo">The <see cref="IHoconLineInfo"/> of this substitution, used for exception generation purposes.</param>
         internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
         {
-            Parent = parent ?? throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
+            if(parent == null)
+                throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
+
+            if (!(parent is HoconValue))
+                throw new HoconException("HoconSubstitution parent must be HoconValue.");
+
+            Parent = parent;
             LinePosition = lineInfo.LinePosition;
             LineNumber = lineInfo.LineNumber;
             Required = required;
