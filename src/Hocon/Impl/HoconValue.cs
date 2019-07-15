@@ -148,12 +148,22 @@ namespace Hocon
             switch (Type)
             {
                 case HoconType.Array:
-                    IEnumerable<HoconValue> x = from value in this
-                        where value.Type == HoconType.Array
-                        from e in value.GetArray()
-                        select e;
+                    var result = new List<HoconValue>();
+                    foreach (var element in this)
+                    {
+                        if(element.Type == HoconType.Array)
+                            result.AddRange(element.GetArray());
+                    }
 
-                    return x.ToList();
+                    return result;
+                /*
+                IEnumerable<HoconValue> x = from value in this
+                    where value.Type == HoconType.Array
+                    from e in value.GetArray()
+                    select e;
+
+                return x.ToList();
+                */
 
                 case HoconType.Object:
                     return GetObject().GetArray();
@@ -337,6 +347,9 @@ namespace Hocon
         public int GetInt()
         {
             var value = GetString();
+            if(string.IsNullOrEmpty(value))
+                throw new HoconException($"Could not convert a {Type} into int.");
+
             if (value.StartsWith("0x"))
             {
                 try
@@ -644,9 +657,6 @@ namespace Hocon
                         "Invalid substitution, substituted type must match its sibling type. " +
                         $"Sibling type:{Type}, substitution type:{child.Type}");
                 }
-
-                var childIndex = IndexOf(child);
-                this[childIndex] = child.ResolvedValue.Clone(Parent);
             }
 
             switch (Parent)
@@ -659,6 +669,14 @@ namespace Hocon
                     break;
                 default:
                     throw new Exception($"Invalid parent type while resolving substitution:{Parent.GetType()}");
+            }
+        }
+
+        internal void ReParent(HoconValue value)
+        {
+            foreach (var element in value)
+            {
+                Add(element.Clone(this));
             }
         }
 
@@ -694,7 +712,7 @@ namespace Hocon
             var clone = new HoconValue(newParent);
             foreach (var element in this)
             {
-                clone.Add(element.Clone(element is HoconValue ? newParent : clone));
+                clone.Add(element);
             }
             return clone;
         }

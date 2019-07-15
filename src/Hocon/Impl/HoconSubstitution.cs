@@ -81,7 +81,7 @@ namespace Hocon
         internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
         {
             if(parent == null)
-                throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
+                throw new ArgumentNullException(nameof(parent), "HoconSubstitution parent can not be null.");
 
             if (!(parent is HoconValue))
                 throw new HoconException("HoconSubstitution parent must be HoconValue.");
@@ -119,13 +119,21 @@ namespace Hocon
         // TODO: check for possible bugs
         public IHoconElement Clone(IHoconElement newParent)
         {
+            if (newParent == null)
+                throw new ArgumentNullException(nameof(newParent), "HoconSubstitution parent can not be null.");
+
+            if (!(newParent is HoconValue))
+                throw new HoconException("HoconSubstitution parent must be HoconValue.");
+
 #if DEBUG
             var parent = newParent;
             while (parent != null && !(parent is HoconField))
                 parent = parent.Parent;
             var parentField = parent as HoconField;
-            Console.WriteLine($"Substitution node was cloned. Path:{Path} to new path:{parentField?.Path}");
+            throw new HoconException($"Substitution node was cloned. Path:{Path} to new path:{parentField?.Path}");
+            //Console.WriteLine($"Substitution node was cloned. Path:{Path} to new path:{parentField?.Path}");
 #endif
+
             Parent = newParent;
             return this;
         }

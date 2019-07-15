@@ -74,7 +74,7 @@ namespace Hocon
 
         internal void ResolveValue(HoconSubstitution sub)
         {
-            var subValue = (HoconValue) sub.Parent;
+            var subValue = (HoconValue)sub.Parent;
             if (sub.Type == HoconType.Empty)
             {
                 subValue.Remove(sub);
@@ -87,19 +87,6 @@ namespace Hocon
             {
                 throw HoconParserException.Create(sub, sub.Path,
                     $"Substitution value must match the rest of the field type or empty. Array value type: {_arrayType}, substitution type: {sub.Type}");
-            }
-
-            if (sub.ResolvedValue.Type == HoconType.Array)
-            {
-                var childIndex = IndexOf(subValue);
-                Remove(subValue);
-
-                var array = sub.ResolvedValue.GetArray();
-                foreach (var arrayValue in array)
-                {
-                    Insert(childIndex, (HoconValue) arrayValue.Clone(this));
-                    childIndex++;
-                }
             }
         }
 
@@ -120,7 +107,7 @@ namespace Hocon
             var newArray = new HoconArray(newParent);
             foreach (var value in this)
             {
-                newArray.Add((HoconValue)value.Clone(newArray));
+                newArray.Add(value);
             }
             return newArray;
         }

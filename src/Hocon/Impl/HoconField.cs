@@ -25,7 +25,7 @@ namespace Hocon
 
     public sealed class HoconField:IHoconElement
     {
-        private readonly List<HoconValue> _internalValues;
+        private readonly List<HoconValue> _internalValues = new List<HoconValue>();
 
         /// <inheritdoc/>
         public IHoconElement Parent { get; }
@@ -38,17 +38,6 @@ namespace Hocon
 
         public HoconPath Path { get; }
         public string Key => Path.Key;
-
-        internal HoconField ParentField
-        {
-            get
-            {
-                var p = Parent;
-                while (p != null && !(p is HoconField))
-                    p = p.Parent;
-                return p as HoconField;
-            }
-        }
 
         /// <summary>
         /// Returns true if there are old values stored.
@@ -90,7 +79,6 @@ namespace Hocon
 
             Path = new HoconPath(parent.Path) {key};
             Parent = parent;
-            _internalValues = new List<HoconValue>();
         }
 
         internal void EnsureFieldIsObject()
@@ -116,6 +104,7 @@ namespace Hocon
                     }
                 }
             }
+
             _internalValues.Add(value);
         }
 
@@ -186,7 +175,7 @@ namespace Hocon
             var newField = new HoconField(Key, (HoconObject)newParent);
             foreach (var internalValue in _internalValues)
             {
-                newField._internalValues.Add((HoconValue)internalValue.Clone(newField));
+                newField._internalValues.Add(internalValue);
             }
             return newField;
         }

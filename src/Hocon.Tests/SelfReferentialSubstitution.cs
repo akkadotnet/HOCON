@@ -75,7 +75,7 @@ path : ${path} [ /usr/bin ]";
     b: ${a.b} "":d""
   }
 }")]
-        public void CanValueConcatenateOlderValueInsideObject_Issue_95(string hocon)
+        public void CanValueConcatenateOlderValueInsideObject_Issue_95_97(string hocon)
         {
             var config = Parser.Parse(hocon);
             Assert.Equal("a:b:c:d", config.GetString("a.b"));
@@ -86,18 +86,14 @@ path : ${path} [ /usr/bin ]";
   a {
     b: [1, 2]
   }
-  a.b: ${a.b} [3, 4]
+  a {
+    b: ${a.b} [3, 4]
+  }
 }")]
         [InlineData(@"{
   a {
     b: [1, 2]
   }
-  a {
-    b: ${a.b} [3, 4]
-  }
-}")]
-        [InlineData(@"{
-  a.b: [1, 2]
   a.b: ${a.b} [3, 4]
 }")]
         [InlineData(@"{
@@ -106,7 +102,11 @@ path : ${path} [ /usr/bin ]";
     b: ${a.b} [3, 4]
   }
 }")]
-        public void CanValueConcatenateOlderArrayInsideObject_Issue_95(string hocon)
+        [InlineData(@"{
+  a.b: [1, 2]
+  a.b: ${a.b} [3, 4]
+}")]
+        public void CanValueConcatenateOlderArrayInsideObject_Issue_95_97(string hocon)
         {
             var config = Parser.Parse(hocon);
             Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("a.b")));
@@ -212,7 +212,11 @@ b = [ 4, 5 ]
             HoconRoot config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
-            Assert.True( new []{1, 2, 3, 4, 5}.SequenceEqual(config.GetIntList("a")) );
+            var array = config.GetValue("a").GetArray();
+            Assert.Equal(1, array[0].GetInt());
+            Assert.Equal(2, array[1].GetInt());
+            Assert.Equal(3, array[2].GetInt());
+            Assert.True( new []{4, 5}.SequenceEqual(array[3].GetIntList()) );
         }
 
         /*

@@ -20,40 +20,49 @@ namespace Hocon
         public HoconMergedObject(IHoconElement parent, List<HoconObject> objects) : base(parent)
         {
             Objects = objects;
-            foreach (var obj in objects)
+            foreach (var obj in Objects)
             {
-                foreach (var kvp in obj)
-                {
-                    base.SetField(kvp.Key, kvp.Value);
-                }
+                base.Merge(obj);
             }
+        }
+
+        internal override HoconField TraversePath(HoconPath relativePath)
+        {
+            var result = Objects.Last().TraversePath(relativePath);
+            Clear();
+            foreach (var obj in Objects)
+            {
+                base.Merge(obj);
+            }
+
+            return result;
+        }
+
+        internal override HoconField GetOrCreateKey(string key)
+        {
+            var result = Objects.Last().GetOrCreateKey(key);
+            Clear();
+            foreach (var obj in Objects)
+            {
+                base.Merge(obj);
+            }
+
+            return result;
         }
 
         internal override void SetField(string key, HoconField value)
         {
             Objects.Last().SetField(key, value);
-        }
-
-        private void SoftMerge(HoconObject other)
-        {
-            foreach (var kvp in other)
-            {
-                base.SetField(kvp.Key, kvp.Value);
-            }
+            base.SetField(key, value);
         }
 
         public override void Merge(HoconObject other)
         {
-            var value = new HoconValue(Parent);
-            value.Add(other.Clone(value));
-            ((HoconField)Parent).SetValue(value);
+            var parent = (HoconValue) Parent;
+            parent.Add(other);
 
-            //((HoconField)Parent).Value.Add(other.Clone(((HoconField)Parent).Value));
-            foreach (var kvp in other)
-            {
-                base.SetField(kvp.Key, kvp.Value);
-            }
-            //base.Merge(other);
+            Objects.Add(other);
+            base.Merge(other);
         }
         
     }
