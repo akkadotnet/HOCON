@@ -17,7 +17,10 @@ namespace Fallback
             var baseHocon = @"
 root {
    some-property1 = 123
-   some-property2 = 234  
+   some-property2 = 234 
+   // This property is set through environment variable.
+   // On debug mode, it is set inside the debug tab in the project properties.
+   environment-property = ${?ENV_MY_PROPERTY} 
 }
 ";
             var userHocon = @"
@@ -34,10 +37,12 @@ root {
             var val1 = merged.GetString("root.some-property1");
             var val2 = merged.GetString("root.some-property2");
             var val3 = merged.GetString("root.some-property3");
+            var envVal = merged.GetString("root.environment-property");
 
             Console.WriteLine("root.some-property1 = {0}", val1);
             Console.WriteLine("root.some-property2 = {0}", val2);
             Console.WriteLine("root.some-property3 = {0}", val3);
+            Console.WriteLine("root.environment-property = {0}", envVal);
 
             Console.ReadKey();
         }
