@@ -31,7 +31,7 @@ namespace Hocon
         public IHoconElement Parent { get; }
 
         /// <inheritdoc/>
-        public HoconType Type => Value.Type;
+        public HoconType Type => Value == null ? HoconType.Empty : Value.Type;
 
         /// <inheritdoc/>
         public string Raw => Value.Raw;
@@ -62,7 +62,7 @@ namespace Hocon
                 switch (_internalValues.Count)
                 {
                     case 0:
-                        return HoconValue.Undefined;
+                        return null;
                     case 1:
                         return _internalValues[0];
                     default:
@@ -80,17 +80,14 @@ namespace Hocon
                         }
 
                         var value = new HoconValue(this);
-                        switch (objects.Count)
+                        if (objects.Count == 1)
                         {
-                            case 0:
-                                throw new HoconException("Should never reach this line.");
-                            case 1:
-                                value.Add(objects[0]);
-                                break;
-                            default:
-                                var resultObject = new HoconMergedObject(value, objects);
-                                value.Add(resultObject);
-                                break;
+                            value.Add(objects[0]);
+                        }
+                        else
+                        {
+                            var resultObject = new HoconMergedObject(value, objects);
+                            value.Add(resultObject);
                         }
                         return value;
                 }
