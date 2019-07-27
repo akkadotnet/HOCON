@@ -606,7 +606,7 @@ namespace Hocon
                     "Invalid parent element for HoconValue. Valid objects are HoconArray and HoconField.");
 
             var fieldValue = hf.Value;
-            if (ReferenceEquals(fieldValue, HoconValue.Undefined))
+            if (fieldValue == null)
                 return new HoconValue(hf);
 
             switch (type)
@@ -619,9 +619,7 @@ namespace Hocon
                     return fieldValue;
                 case TokenType.SubstituteOptional:
                 case TokenType.SubstituteRequired:
-                    return new HoconValue(hf);
                 case TokenType.Include:
-                    return new HoconValue(hf);
                 default:
                     return new HoconValue(hf);
             }
