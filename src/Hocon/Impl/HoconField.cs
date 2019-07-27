@@ -93,6 +93,9 @@ namespace Hocon
 
         internal void SetValue(HoconValue value)
         {
+            if (value == null)
+                return;
+
             if (value.Type == HoconType.Literal)
             {
                 foreach (var item in _internalValues)
