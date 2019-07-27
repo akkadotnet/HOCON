@@ -22,13 +22,7 @@ namespace Hocon
     /// </summary>
     public class HoconValue : List<IHoconElement>, IHoconElement 
     {
-        public static readonly HoconValue Undefined;
         private static readonly Regex TimeSpanRegex = new Regex(@"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$", RegexOptions.Compiled);
-
-        static HoconValue()
-        {
-            Undefined = new HoconEmptyValue(null);
-        }
 
         public IHoconElement Parent { get; }
 

@@ -31,7 +31,7 @@ namespace Hocon
         public IHoconElement Parent { get; }
 
         /// <inheritdoc/>
-        public HoconType Type => Value.Type;
+        public HoconType Type => Value == null ? HoconType.Empty : Value.Type;
 
         /// <inheritdoc/>
         public string Raw => Value.Raw;
@@ -51,7 +51,7 @@ namespace Hocon
                 var lastValue = _internalValues.LastOrDefault();
 
                 if (lastValue == null)
-                    return HoconValue.Undefined;
+                        return null;
 
                 if (lastValue.Type != HoconType.Object)
                     return lastValue;

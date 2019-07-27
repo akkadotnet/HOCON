@@ -74,7 +74,7 @@ namespace Hocon
             }
             catch
             {
-                result = Fallback?.GetNode(path) ?? HoconValue.Undefined;
+                result = Fallback?.GetNode(path);
             }
 
             return result;
@@ -95,10 +95,10 @@ namespace Hocon
             if (Fallback != null)
             {
                 var f = Fallback.GetConfig(path);
-                return ReferenceEquals(value, HoconValue.Undefined) ? f : new Config(new HoconRoot(value)).WithFallback(f);
+                return value == null ? f : new Config(new HoconRoot(value)).WithFallback(f);
             }
 
-            return ReferenceEquals(value, HoconValue.Undefined) ? null : new Config(new HoconRoot(value));
+            return value == null ? null : new Config(new HoconRoot(value));
         }
 
         /// <summary>
@@ -112,9 +112,9 @@ namespace Hocon
             if (fallback == this)
                 throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
 
-            Config clone = Copy();
+            var clone = Copy();
 
-            Config current = clone;
+            var current = clone;
             while (current.Fallback != null)
             {
                 current = current.Fallback;
