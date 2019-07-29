@@ -22,7 +22,7 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public sealed class HoconArray : List<IHoconElement>, IHoconElement
+    public sealed class HoconArray : List<HoconValue>, IHoconElement
     {
         private HoconType _arrayType = HoconType.Empty;
 
@@ -55,53 +55,31 @@ namespace Hocon
         /// <inheritdoc />
         public List<HoconValue> GetArray()
         {
-            var result = new List<HoconValue>();
-            foreach (var item in this)
-            {
-                switch (item) {
-                    case HoconValue value:
-                        result.Add(value);
-                        break;
-                    case HoconObject obj:
-                        var val = new HoconValue(this);
-                        val.Add(obj);
-                        result.Add(val);
-                        break;
-                    case HoconSubstitution sub:
-                        if (sub.ResolvedValue != null)
-                        {
-                            if(sub.ResolvedValue.Type == HoconType.Array)
-                                result.AddRange(sub.ResolvedValue.GetArray());
-                            else
-                                result.Add(sub.ResolvedValue);
-                        }
-                        break;
-                    default:
-                        throw new HoconException($"Unknown type: {item.Type}");
-                }
-            }
-            return result;
+            return this;
         }
 
-        public new void Add(IHoconElement element)
+        public new void Add(HoconValue value)
         {
-            if (element.Type != HoconType.Empty)
+            if (value.Type != HoconType.Empty)
             {
                 if(_arrayType == HoconType.Empty)
-                    _arrayType = element.Type;
-                else if (element.Type != _arrayType)
+                    _arrayType = value.Type;
+                else if (value.Type != _arrayType)
                     throw new HoconException(
-                        $"Array value must match the rest of the array type or empty. Array value type: {_arrayType}, inserted type: {element.Type}");
+                        $"Array value must match the rest of the array type or empty. Array value type: {_arrayType}, inserted type: {value.Type}");
             }
 
-            base.Add(element);
+            base.Add(value);
         }
 
         internal void ResolveValue(HoconSubstitution sub)
         {
+            var subValue = (HoconValue)sub.Parent;
             if (sub.Type == HoconType.Empty)
             {
-                Remove(sub);
+                subValue.Remove(sub);
+                if (subValue.Count == 0)
+                    Remove(subValue);
                 return;
             }
 
@@ -126,9 +104,12 @@ namespace Hocon
 
         public IHoconElement Clone(IHoconElement newParent)
         {
-            var clone = new HoconArray(newParent);
-            clone.AddRange(this);
-            return clone;
+            var newArray = new HoconArray(newParent);
+            foreach (var value in this)
+            {
+                newArray.Add(value);
+            }
+            return newArray;
         }
 
         private bool Equals(HoconArray other)

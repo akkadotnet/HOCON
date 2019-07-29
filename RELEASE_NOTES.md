@@ -1,3 +1,14 @@
+#### 1.1.0 July 29 2019 ####
+HOCON 1.1.0 contains a large number of bug fixes and improvements over HOCON 1.0.0, including:
+
+* [Fix: fully qualified type name with assembly cant be used as property name ](https://github.com/akkadotnet/HOCON/issues/79)
+* [Fix: unable to use include keyword at root level](https://github.com/akkadotnet/HOCON/pull/69)
+* [Fix. Child field path was not concatenated with its parent path](https://github.com/akkadotnet/HOCON/pull/96)
+* [Fix: bug when getting a string with a substitution as an array element](https://github.com/akkadotnet/HOCON/pull/88)
+* [Fix: Object fields containing objects may not return proper object value in certain circumstances. ](https://github.com/akkadotnet/HOCON/pull/93)
+* [Fix: Improper value instantiation and parenting during parsing caused a disconnected tree nodes.](https://github.com/akkadotnet/HOCON/pull/99)
+* [Fix: HoconValue.Undefined is inconsistent](https://github.com/akkadotnet/HOCON/pull/101)
+
 #### 1.0.0 November 14th 2018 ####
 HOCON 1.0.0 is a complete and total rewrite of the HOCON parsing engine, designed to work with both the .NET Framework (4.5 and later) and .NET Standard 1.3.
 

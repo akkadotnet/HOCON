@@ -77,6 +77,9 @@ namespace Hocon
         /// </summary>
         public HoconObject(IHoconElement parent)
         {
+            if(!(parent is HoconValue))
+                throw new HoconException("HoconObject parent can only be a HoconValue.");
+
             Parent = parent;
         }
 
@@ -107,7 +110,7 @@ namespace Hocon
             var type = HoconType.Empty;
             foreach (var field in Values)
             {
-                if (ReferenceEquals(field.Value, HoconValue.Undefined) || !int.TryParse(field.Key, out var index) || index < 0)
+                if (field.Value == null || !int.TryParse(field.Key, out var index) || index < 0)
                     continue;
                 if (type == HoconType.Empty)
                     type = field.Type;
@@ -185,11 +188,11 @@ namespace Hocon
                     throw new HoconException($"Invalid path, trying to access a key on a non object field. Path: `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
 
                 currentObject = field.GetObject();
-                pathIndex = pathIndex + 1;
+                pathIndex++;
             }
         }
 
-        internal void SetField(string key, HoconField value)
+        internal virtual void SetField(string key, HoconField value)
             => base[key] = value;
 
         public bool TryGetField(HoconPath path, out HoconField result)
@@ -217,7 +220,7 @@ namespace Hocon
                     return false;
 
                 currentObject = field.GetObject();
-                pathIndex = pathIndex + 1;
+                pathIndex++;
             }
         }
 
@@ -304,43 +307,29 @@ namespace Hocon
         /// If the supplied key is not found, then one is created
         /// with a blank value.
         /// </summary>
-        /// <param name="path">The path associated with the value to retrieve.</param>
+        /// <param name="key">The path associated with the value to retrieve.</param>
         /// <returns>The value associated with the supplied key.</returns>
-        private HoconField GetOrCreateKey(HoconPath path)
+        internal virtual HoconField GetOrCreateKey(string key)
         {
-            if (TryGetValue(path.Key, out var child))
+            if (TryGetValue(key, out var child))
                 return child;
 
-            child = new HoconField(path, this);
-            Add(path.Key, child);
+            child = new HoconField(key, this);
+            Add(key, child);
             return child;
         }
 
-        internal List<HoconField> TraversePath(HoconPath relativePath)
+        internal virtual HoconField TraversePath(HoconPath relativePath)
         {
-            var result = new List<HoconField>();
-            var absolutePath = new HoconPath();
-            var pathLength = 1;
-            if (Path != HoconPath.Empty)
-            {
-                absolutePath.AddRange(Path);
-                pathLength = absolutePath.Count + 1;
-            }
-            absolutePath.AddRange(relativePath);
             var currentObject = this;
+            var index = 0;
             while (true)
             {
-                var child = currentObject.GetOrCreateKey(new HoconPath(absolutePath.GetRange(0, pathLength)));
-                result.Add(child);
-
-                pathLength++;
-                if (pathLength > absolutePath.Count)
-                    return result;
-
+                var child = currentObject.GetOrCreateKey(relativePath[index]);
+                index++;
+                if (index > relativePath.Count - 1)
+                    return child;
                 child.EnsureFieldIsObject();
-
-                // cannot use child.GetObject() because it would return a new merged object instance, which 
-                // breaks autoref with the parent object in the previous loop
                 currentObject = child.Value.GetObject();
             }
         }
@@ -361,7 +350,7 @@ namespace Hocon
             {
                 sb.Append($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
             }
-            return sb.ToString(0, sb.Length - Environment.NewLine.Length - 1);
+            return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
         }
 
         public virtual void Merge(HoconObject other)
@@ -369,23 +358,28 @@ namespace Hocon
             var keys = other.Keys.ToArray();
             foreach (var key in keys)
             {
-                if (ContainsKey(key))
+                if (!ContainsKey(key))
                 {
-                    var thisItem = this[key];
-                    var otherItem = other[key];
-                    if (thisItem.Type == HoconType.Object && otherItem.Type == HoconType.Object)
-                    {
-                        thisItem.GetObject().Merge(otherItem.GetObject());
-                        continue;
-                    }
+                    base[key] = other[key];
+                    continue;
                 }
-                SetField(key, other[key]);
+
+                var thisItem = this[key];
+                var otherItem = other[key].Value;
+                if (thisItem.Type == HoconType.Object && otherItem.Type == HoconType.Object)
+                {
+                    thisItem.GetObject().Merge(otherItem.GetObject());
+                }
+                else
+                {
+                    thisItem.SetValue(otherItem);
+                }
             }
         }
 
         internal void ResolveValue(HoconField child)
         {
-            if (child.Value.Count == 0)
+            if (child.Type == HoconType.Empty)
             {
                 if(child.HasOldValues)
                     child.RestoreOldValue();
@@ -400,7 +394,7 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this)
             {
-                clone.SetField(kvp.Key, (HoconField)kvp.Value.Clone(clone));
+                clone.SetField(kvp.Key, kvp.Value);
             }
             return clone;
         }

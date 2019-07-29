@@ -158,7 +158,7 @@ namespace Hocon
         public string GetString(HoconPath path, string @default = null)
         {
             var value = GetNode(path);
-            return ReferenceEquals(value, HoconValue.Undefined) ? @default : value.GetString();
+            return value == null ? @default : value.GetString();
         }
 
         /// <summary>
@@ -173,11 +173,8 @@ namespace Hocon
         /// <inheritdoc cref="GetBoolean(string,bool)"/>
         public bool GetBoolean(HoconPath path, bool @default = false)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetBoolean();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetBoolean();
         }
 
         /// <summary>
@@ -191,10 +188,8 @@ namespace Hocon
         /// <inheritdoc cref="GetByteSize(string)"/>
         public long? GetByteSize(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return null;
-            return value.GetByteSize();
+            var value = GetNode(path);
+            return value?.GetByteSize();
         }
 
         /// <summary>
@@ -209,11 +204,8 @@ namespace Hocon
         /// <inheritdoc cref="GetInt(string,int)"/>
         public int GetInt(HoconPath path, int @default = 0)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetInt();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetInt();
         }
 
         /// <summary>
@@ -228,11 +220,8 @@ namespace Hocon
         /// <inheritdoc cref="GetLong(string,long)"/>
         public long GetLong(HoconPath path, long @default = 0)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetLong();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetLong();
         }
 
         public byte GetByte(string path, byte @default = 0)
@@ -240,11 +229,8 @@ namespace Hocon
 
         public byte GetByte(HoconPath path, byte @default = 0)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetByte();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetByte();
         }
 
         /// <summary>
@@ -259,11 +245,8 @@ namespace Hocon
         /// <inheritdoc cref="GetFloat(string,float)"/>
         public float GetFloat(HoconPath path, float @default = 0)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetFloat();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetFloat();
         }
 
         /// <summary>
@@ -278,11 +261,8 @@ namespace Hocon
         /// <inheritdoc cref="GetDecimal(string,decimal)"/>
         public decimal GetDecimal(HoconPath path, decimal @default = 0)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetDecimal();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetDecimal();
         }
 
         /// <summary>
@@ -297,11 +277,8 @@ namespace Hocon
         /// <inheritdoc cref="GetDouble(string,double)"/>
         public double GetDouble(HoconPath path, double @default = 0)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetDouble();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetDouble();
         }
 
         /// <summary>
@@ -316,11 +293,8 @@ namespace Hocon
         /// <inheritdoc cref="GetObject(string,HoconObject)"/>
         public HoconObject GetObject(HoconPath path, HoconObject @default = null)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                return @default;
-
-            return value.GetObject();
+            var value = GetNode(path);
+            return value == null ? @default : value.GetObject();
         }
 
 
@@ -335,9 +309,9 @@ namespace Hocon
         /// <inheritdoc cref="GetBooleanList(string)"/>
         public IList<Boolean> GetBooleanList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetBooleanList();
         }
@@ -353,9 +327,9 @@ namespace Hocon
         /// <inheritdoc cref="GetDecimalList(string)"/>
         public IList<decimal> GetDecimalList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetDecimalList();
         }
@@ -371,9 +345,9 @@ namespace Hocon
         /// <inheritdoc cref="GetFloatList(string)"/>
         public IList<float> GetFloatList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetFloatList();
         }
@@ -389,9 +363,9 @@ namespace Hocon
         /// <inheritdoc cref="GetDoubleList(string)"/>
         public IList<double> GetDoubleList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetDoubleList();
         }
@@ -407,9 +381,9 @@ namespace Hocon
         /// <inheritdoc cref="GetIntList(string)"/>
         public IList<int> GetIntList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetIntList();
         }
@@ -425,9 +399,9 @@ namespace Hocon
         /// <inheritdoc cref="GetLongList(string)"/>
         public IList<long> GetLongList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetLongList();
         }
@@ -443,9 +417,9 @@ namespace Hocon
         /// <inheritdoc cref="GetByteList(string)"/>
         public IList<byte> GetByteList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetByteList();
         }
@@ -461,9 +435,9 @@ namespace Hocon
         /// <inheritdoc cref="GetStringList(string)"/>
         public IList<string> GetStringList(HoconPath path)
         {
-            HoconValue value = GetNode(path);
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            var value = GetNode(path);
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetStringList();
         }
@@ -479,9 +453,8 @@ namespace Hocon
         public IList<HoconObject> GetObjectList(HoconPath path)
         {
             var value = GetNode(path);
-
-            if (ReferenceEquals(value, HoconValue.Undefined))
-                throw new HoconParserException($"Hocon path {path} was not an array or a numerically-indexed object.");
+            if (value == null)
+                throw new HoconParserException($"Hocon path {path} does not exist.");
 
             return value.GetObjectList();
         }
@@ -497,7 +470,7 @@ namespace Hocon
         /// <inheritdoc cref="GetValue(string)"/>
         public HoconValue GetValue(HoconPath path)
         {
-            HoconValue value = GetNode(path);
+            var value = GetNode(path);
             return value;
         }
 
@@ -524,11 +497,8 @@ namespace Hocon
         /// <inheritdoc cref="GetTimeSpan(string,System.Nullable{System.TimeSpan},bool)"/>
         public TimeSpan GetTimeSpan(HoconPath path, TimeSpan? @default = null, bool allowInfinite = true)
         {
-            HoconValue value = GetNode(path);
-            if (value == null)
-                return @default.GetValueOrDefault();
-
-            return value.GetTimeSpan(allowInfinite);
+            var value = GetNode(path);
+            return value == null ? @default.GetValueOrDefault() : value.GetTimeSpan(allowInfinite);
         }
         #endregion
 
