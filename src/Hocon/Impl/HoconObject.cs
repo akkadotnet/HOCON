@@ -107,7 +107,7 @@ namespace Hocon
             var type = HoconType.Empty;
             foreach (var field in Values)
             {
-                if (ReferenceEquals(field.Value, HoconValue.Undefined) || !int.TryParse(field.Key, out var index) || index < 0)
+                if (field.Value == null || !int.TryParse(field.Key, out var index) || index < 0)
                     continue;
                 if (type == HoconType.Empty)
                     type = field.Type;
