@@ -75,8 +75,15 @@ namespace Hocon
 
         private void ResolveSubstitutions()
         {
+            var removedSubstitution = new List<HoconSubstitution>();
             foreach (var sub in _substitutions)
             {
+                if (sub.Removed)
+                {
+                    removedSubstitution.Add(sub);
+                    continue;
+                }
+
                 // Retrieve value
                 HoconValue res;
                 try
@@ -108,11 +115,11 @@ namespace Hocon
                 if (envValue != null)
                 {
                     // undefined value resolved to an environment variable
-                    res = new HoconValue(sub.Parent);
+                    res = new HoconValue(sub.Parent.Parent);
                     if (envValue.NeedQuotes())
-                        res.Add(new HoconQuotedString(sub.Parent, envValue));
+                        res.Add(new HoconQuotedString(sub.Parent.Parent, envValue));
                     else
-                        res.Add(new HoconUnquotedString(sub.Parent, envValue));
+                        res.Add(new HoconUnquotedString(sub.Parent.Parent, envValue));
 
                     sub.ResolvedValue = res;
                     continue;
@@ -122,7 +129,12 @@ namespace Hocon
                 if (sub.Required)
                     throw HoconParserException.Create(sub, sub.Path, $"Unresolved substitution: {sub.Path}");
 
-                sub.ResolvedValue = new HoconEmptyValue(sub.Parent);
+                sub.ResolvedValue = new HoconEmptyValue(sub.Parent.Parent);
+            }
+
+            foreach (var sub in removedSubstitution)
+            {
+                _substitutions.Remove(sub);
             }
         }
 
@@ -262,10 +274,10 @@ namespace Hocon
                 _tokens.Insert(_tokens.Count-1, new Token("}", TokenType.EndOfObject, null));
             }
 
-            _root.Add(ParseObject(_root));
+            ParseObject(ref _root);
         }
 
-        private IHoconElement ParseInclude(IHoconElement owner)
+        private HoconValue ParseInclude()
         {
             // Sanity check
             if (_tokens.Current.Type != TokenType.Include)
@@ -411,14 +423,16 @@ namespace Hocon
                 if(required)
                     throw HoconParserException.Create(includeToken, Path,
                         "Invalid Hocon include. Include was declared as required but include callback returned a null or empty string.");
-                return new HoconEmptyValue(owner);
+                return new HoconEmptyValue(null);
             }
 
             var includeRoot = new Parser().ParseText(includeHocon, false, _includeCallback);
-            if (owner.Type != HoconType.Empty && owner.Type != includeRoot.Value.Type)
+            /*
+            if (owner != null && owner.Type != HoconType.Empty && owner.Type != includeRoot.Value.Type)
                 throw HoconParserException.Create(includeToken, Path,
                     "Invalid Hocon include. Hocon config substitution type must be the same as the field it's merged into. " +
                     $"Expected type: `{owner.Type}`, type returned by include callback: `{includeRoot.Value.Type}`");
+            */
 
             // fixup the substitution, add the current path as a prefix to the substitution path
             foreach (var substitution in includeRoot.Substitutions)
@@ -427,13 +441,17 @@ namespace Hocon
             }
             _substitutions.AddRange(includeRoot.Substitutions);
 
-            // reparent the value returned by the callback to the owner of the include declaration
-            return includeRoot.Value.Clone(owner);
+            // re-parent the value returned by the callback to the owner of the include declaration
+            return includeRoot.Value;
         }
 
         // The owner in this context can be either an object or an array.
-        private HoconObject ParseObject(IHoconElement owner)
+        private void ParseObject(ref HoconValue owner)
         {
+            if (owner == null)
+                throw HoconParserException.Create(_tokens.Current, Path,
+                    "ParseObject called with null parent.");
+
             // Sanity check
             if (_tokens.Current.Type != TokenType.StartOfObject)
                 throw HoconParserException.Create(_tokens.Current, Path,
@@ -442,20 +460,27 @@ namespace Hocon
             // Consume curly bracket
             _tokens.ToNextSignificant();
 
-            var hoconObject = new HoconObject(owner);
-            IHoconElement lastValue = null;
+            var hoconObject = owner.GetObject();
+            if (hoconObject == null)
+            {
+                hoconObject = new HoconObject(owner);
+                owner.Add(hoconObject);
+            }
+
+            var valueWasParsed = false;
             var parsing = true;
             while (parsing)
             {
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
-                        if (lastValue != null)
+                        if (valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon object. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}`, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = ParseInclude(hoconObject);
+                        owner.ReParent(ParseInclude());
+                        valueWasParsed = true;
                         break;
 
                     case TokenType.LiteralValue:
@@ -465,41 +490,33 @@ namespace Hocon
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
 
-                        if (lastValue != null)
+                        if (valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon object. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}`, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = ParseField(hoconObject);
+                        ParseField(hoconObject);
+                        valueWasParsed = true;
                         break;
 
                     case TokenType.Comment:
                     case TokenType.EndOfLine:
-                        if(lastValue != null && !(lastValue is HoconField))
-                            ((HoconValue)hoconObject.Parent).Add(lastValue.GetObject());
-
-                        lastValue = null;
+                        valueWasParsed = false;
                         _tokens.ToNextSignificantLine();
                         break;
 
                     case TokenType.Comma:
-                        if (lastValue == null)
+                        if (!valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon object. Expected `{TokenType.Assign}` or `{TokenType.StartOfObject}`, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        if (!(lastValue is HoconField))
-                            ((HoconValue)hoconObject.Parent).Add(lastValue.GetObject());
-
-                        lastValue = null;
+                        valueWasParsed = false;
                         _tokens.ToNextSignificant();
                         break;
 
                     case TokenType.EndOfObject:
-                        if (lastValue != null && !(lastValue is HoconField))
-                            ((HoconValue)hoconObject.Parent).Add(lastValue.GetObject());
-
-                        lastValue = null;
+                        valueWasParsed = false;
                         parsing = false;
                         break;
 
@@ -515,8 +532,6 @@ namespace Hocon
 
             // Consume the closing curly bracket.
             _tokens.ToNextSignificant();
-
-            return hoconObject;
         }
 
         // parse path value
@@ -547,7 +562,7 @@ namespace Hocon
             return HoconPath.FromTokens(keyTokens);
         }
 
-        private HoconField ParseField(HoconObject owner)
+        private void ParseField(HoconObject owner)
         {
             // sanity check
             if(_tokens.Current.IsNonSignificant() || _tokens.Current.Type != TokenType.LiteralValue)
@@ -555,7 +570,7 @@ namespace Hocon
                     $"Failed to parse Hocon field. Expected start of field {TokenType.LiteralValue}, " +
                     $"found {_tokens.Current.Type} instead.");
 
-            var pathDelta = ParseKey();
+            var relativePath = ParseKey();
 
             if(_tokens.Current.Type == TokenType.EndOfLine)
                 _tokens.ToNextSignificantLine();
@@ -569,24 +584,45 @@ namespace Hocon
                     $"or {TokenType.PlusEqualAssign}, found {_tokens.Current.Type} instead.");
 
             // sanity check
-            if (pathDelta == null || pathDelta.Count == 0)
+            if (relativePath == null || relativePath.Count == 0)
                 throw HoconParserException.Create(_tokens.Current, Path,
                     "Failed to parse Hocon field. Null or empty path");
 
-            List<HoconField> childInPath = owner.TraversePath(pathDelta);
+            Path.AddRange(relativePath);
 
-            Path.AddRange(pathDelta);
-            HoconField currentField = childInPath[childInPath.Count - 1];
+            var currentField = owner.TraversePath(relativePath);
+            currentField.SetValue(ParseValue(currentField));
 
-            var parsedValue = ParseValue(currentField);
+            Path.RemoveRange(Path.Count - relativePath.Count, relativePath.Count);
+        }
 
-            foreach (var removedSub in currentField.SetValue(parsedValue))
+        private HoconValue GetHoconValueFromParentElement(IHoconElement parentElement, TokenType type)
+        {
+            if(parentElement is HoconArray arr)
+                return new HoconValue(arr);
+
+            if(!(parentElement is HoconField hf))
+                throw HoconParserException.Create(_tokens.Current, Path,
+                    "Invalid parent element for HoconValue. Valid objects are HoconArray and HoconField.");
+
+            var fieldValue = hf.Value;
+            if (fieldValue == null)
+                return new HoconValue(hf);
+
+            switch (type)
             {
-                _substitutions.Remove(removedSub);
+                case TokenType.LiteralValue:
+                    return new HoconValue(hf);
+                case TokenType.StartOfObject when fieldValue.Type == HoconType.Object:
+                    return fieldValue;
+                case TokenType.StartOfArray when fieldValue.Type == HoconType.Array:
+                    return fieldValue;
+                case TokenType.SubstituteOptional:
+                case TokenType.SubstituteRequired:
+                case TokenType.Include:
+                default:
+                    return new HoconValue(hf);
             }
-
-            Path.RemoveRange(Path.Count - pathDelta.Count, pathDelta.Count);
-            return childInPath[0];
         }
 
         /// <summary>
@@ -597,14 +633,33 @@ namespace Hocon
         /// <exception cref="System.Exception">End of file reached while trying to read a value</exception>
         private HoconValue ParseValue(IHoconElement owner)
         {
-            var value = new HoconValue(owner);
+            // value is lazy initialized because we don't know what kind of value we're parsing
+            HoconValue value = null;
             var parsing = true;
             while (parsing)
             {
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
-                        value.Add(ParseInclude(value));
+                        var includeToken = _tokens.Current;
+                        var includeValue = ParseInclude();
+                        switch (includeValue.Type)
+                        {
+                            case HoconType.Empty:
+                                value = new HoconEmptyValue(owner);
+                                break;
+                            case HoconType.Object:
+                                value = GetHoconValueFromParentElement(owner, TokenType.StartOfObject);
+                                value.ReParent(includeValue);
+                                break;
+                            case HoconType.Array:
+                                value = GetHoconValueFromParentElement(owner, TokenType.StartOfArray);
+                                value.ReParent(includeValue);
+                                break;
+                            default:
+                                throw HoconParserException.Create(includeToken, Path,
+                                    "Include could never contain a literal type.");
+                        }
                         break;
 
                     case TokenType.LiteralValue:
@@ -615,6 +670,9 @@ namespace Hocon
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
 
+                        if(value == null)
+                            value = GetHoconValueFromParentElement(owner, _tokens.Current.Type);
+
                         while (_tokens.Current.Type == TokenType.LiteralValue)
                         {
                             value.Add(HoconLiteral.Create(value, _tokens.Current));
@@ -623,21 +681,40 @@ namespace Hocon
                         break;
 
                     case TokenType.StartOfObject:
-                        value.Add(ParseObject(value));
+                        if (value == null)
+                            value = GetHoconValueFromParentElement(owner, _tokens.Current.Type);
+
+                        ParseObject(ref value);
                         break;
 
                     case TokenType.StartOfArray:
+                        if (value == null)
+                            value = GetHoconValueFromParentElement(owner, _tokens.Current.Type);
                         value.Add(ParseArray(value));
                         break;
 
                     case TokenType.SubstituteOptional:
                     case TokenType.SubstituteRequired:
+                        if (value == null)
+                            value = new HoconValue(owner);
+
                         var pointerPath = HoconPath.Parse(_tokens.Current.Value);
-                        HoconSubstitution sub = new HoconSubstitution(value, pointerPath, _tokens.Current,
+                        var sub = new HoconSubstitution(value, pointerPath, _tokens.Current,
                             _tokens.Current.Type == TokenType.SubstituteRequired);
                         _substitutions.Add(sub);
-                        value.Add(sub);
                         _tokens.Next();
+                        value.Add(sub);
+                        break;
+
+                    case TokenType.PlusEqualAssign:
+                        if (value == null)
+                            value = new HoconValue(owner);
+
+                        var subAssign = new HoconSubstitution(value, new HoconPath(Path), _tokens.Current, false);
+                        _substitutions.Add(subAssign);
+                        value.Add(subAssign);
+                        value.Add(ParsePlusEqualAssignArray(value));
+                        parsing = false;
                         break;
 
                     case TokenType.EndOfObject:
@@ -658,15 +735,6 @@ namespace Hocon
                         parsing = false;
                         break;
 
-                    case TokenType.PlusEqualAssign:
-                        HoconSubstitution subAssign = new HoconSubstitution(value, new HoconPath(Path), _tokens.Current, false);
-                        _substitutions.Add(subAssign);
-                        value.Add(subAssign);
-
-                        value.Add(ParsePlusEqualAssignArray(value));
-                        parsing = false;
-                        break;
-
                     case TokenType.Assign:
                         // Special case to support end of line after assign
                         _tokens.ToNextSignificantLine();
@@ -677,6 +745,9 @@ namespace Hocon
                             $"Failed to parse Hocon value. Unexpected token: `{_tokens.Current.Type}`");
                 }
             }
+
+            if (value == null)
+                value = new HoconEmptyValue(owner);
 
             // trim trailing whitespace if result is a literal
             if (value.Type == HoconType.Literal)
@@ -703,7 +774,17 @@ namespace Hocon
             switch (_tokens.Current.Type)
             {
                 case TokenType.Include:
-                    currentArray.Add(ParseInclude(currentArray));
+                    var includeToken = _tokens.Current;
+                    var includeValue = ParseInclude();
+                    if (includeValue.Type == HoconType.Empty)
+                        break;
+
+                    if(currentArray.Type != HoconType.Empty && currentArray.Type != includeValue.Type)
+                        throw HoconParserException.Create(includeToken, Path,
+                            "Invalid Hocon include. Hocon config substitution type must be the same as the field it's merged into. " +
+                            $"Expected type: `{currentArray.Type}`, type returned by include callback: `{includeValue.Type}`");
+
+                    currentArray.Add((HoconValue)includeValue.Clone(currentArray));
                     break;
 
                 case TokenType.StartOfArray:
@@ -712,7 +793,7 @@ namespace Hocon
                     break;
 
                 case TokenType.StartOfObject:
-                    currentArray.Add(ParseObject(currentArray));
+                    currentArray.Add(ParseValue(currentArray));
                     break;
 
                 case TokenType.LiteralValue:
@@ -727,12 +808,7 @@ namespace Hocon
 
                 case TokenType.SubstituteOptional:
                 case TokenType.SubstituteRequired:
-                    var pointerPath = HoconPath.Parse(_tokens.Current.Value);
-                    HoconSubstitution sub = new HoconSubstitution(currentArray, pointerPath, _tokens.Current,
-                        _tokens.Current.Type == TokenType.SubstituteRequired);
-                    _substitutions.Add(sub);
-                    currentArray.Add(sub);
-                    _tokens.Next();
+                    currentArray.Add(ParseValue(currentArray));
                     break;
 
                 default:
@@ -760,47 +836,20 @@ namespace Hocon
             // consume start of array token
             _tokens.ToNextSignificant();
 
-            IHoconElement lastValue = null;
+            var valueWasParsed = false;
             var parsing = true;
             while (parsing)
             {
                 switch (_tokens.Current.Type)
                 {
                     case TokenType.Include:
-                        if (lastValue != null)
+                        if (valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = ParseInclude(currentArray);
-                        break;
-
-                    case TokenType.StartOfArray:
-                        if (lastValue != null)
-                            throw HoconParserException.Create(_tokens.Current, Path,
-                                $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
-                                $"found `{_tokens.Current.Type}` instead.");
-
-                        // Array inside of arrays are parsed as values because it can be value concatenated with another array.
-                        lastValue = ParseValue(currentArray);
-                        break;
-
-                    case TokenType.EndOfArray:
-                        if (lastValue != null)
-                        {
-                            currentArray.Add(lastValue);
-                            lastValue = null;
-                        }
-                        parsing = false;
-                        break;
-
-                    case TokenType.StartOfObject:
-                        if (lastValue != null)
-                            throw HoconParserException.Create(_tokens.Current, Path,
-                                $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
-                                $"found `{_tokens.Current.Type}` instead.");
-
-                        lastValue = ParseObject(currentArray);
+                        currentArray.Add(ParseValue(currentArray));
+                        valueWasParsed = true;
                         break;
 
                     case TokenType.LiteralValue:
@@ -810,47 +859,64 @@ namespace Hocon
                         if (_tokens.Current.Type != TokenType.LiteralValue)
                             break;
 
-                        if (lastValue != null)
+                        if (valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        lastValue = ParseValue(currentArray);
+                        currentArray.Add(ParseValue(currentArray));
+                        valueWasParsed = true;
+                        break;
+
+                    case TokenType.StartOfObject:
+                        if (valueWasParsed)
+                            throw HoconParserException.Create(_tokens.Current, Path,
+                                $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
+                                $"found `{_tokens.Current.Type}` instead.");
+
+                        currentArray.Add(ParseValue(currentArray));
+                        valueWasParsed = true;
+                        break;
+
+                    case TokenType.StartOfArray:
+                        if (valueWasParsed)
+                            throw HoconParserException.Create(_tokens.Current, Path,
+                                $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
+                                $"found `{_tokens.Current.Type}` instead.");
+
+                        // Array inside of arrays are parsed as values because it can be value concatenated with another array.
+                        currentArray.Add(ParseValue(currentArray));
+                        valueWasParsed = true;
                         break;
 
                     case TokenType.SubstituteOptional:
                     case TokenType.SubstituteRequired:
-                        if (lastValue != null)
+                        if (valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon array. Expected `{TokenType.Comma}` or `{TokenType.EndOfLine}, " +
                                 $"found `{_tokens.Current.Type}` instead.");
 
-                        var pointerPath = HoconPath.Parse(_tokens.Current.Value);
-                        HoconSubstitution sub = new HoconSubstitution(currentArray, pointerPath, _tokens.Current,
-                            _tokens.Current.Type == TokenType.SubstituteRequired);
-                        _substitutions.Add(sub);
-                        lastValue = sub;
-                        _tokens.Next();
+                        currentArray.Add(ParseValue(currentArray));
+                        valueWasParsed = true;
+                        break;
+
+                    case TokenType.EndOfArray:
+                        valueWasParsed = false;
+                        parsing = false;
                         break;
 
                     case TokenType.Comment:
                     case TokenType.EndOfLine:
-                        if (lastValue != null)
-                        {
-                            currentArray.Add(lastValue);
-                            lastValue = null;
-                        }
-
+                        valueWasParsed = false;
                         _tokens.ToNextSignificantLine();
                         break;
 
                     case TokenType.Comma:
-                        if (lastValue == null)
+                        if (!valueWasParsed)
                             throw HoconParserException.Create(_tokens.Current, Path,
                                 $"Failed to parse Hocon array. Expected a valid value, found `{_tokens.Current.Type}` instead.");
 
-                        currentArray.Add(lastValue);
-                        lastValue = null;
+                        valueWasParsed = false;
                         _tokens.ToNextSignificant();
                         break;
 
