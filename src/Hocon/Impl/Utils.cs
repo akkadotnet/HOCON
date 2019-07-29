@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -143,16 +144,20 @@ namespace Hocon
             switch (value)
             {
                 case HoconValue v:
-                    foreach (var val in v)
+                    return v.Any(n => n.IsSubstitution());
+                case HoconField f:
+                    return f.Value.Any(n => n.IsSubstitution());
+                case HoconObject o:
+                    foreach (var f in o.Values)
                     {
-                        if (val is HoconSubstitution)
+                        if (f.Value.Any(n => n.IsSubstitution()))
                             return true;
                     }
                     return false;
-                case HoconField f:
-                    foreach (var v in f.Value)
+                case HoconArray a:
+                    foreach (var v in a)
                     {
-                        if (v is HoconSubstitution)
+                        if (v.Any(n => n.IsSubstitution()))
                             return true;
                     }
                     return false;

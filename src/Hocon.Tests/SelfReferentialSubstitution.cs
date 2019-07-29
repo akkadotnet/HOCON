@@ -58,10 +58,24 @@ path : ${path} [ /usr/bin ]";
   a.b: ${a.b} "":d""
 }")]
         [InlineData(@"{
+  a {
+    b: ""a:b:c""
+  }
+  a {
+    b: ${a.b} "":d""
+  }
+}")]
+        [InlineData(@"{
   a.b: ""a:b:c""
   a.b: ${a.b} "":d""
 }")]
-        public void CanValueConcatenateOlderValueInsideObject_Issue_95(string hocon)
+        [InlineData(@"{
+  a.b: ""a:b:c""
+  a {
+    b: ${a.b} "":d""
+  }
+}")]
+        public void CanValueConcatenateOlderValueInsideObject_Issue_95_97(string hocon)
         {
             var config = Parser.Parse(hocon);
             Assert.Equal("a:b:c:d", config.GetString("a.b"));
@@ -72,13 +86,27 @@ path : ${path} [ /usr/bin ]";
   a {
     b: [1, 2]
   }
+  a {
+    b: ${a.b} [3, 4]
+  }
+}")]
+        [InlineData(@"{
+  a {
+    b: [1, 2]
+  }
   a.b: ${a.b} [3, 4]
+}")]
+        [InlineData(@"{
+  a.b: [1, 2]
+  a {
+    b: ${a.b} [3, 4]
+  }
 }")]
         [InlineData(@"{
   a.b: [1, 2]
   a.b: ${a.b} [3, 4]
 }")]
-        public void CanValueConcatenateOlderArrayInsideObject_Issue_95(string hocon)
+        public void CanValueConcatenateOlderArrayInsideObject_Issue_95_97(string hocon)
         {
             var config = Parser.Parse(hocon);
             Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("a.b")));
@@ -150,7 +178,8 @@ foo : { a : 1 }
 
         /*
          * FACT:
-         *  the optional substitution syntax ${?foo} does not create a cycle
+         * If a substitution is hidden by a value that could not be merged with it
+         * (by a non-object value) then it is never evaluated and no error will be reported
          */
         [Fact]
         public void HiddenSubstitutionShouldNeverBeEvaluated()
@@ -183,7 +212,11 @@ b = [ 4, 5 ]
             HoconRoot config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
-            Assert.True( new []{1, 2, 3, 4, 5}.SequenceEqual(config.GetIntList("a")) );
+            var array = config.GetValue("a").GetArray();
+            Assert.Equal(1, array[0].GetInt());
+            Assert.Equal(2, array[1].GetInt());
+            Assert.Equal(3, array[2].GetInt());
+            Assert.True( new []{4, 5}.SequenceEqual(array[3].GetIntList()) );
         }
 
         /*

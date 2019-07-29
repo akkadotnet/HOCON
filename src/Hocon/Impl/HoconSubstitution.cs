@@ -39,6 +39,8 @@ namespace Hocon
 
         public bool Required { get; }
 
+        internal bool Removed { get; set; }
+
         internal HoconField ParentField
         {
             get  {
@@ -63,15 +65,7 @@ namespace Hocon
             internal set
             {
                 _resolvedValue = value;
-                switch (Parent)
-                {
-                    case HoconValue v:
-                        v.ResolveValue(this);
-                        break;
-                    case HoconArray a:
-                        a.ResolveValue(this);
-                        break;
-                }
+                ((HoconValue)Parent).ResolveValue(this);
             }
         }
 
@@ -86,7 +80,13 @@ namespace Hocon
         /// /// <param name="lineInfo">The <see cref="IHoconLineInfo"/> of this substitution, used for exception generation purposes.</param>
         internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
         {
-            Parent = parent ?? throw new ArgumentNullException(nameof(parent), "Hocon substitute parent can not be null.");
+            if(parent == null)
+                throw new ArgumentNullException(nameof(parent), "HoconSubstitution parent can not be null.");
+
+            if (!(parent is HoconValue))
+                throw new HoconException("HoconSubstitution parent must be HoconValue.");
+
+            Parent = parent;
             LinePosition = lineInfo.LinePosition;
             LineNumber = lineInfo.LineNumber;
             Required = required;
@@ -116,8 +116,24 @@ namespace Hocon
             => ResolvedValue.ToString(indent, indentSize);
 
         // Substitution can not be cloned because it is resolved at the end of the parsing process.
+        // TODO: check for possible bugs
         public IHoconElement Clone(IHoconElement newParent)
         {
+            if (newParent == null)
+                throw new ArgumentNullException(nameof(newParent), "HoconSubstitution parent can not be null.");
+
+            if (!(newParent is HoconValue))
+                throw new HoconException("HoconSubstitution parent must be HoconValue.");
+
+#if DEBUG
+            var parent = newParent;
+            while (parent != null && !(parent is HoconField))
+                parent = parent.Parent;
+            var parentField = parent as HoconField;
+            throw new HoconException($"Substitution node was cloned. Path:{Path} to new path:{parentField?.Path}");
+            //Console.WriteLine($"Substitution node was cloned. Path:{Path} to new path:{parentField?.Path}");
+#endif
+
             Parent = newParent;
             return this;
         }
