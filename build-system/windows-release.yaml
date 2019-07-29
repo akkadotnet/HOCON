@@ -14,7 +14,7 @@ variables:
   - group: signingSecrets #create this group with SECRET variables `signingUsername` and `signingPassword`
   - group: nugetKeys #create this group with SECRET variables `nugetKey`
   - name: githubConnectionName
-    value: AkkaDotNet #replace this
+    value: Akka.NET #replace this
   - name: projectName
     value: HOCON #replace this
   - name: githubRepositoryName
