@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Fallback": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ENV_MY_PROPERTY": "My environment value"
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Program.cs" company="Hocon Project">
-//     Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
-//     Copyright (C) 2013-2015 Akka.NET project <https://github.com/akkadotnet/hocon>
+//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -14,10 +14,13 @@ namespace Fallback
     {
         static void Main(string[] args)
         {
+            // The "environment-property" property is set through environment variable.
+            // On debug mode, it is set inside the debug tab in the project properties.
             var baseHocon = @"
 root {
    some-property1 = 123
-   some-property2 = 234  
+   some-property2 = 234 
+   environment-property = ${?ENV_MY_PROPERTY} 
 }
 ";
             var userHocon = @"
@@ -38,6 +41,12 @@ root {
             Console.WriteLine("root.some-property1 = {0}", val1);
             Console.WriteLine("root.some-property2 = {0}", val2);
             Console.WriteLine("root.some-property3 = {0}", val3);
+
+            if (merged.HasPath("root.environment-property"))
+            {
+                var envVal = merged.GetString("root.environment-property");
+                Console.WriteLine("root.environment-property = {0}", envVal);
+            }
 
             Console.ReadKey();
         }
