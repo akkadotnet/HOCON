@@ -9,8 +9,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using Hocon.Immutable.Extensions;
 
 namespace Hocon.Immutable
 {
@@ -20,9 +22,17 @@ namespace Hocon.Immutable
 
         public new HoconImmutableElement this[int index] => _elements[index];
 
-        public HoconImmutableArray(IEnumerable<HoconImmutableElement> elements)
+        private HoconImmutableArray(IEnumerable<HoconImmutableElement> elements)
         {
+            if(elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
             _elements = elements.ToImmutableArray();
+        }
+
+        internal static HoconImmutableArray Create(IEnumerable<HoconImmutableElement> elements)
+        {
+            return new HoconImmutableArray(elements);
         }
 
         #region Interface implementation
@@ -39,67 +49,69 @@ namespace Hocon.Immutable
 
         public IImmutableList<HoconImmutableElement> Clear()
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public int IndexOf(HoconImmutableElement item, int startIndex, int count, IEqualityComparer<HoconImmutableElement> equalityComparer)
         {
+            // ReSharper disable once ImpureMethodCallOnReadonlyValueField
             return _elements.IndexOf(item, startIndex, count, equalityComparer);
         }
 
         public int LastIndexOf(HoconImmutableElement item, int startIndex, int count, IEqualityComparer<HoconImmutableElement> equalityComparer)
         {
+            // ReSharper disable once ImpureMethodCallOnReadonlyValueField
             return _elements.LastIndexOf(item, startIndex, count, equalityComparer);
         }
 
-        public IImmutableList<HoconImmutableElement> Add(HoconImmutableElement value)
+        public IImmutableList<HoconImmutableElement> Add(HoconImmutableElement element)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
-        public IImmutableList<HoconImmutableElement> AddRange(IEnumerable<HoconImmutableElement> items)
+        public IImmutableList<HoconImmutableElement> AddRange(IEnumerable<HoconImmutableElement> elements)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public IImmutableList<HoconImmutableElement> Insert(int index, HoconImmutableElement element)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
-        public IImmutableList<HoconImmutableElement> InsertRange(int index, IEnumerable<HoconImmutableElement> items)
+        public IImmutableList<HoconImmutableElement> InsertRange(int index, IEnumerable<HoconImmutableElement> elements)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
-        public IImmutableList<HoconImmutableElement> Remove(HoconImmutableElement value, IEqualityComparer<HoconImmutableElement> equalityComparer)
+        public IImmutableList<HoconImmutableElement> Remove(HoconImmutableElement element, IEqualityComparer<HoconImmutableElement> equalityComparer)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public IImmutableList<HoconImmutableElement> RemoveAll(Predicate<HoconImmutableElement> match)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
-        public IImmutableList<HoconImmutableElement> RemoveRange(IEnumerable<HoconImmutableElement> items, IEqualityComparer<HoconImmutableElement> equalityComparer)
+        public IImmutableList<HoconImmutableElement> RemoveRange(IEnumerable<HoconImmutableElement> elements, IEqualityComparer<HoconImmutableElement> equalityComparer)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public IImmutableList<HoconImmutableElement> RemoveRange(int index, int count)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public IImmutableList<HoconImmutableElement> RemoveAt(int index)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
-        public IImmutableList<HoconImmutableElement> SetItem(int index, HoconImmutableElement value)
+        public IImmutableList<HoconImmutableElement> SetItem(int index, HoconImmutableElement element)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public IImmutableList<HoconImmutableElement> Replace(
@@ -107,7 +119,7 @@ namespace Hocon.Immutable
             HoconImmutableElement newValue,
             IEqualityComparer<HoconImmutableElement> equalityComparer)
         {
-            throw new NotImplementedException();
+            throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
         public int Count => _elements.Length;
@@ -189,6 +201,12 @@ namespace Hocon.Immutable
         {
             return arr.Select(v => (string)v).ToArray();
         }
+
+        public static implicit operator char[] (HoconImmutableArray arr)
+        {
+            return arr.SelectMany(v => ((string)v).ToCharArray()).ToArray();
+        }
+
         #endregion
     }
 

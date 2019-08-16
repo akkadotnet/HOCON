@@ -17,18 +17,26 @@ namespace Hocon.Immutable
 {
     public sealed class HoconImmutableLiteral : HoconImmutableElement, IEquatable<HoconImmutableLiteral>
     {
+        public static readonly HoconImmutableLiteral Null = HoconImmutableLiteral.Create(null);
+
         public string Value { get; }
 
-        public HoconImmutableLiteral(string value)
+        private HoconImmutableLiteral(string value)
         {
             Value = value;
         }
 
+        internal static HoconImmutableLiteral Create(string value)
+        {
+            return new HoconImmutableLiteral(value);
+        }
+
+        #region Interface implementations
         public override string ToString() => Value;
 
         public bool Equals(HoconImmutableLiteral other)
         {
-            if (ReferenceEquals(null, other)) return false;
+            if (other == null) return false;
             return ReferenceEquals(this, other) || string.Equals(Value, other.Value);
         }
 
@@ -41,8 +49,24 @@ namespace Hocon.Immutable
         {
             return (Value != null ? Value.GetHashCode() : 0);
         }
+        #endregion
 
         #region Casting operators
+
+        public static implicit operator char(HoconImmutableLiteral lit)
+        {
+            return lit.Value?[0] ?? '\0';
+        }
+
+        public static implicit operator char[](HoconImmutableLiteral lit)
+        {
+            return lit.Value?.ToCharArray() ?? new char[]{};
+        }
+
+        public static implicit operator string(HoconImmutableLiteral lit)
+        {
+            return lit.Value;
+        }
 
         public static implicit operator bool(HoconImmutableLiteral lit)
         {
@@ -55,6 +79,7 @@ namespace Hocon.Immutable
                 case "off":
                 case "false":
                 case "no":
+                case null:
                     return false;
                 default:
                     throw new HoconException($"Unknown boolean format: {lit.Value}");
@@ -466,6 +491,14 @@ namespace Hocon.Immutable
 
         private static readonly Regex TimeSpanRegex = new Regex(@"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$", RegexOptions.Compiled);
 
+        private static double ParsePositiveValue(string v)
+        {
+            var value = double.Parse(v, NumberFormatInfo.InvariantInfo);
+            if (value < 0)
+                throw new FormatException("Expected a positive value instead of " + value);
+            return value;
+        }
+
         public static implicit operator TimeSpan(HoconImmutableLiteral lit)
         {
             var res = lit.Value;
@@ -523,14 +556,6 @@ namespace Hocon.Immutable
         }
 
         #endregion
-
-        private static double ParsePositiveValue(string v)
-        {
-            var value = double.Parse(v, NumberFormatInfo.InvariantInfo);
-            if (value < 0)
-                throw new FormatException("Expected a positive value instead of " + value);
-            return value;
-        }
 
     }
 }

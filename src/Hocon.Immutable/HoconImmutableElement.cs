@@ -12,6 +12,9 @@ namespace Hocon.Immutable
 {
     public abstract class HoconImmutableElement
     {
+        [Obsolete("There is no need to use Value property with Hocon.Immutable, please remove it.")]
+        public HoconImmutableElement Value => this;
+
         public HoconImmutableElement this[int index]
         {
             get
@@ -156,6 +159,14 @@ namespace Hocon.Immutable
         {
             if (element is HoconImmutableLiteral lit)
                 return lit.Value;
+
+            throw new HoconException($"Can only convert {nameof(HoconImmutableLiteral)} type to string, found {element.GetType()} instead.");
+        }
+
+        public static implicit operator char(HoconImmutableElement element)
+        {
+            if (element is HoconImmutableLiteral lit)
+                return lit;
 
             throw new HoconException($"Can only convert {nameof(HoconImmutableLiteral)} type to string, found {element.GetType()} instead.");
         }
@@ -368,6 +379,21 @@ namespace Hocon.Immutable
                     throw new HoconException($"Can only convert positive integer keyed {nameof(HoconImmutableObject)} and {nameof(HoconImmutableArray)}" +
                                              $" into string[], found {element.GetType()} instead.");
             }
+        }
+
+        public static implicit operator char[] (HoconImmutableElement element)
+        {
+            switch (element)
+            {
+                case HoconImmutableArray arr:
+                    return arr;
+                case HoconImmutableObject obj:
+                    return obj;
+                case HoconImmutableLiteral lit:
+                    return lit;
+            }
+            // Should never reach this code
+            throw new HoconException("Should never reach this code");
         }
         #endregion
     }

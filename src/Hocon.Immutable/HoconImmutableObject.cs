@@ -20,17 +20,14 @@ namespace Hocon.Immutable
     {
         private readonly ImmutableSortedDictionary<string, HoconImmutableElement> _fields;
 
-        public HoconImmutableElement this[string path]
-            => GetValue(path);
+        public new HoconImmutableElement this[string path] => GetValue(path);
+        public HoconImmutableElement this[HoconPath path] => GetValue(path);
 
         public IEnumerable<string> Keys => _fields.Keys;
         public IEnumerable<HoconImmutableElement> Values => _fields.Values;
         public int Count => _fields.Count;
 
-        public HoconImmutableElement this[HoconPath path]
-            => GetValue(path);
-
-        public HoconImmutableObject(SortedDictionary<string, HoconImmutableElement> fields)
+        private HoconImmutableObject(IDictionary<string, HoconImmutableElement> fields)
         {
             _fields = fields.ToImmutableSortedDictionary();
         }
@@ -63,7 +60,12 @@ namespace Hocon.Immutable
             if (sortedDict.Count == 0)
                 throw new HoconException("Object is empty, does not contain any numerically indexed fields, or contains only non-positive integer indices");
 
-            return new HoconImmutableArray(sortedDict.Values);
+            return HoconImmutableArray.Create(sortedDict.Values);
+        }
+
+        internal static HoconImmutableObject Create(IDictionary<string, HoconImmutableElement> fields)
+        {
+            return new HoconImmutableObject(fields);
         }
 
         #region Interface implementation
@@ -108,11 +110,7 @@ namespace Hocon.Immutable
         public bool TryGetValue(string key, out HoconImmutableElement result)
         {
             result = null;
-            if (string.IsNullOrWhiteSpace(key))
-                return false;
-
-            var path = HoconPath.Parse(key);
-            return TryGetValue(path, out result);
+            return !string.IsNullOrWhiteSpace(key) && TryGetValue(HoconPath.Parse(key), out result);
         }
 
         public bool TryGetValue(HoconPath path, out HoconImmutableElement result)
@@ -234,6 +232,10 @@ namespace Hocon.Immutable
             return obj.ToArray();
         }
 
+        public static implicit operator char[] (HoconImmutableObject obj)
+        {
+            return obj.ToArray();
+        }
 
         #endregion
     }
