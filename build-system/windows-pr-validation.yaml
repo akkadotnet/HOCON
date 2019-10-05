@@ -20,3 +20,5 @@ jobs:
     vmImage: 'vs2017-win2016'
     scriptFileName: build.cmd
     scriptArgs: all
+    outputDirectory: 'bin/nuget'
+    artifactName: 'nuget_pack-$(Build.BuildId)'
