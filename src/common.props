@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Copyright>Copyright © 2014-2018 Akka.NET Team</Copyright>
+    <Copyright>Copyright © 2014-2019 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
     <VersionPrefix>1.1.0</VersionPrefix>
     <PackageReleaseNotes>HOCON 1.1.0 contains a large number of bug fixes and improvements over HOCON 1.0.0, including:
