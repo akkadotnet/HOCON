@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\xunit.runner.json" Link="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
     <PackageReference Include="xunit" Version="$(XunitVersion)" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(XunitCliVersion)" />
@@ -16,18 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="App.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <ProjectReference Include="..\Hocon.Configuration\Hocon.Configuration.csproj" />
+    <ProjectReference Include="..\Hocon.Immutable\Hocon.Immutable.csproj" />
+    <ProjectReference Include="..\Hocon\Hocon.csproj" />
   </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
-    <Reference Include="System.Configuration" />
-  </ItemGroup>
-
-  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-    <Copy SourceFiles="App.config" DestinationFiles="$(OutDir)\testhost.dll.config" />
-  </Target>
 
 </Project>

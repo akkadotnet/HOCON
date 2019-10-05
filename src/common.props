@@ -1,16 +1,9 @@
 <Project>
   <PropertyGroup>
-    <Copyright>Copyright © 2014-2018 Akka.NET Team</Copyright>
+    <Copyright>Copyright © 2014-2019 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
-    <VersionPrefix>1.1.0</VersionPrefix>
-    <PackageReleaseNotes>HOCON 1.1.0 contains a large number of bug fixes and improvements over HOCON 1.0.0, including:
-[Fix: fully qualified type name with assembly cant be used as property name ](https://github.com/akkadotnet/HOCON/issues/79)
-[Fix: unable to use include keyword at root level](https://github.com/akkadotnet/HOCON/pull/69)
-[Fix. Child field path was not concatenated with its parent path](https://github.com/akkadotnet/HOCON/pull/96)
-[Fix: bug when getting a string with a substitution as an array element](https://github.com/akkadotnet/HOCON/pull/88)
-[Fix: Object fields containing objects may not return proper object value in certain circumstances. ](https://github.com/akkadotnet/HOCON/pull/93)
-[Fix: Improper value instantiation and parenting during parsing caused a disconnected tree nodes.](https://github.com/akkadotnet/HOCON/pull/99)
-[Fix: HoconValue.Undefined is inconsistent](https://github.com/akkadotnet/HOCON/pull/101)</PackageReleaseNotes>
+    <VersionPrefix>1.2.0</VersionPrefix>
+    <PackageReleaseNotes>HOCON 1.2.0 contains an entirely new model for working with HOCON, via the `Hocon.Immutable` NuGet package.</PackageReleaseNotes>
     <PackageIconUrl>http://getakka.net/images/akkalogo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</PackageLicenseUrl>
