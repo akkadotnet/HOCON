@@ -20,3 +20,5 @@ jobs:
     vmImage: 'ubuntu-16.04'
     scriptFileName: ./build.sh
     scriptArgs: all
+    outputDirectory: 'bin/nuget'
+    artifactName: 'nuget_pack-$(Build.BuildId)'
