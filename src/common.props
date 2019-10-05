@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Copyright>Copyright © 2014-2018 Akka.NET Team</Copyright>
+    <Copyright>Copyright © 2014-2019 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
     <VersionPrefix>1.2.0</VersionPrefix>
     <PackageReleaseNotes>HOCON 1.2.0 contains an entirely new model for working with HOCON, via the `Hocon.Immutable` NuGet package.</PackageReleaseNotes>
