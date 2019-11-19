@@ -12,7 +12,7 @@
   <PropertyGroup>
     <XunitVersion>2.4.1</XunitVersion>
     <XunitCliVersion>2.3.1</XunitCliVersion>
-    <TestSdkVersion>16.3.0</TestSdkVersion>
+    <TestSdkVersion>16.4.0</TestSdkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
