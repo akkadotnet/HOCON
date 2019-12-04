@@ -8,6 +8,7 @@
 using System;
 using System.Configuration;
 using System.Linq;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -272,6 +273,26 @@ a {
             var enumerable = config2.AsEnumerable();
 
             Assert.Equal("some quoted, key", enumerable.Select(kvp => kvp.Key).First());
+        }
+        
+        [Fact]
+        public void CanSubstituteArrayCorrectly()
+        {
+            var hocon = @"
+ c: {
+    q: {
+        a: [2, 5]
+    }
+}
+c: {
+    m: ${c.q} {a: [6]}
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            var unchanged = config.GetIntList("c.q.a");
+            unchanged.Should().Equal(new [] { 2, 5 });
+            var changed = config.GetIntList("c.m.a");
+            changed.Should().Equal(new [] { 6 });
         }
 
         [Fact]
