@@ -394,7 +394,7 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this)
             {
-                clone.SetField(kvp.Key, kvp.Value);
+                clone.SetField(kvp.Key, kvp.Value.Clone(clone) as HoconField);
             }
             return clone;
         }

@@ -706,7 +706,7 @@ namespace Hocon
             var clone = new HoconValue(newParent);
             foreach (var element in this)
             {
-                clone.Add(element);
+                clone.Add(element.Clone(clone));
             }
             return clone;
         }

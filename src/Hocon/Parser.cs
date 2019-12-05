@@ -184,7 +184,7 @@ namespace Hocon
 
             // third case, regular substitution
             _root.GetObject().TryGetValue(sub.Path, out var field);
-            return field;
+            return field.Clone(field.Parent) as HoconValue;
         }
 
         private bool IsValueCyclic(HoconField field, HoconSubstitution sub)
