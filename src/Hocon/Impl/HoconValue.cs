@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Hocon.Extensions;
 
 namespace Hocon
 {
@@ -706,7 +707,7 @@ namespace Hocon
             var clone = new HoconValue(newParent);
             foreach (var element in this)
             {
-                clone.Add(element.Clone(clone));
+                clone.Add(element.CloneValue(clone));
             }
             return clone;
         }
