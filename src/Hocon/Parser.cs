@@ -690,6 +690,11 @@ namespace Hocon
                     case TokenType.StartOfArray:
                         if (value == null)
                             value = GetHoconValueFromParentElement(owner, _tokens.Current.Type);
+                        
+                        // If this array is already initialized, we are going to overwrite it
+                        if (value.Type == HoconType.Array && value.Count > 0)
+                            value.Clear();
+                        
                         value.Add(ParseArray(value));
                         break;
 
@@ -902,7 +907,19 @@ namespace Hocon
 
                     case TokenType.EndOfArray:
                         valueWasParsed = false;
-                        parsing = false;
+
+                        // If there is a next array on the same like - let's move to it's first element
+                        if (_tokens.ForwardMatch(TokenType.StartOfArray))
+                        {
+                            _tokens.ToNextSignificant();
+                            _tokens.Next();
+                        }
+                        else
+                        {
+                            // Otherwise, array value is fully loaded and nothing to do here
+                            parsing = false;
+                        }
+                        
                         break;
 
                     case TokenType.Comment:
