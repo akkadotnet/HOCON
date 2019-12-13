@@ -172,9 +172,15 @@ namespace Hocon
 
             if (path.Count == 0)
                 throw new ArgumentException("Path is empty.", nameof(path));
-
-            var pathIndex = 0;
+            
             var currentObject = this;
+            
+            // Sometimes path may be a double-quoted string like "a.b.c" with quotes ommited,
+            // so check if there is such key first
+            if (currentObject.TryGetValue(path.ToString(), out var rootField))
+                return rootField;
+            
+            var pathIndex = 0;
             while (true)
             {
                 var key = path[pathIndex];
