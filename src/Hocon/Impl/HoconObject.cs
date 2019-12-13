@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using Hocon.Extensions;
 
 namespace Hocon
 {
@@ -400,7 +401,7 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this)
             {
-                clone.SetField(kvp.Key, kvp.Value);
+                clone.SetField(kvp.Key, kvp.Value.CloneValue(clone) as HoconField);
             }
             return clone;
         }
