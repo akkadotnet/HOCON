@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="Parser.cs" company="Hocon Project">
 //     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
 //     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
@@ -184,7 +184,7 @@ namespace Hocon
 
             // third case, regular substitution
             _root.GetObject().TryGetValue(sub.Path, out var field);
-            return field;
+            return field?.Clone(field.Parent) as HoconValue;
         }
 
         private bool IsValueCyclic(HoconField field, HoconSubstitution sub)
