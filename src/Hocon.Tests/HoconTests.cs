@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -305,6 +306,37 @@ a.b.e.f=3
             Assert.Equal(1L, config.GetLong("a.b.c"));
             Assert.Equal(2L, config.GetLong("a.b.d"));
             Assert.Equal(3L, config.GetLong("a.b.e.f"));
+        }
+
+        [Fact]
+        public void Fix_substitutions_Issue123()
+        {
+            var hocon = @"
+a: avalue
+
+b {
+  b1: ""0001-01-01Z""
+  b2: 0
+  b_alpha: ${a}/${c.c1}/${b.b3}/${b.b4}
+  b_beta: ""[""${b.b_alpha}"",""${b.b1}"",""${b.b2}""]""
+}
+
+c {
+  c1: c1value
+}
+
+b {
+  b3: b4value
+}
+
+b {
+  b4: b4value
+}
+";
+
+            var config = Parser.Parse(hocon);
+            config.GetString("b.b_alpha").Should().Be("avalue/c1value/b4value/b4value");
+            config.GetString("b.b_beta").Should().Be("[avalue/c1value/b4value/b4value,0001-01-01Z,0]");
         }
 
         [Fact]
