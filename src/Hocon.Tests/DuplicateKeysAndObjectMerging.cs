@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -145,6 +146,27 @@ foo
             Assert.Equal(1, config.GetInt("foo.x"));
             Assert.Equal(2, config.GetInt("foo.y"));
             Assert.Equal(32, config.GetInt("foo.z"));
+        }
+
+        // Fix for https://github.com/akkadotnet/HOCON/issues/137
+        [Fact]
+        public void ObjectsWithArraysShouldMergeCorrectly()
+        {
+            var hocon = @"
+c: { 
+    a: [2, 5] 
+    a: [6] 
+}
+";
+            var hocon2 = @"
+c: { 
+    a: [2, 5] [6] 
+}
+";
+            var config = Parser.Parse(hocon);
+            config.GetIntList("c.a").Should().Equal(new [] { 6 });
+            config = Parser.Parse(hocon2);
+            config.GetIntList("c.a").Should().Equal(new [] { 2, 5, 6 });
         }
 
         [Fact]
