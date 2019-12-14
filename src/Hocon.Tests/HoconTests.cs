@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -341,6 +342,43 @@ a.b.e.f=3
         {
             var hocon = @"a=1.1";
             Assert.Equal(1.1, Parser.Parse(hocon).GetDouble("a"));
+        }
+
+        [Fact]
+        public void CanSetDefaultValuesWhenGettingData()
+        {
+            var emptyConfig = Parser.Parse("{}");
+            var missingKey = "a";
+            
+            emptyConfig.GetInt(missingKey, 0).Should().Be(0);
+            emptyConfig.GetDouble(missingKey, 0).Should().Be(0);
+
+            emptyConfig.GetBooleanList(missingKey, new List<bool>()).Should().Equal(new List<bool>());
+            emptyConfig.Invoking(c => c.GetBooleanList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetByteList(missingKey, new List<byte>()).Should().Equal(new List<byte>());
+            emptyConfig.Invoking(c => c.GetByteList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetDecimalList(missingKey, new List<decimal>()).Should().Equal(new List<decimal>());
+            emptyConfig.Invoking(c => c.GetDecimalList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetDoubleList(missingKey, new List<double>()).Should().Equal(new List<double>());
+            emptyConfig.Invoking(c => c.GetDoubleList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetFloatList(missingKey, new List<float>()).Should().Equal(new List<float>());
+            emptyConfig.Invoking(c => c.GetFloatList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetIntList(missingKey, new List<int>()).Should().Equal(new List<int>());
+            emptyConfig.Invoking(c => c.GetIntList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetLongList(missingKey, new List<long>()).Should().Equal(new List<long>());
+            emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetObjectList(missingKey, new List<HoconObject>()).Should().Equal(new List<HoconObject>());
+            emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconParserException>();
+            
+            emptyConfig.GetStringList(missingKey, new List<string>()).Should().Equal(new List<string>());
+            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().Throw<HoconParserException>();
         }
 
         [Fact]
