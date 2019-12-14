@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="HoconValue.cs" company="Hocon Project">
 //     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
 //     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
@@ -681,7 +681,7 @@ namespace Hocon
         /// <returns>A HOCON string representation of this <see cref="HoconValue"/>.</returns>
         public override string ToString()
         {
-            return ToString(0, 2);
+            return ToString(1, 2);
         }
 
         /// <inheritdoc />
