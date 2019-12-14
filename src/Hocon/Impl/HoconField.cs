@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------
 // <copyright file="HoconField.cs" company="Hocon Project">
 //     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
 //     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
@@ -101,7 +101,8 @@ namespace Hocon
                 foreach (var item in _internalValues)
                 {
                     var subs = item.GetSubstitutions();
-                    foreach (var sub in subs)
+                    var preservedSub = value.GetSubstitutions();
+                    foreach (var sub in subs.Except(preservedSub))
                     {
                         sub.Removed = true;
                     }
