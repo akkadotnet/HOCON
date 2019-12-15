@@ -571,9 +571,13 @@ namespace Hocon
 
         private static double ParsePositiveValue(string v)
         {
-            var value = double.Parse(v, NumberFormatInfo.InvariantInfo);
+            // This NumberStyles are used in double.TryParse(v, out var value) overload internally
+            if (!double.TryParse(v, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo, out var value))
+                throw new FormatException($"Failed to parse TimeSpan value from '{v}'");
+            
             if (value < 0)
                 throw new FormatException("Expected a positive value instead of " + value);
+            
             return value;
         }
 
