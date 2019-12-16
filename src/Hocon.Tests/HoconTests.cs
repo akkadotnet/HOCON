@@ -109,17 +109,11 @@ a {
             Assert.Null(Parser.Parse(hocon).GetString("array"));
         }
 
-        // TODO: This behavior is incorrect, anything to array should throw instead.
-        // see https://github.com/lightbend/config/blob/master/HOCON.md#automatic-type-conversions
-        // see https://github.com/lightbend/config/blob/v1.3.3/config/src/main/java/com/typesafe/config/Config.java#L936
-        // OLD BEHAVIOR:(not sure if this is the expected behavior but it is what we have established in Akka.NET)
         [Fact]
         public void GettingArrayFromLiteralsReturnsNull()
         {
             var hocon = " literal : a b c";
-            var res = Parser.Parse(hocon).GetStringList("literal");
-
-            Assert.Null(res);
+            Parser.Parse(hocon).Invoking(c => c.GetStringList("literal")).Should().Throw<HoconException>("Anything converted to array should throw instead");
         }
 
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
