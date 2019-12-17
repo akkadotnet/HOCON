@@ -53,12 +53,22 @@ namespace Hocon
             Substitutions = substitutions;
         }
 
-        protected virtual HoconValue GetNode(HoconPath path)
+        protected virtual HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
             if(Value.Type != HoconType.Object)
                 throw new HoconException("Hocon is not an object.");
 
-            return Value.GetObject().GetValue(path);
+            try
+            {
+                return Value.GetObject().GetValue(path);
+            }
+            catch (KeyNotFoundException)
+            {
+                if (throwIfNotFound)
+                    throw;
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -181,7 +191,7 @@ namespace Hocon
         /// Retrieves a long value, optionally suffixed with a 'b', from the specified path in the configuration.
         /// </summary>
         /// <param name="path">The path that contains the value to retrieve.</param>
-        /// <returns>The long value defined in the specified path.</returns>
+        /// <returns>The long value defined in the specified path, or null if path was not found.</returns>
         public long? GetByteSize(string path)
             => GetByteSize(HoconPath.Parse(path));
 
@@ -224,9 +234,16 @@ namespace Hocon
             return value == null ? @default : value.GetLong();
         }
 
+        /// <summary>
+        /// Retrieves a byte value from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the value to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The byte value defined in the specified path.</returns>
         public byte GetByte(string path, byte @default = 0)
             => GetByte(HoconPath.Parse(path), @default);
 
+        /// <inheritdoc cref="GetByte(string,byte)"/>
         public byte GetByte(HoconPath path, byte @default = 0)
         {
             var value = GetNode(path);
@@ -296,24 +313,30 @@ namespace Hocon
             var value = GetNode(path);
             return value == null ? @default : value.GetObject();
         }
-
-
+        
         /// <summary>
         /// Retrieves a list of boolean values from the specified path in the configuration.
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of boolean values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<Boolean> GetBooleanList(string path)
-            => GetBooleanList(HoconPath.Parse(path));
+            => GetBooleanList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+
+        /// <summary>
+        /// Retrieves a list of boolean values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of boolean values defined in the specified path.</returns>
+        public IList<Boolean> GetBooleanList(string path, IList<Boolean> @default)
+            => GetBooleanList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetBooleanList(string)"/>
-        public IList<Boolean> GetBooleanList(HoconPath path)
+        public IList<Boolean> GetBooleanList(HoconPath path, IList<Boolean> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetBooleanList();
+            return value == null ? @default : value.GetBooleanList();
         }
 
         /// <summary>
@@ -321,17 +344,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of decimal values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<decimal> GetDecimalList(string path)
-            => GetDecimalList(HoconPath.Parse(path));
+            => GetDecimalList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+
+        /// <summary>
+        /// Retrieves a list of decimal values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of decimal values defined in the specified path.</returns>
+        public IList<decimal> GetDecimalList(string path, IList<decimal> @default)
+            => GetDecimalList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetDecimalList(string)"/>
-        public IList<decimal> GetDecimalList(HoconPath path)
+        public IList<decimal> GetDecimalList(HoconPath path, IList<decimal> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetDecimalList();
+            return value == null ? @default : value.GetDecimalList();
         }
 
         /// <summary>
@@ -339,17 +369,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of float values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<float> GetFloatList(string path)
-            => GetFloatList(HoconPath.Parse(path));
+            => GetFloatList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+
+        /// <summary>
+        /// Retrieves a list of float values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of float values defined in the specified path.</returns>
+        public IList<float> GetFloatList(string path, IList<float> @default)
+            => GetFloatList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetFloatList(string)"/>
-        public IList<float> GetFloatList(HoconPath path)
+        public IList<float> GetFloatList(HoconPath path, IList<float> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetFloatList();
+            return value == null ? @default : value.GetFloatList();
         }
 
         /// <summary>
@@ -357,17 +394,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of double values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<double> GetDoubleList(string path)
-            => GetDoubleList(HoconPath.Parse(path));
+            => GetDoubleList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+        
+        /// <summary>
+        /// Retrieves a list of double values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of double values defined in the specified path.</returns>
+        public IList<double> GetDoubleList(string path, IList<double> @default)
+            => GetDoubleList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetDoubleList(string)"/>
-        public IList<double> GetDoubleList(HoconPath path)
+        public IList<double> GetDoubleList(HoconPath path, IList<double> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetDoubleList();
+            return value == null ? @default : value.GetDoubleList();
         }
 
         /// <summary>
@@ -375,17 +419,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of int values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<int> GetIntList(string path)
-            => GetIntList(HoconPath.Parse(path));
+            => GetIntList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+        
+        /// <summary>
+        /// Retrieves a list of int values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of int values defined in the specified path.</returns>
+        public IList<int> GetIntList(string path, IList<int> @default)
+            => GetIntList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetIntList(string)"/>
-        public IList<int> GetIntList(HoconPath path)
+        public IList<int> GetIntList(HoconPath path, IList<int> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetIntList();
+            return value == null ? @default : value.GetIntList();
         }
 
         /// <summary>
@@ -393,17 +444,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of long values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<long> GetLongList(string path)
-            => GetLongList(HoconPath.Parse(path));
+            => GetLongList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+
+        /// <summary>
+        /// Retrieves a list of long values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of long values defined in the specified path.</returns>
+        public IList<long> GetLongList(string path, IList<long> @default)
+            => GetLongList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetLongList(string)"/>
-        public IList<long> GetLongList(HoconPath path)
+        public IList<long> GetLongList(HoconPath path, IList<long> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetLongList();
+            return value == null ? @default : value.GetLongList();
         }
 
         /// <summary>
@@ -411,17 +469,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of byte values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<byte> GetByteList(string path)
-            => GetByteList(HoconPath.Parse(path));
+            => GetByteList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+        
+        /// <summary>
+        /// Retrieves a list of byte values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of byte values defined in the specified path.</returns>
+        public IList<byte> GetByteList(string path, IList<byte> @default)
+            => GetByteList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetByteList(string)"/>
-        public IList<byte> GetByteList(HoconPath path)
+        public IList<byte> GetByteList(HoconPath path, IList<byte> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetByteList();
+            return value == null ? @default : value.GetByteList();
         }
 
         /// <summary>
@@ -429,17 +494,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of string values defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<string> GetStringList(string path)
-            => GetStringList(HoconPath.Parse(path));
+            => GetStringList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
+        
+        /// <summary>
+        /// Retrieves a list of string values from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of string values defined in the specified path.</returns>
+        public IList<string> GetStringList(string path, IList<string> @default)
+            => GetStringList(HoconPath.Parse(path), @default);
 
         /// <inheritdoc cref="GetStringList(string)"/>
-        public IList<string> GetStringList(HoconPath path)
+        public IList<string> GetStringList(HoconPath path, IList<string> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetStringList();
+            return value == null ? @default : value.GetStringList();
         }
 
         /// <summary>
@@ -447,16 +519,24 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the objects to retrieve.</param>
         /// <returns>The list of objects defined in the specified path.</returns>
+        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public IList<HoconObject> GetObjectList(string path)
-            => GetObjectList(HoconPath.Parse(path));
+            => GetObjectList(HoconPath.Parse(path)) ?? throw new HoconParserException($"Hocon path {path} does not exist.");
 
-        public IList<HoconObject> GetObjectList(HoconPath path)
+        /// <summary>
+        /// Retrieves a list of objects from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the objects to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        /// <returns>The list of objects defined in the specified path.</returns>
+        public IList<HoconObject> GetObjectList(string path, IList<HoconObject> @default)
+            => GetObjectList(HoconPath.Parse(path), @default);
+        
+        /// <inheritdoc cref="GetObjectList(string)"/>
+        public IList<HoconObject> GetObjectList(HoconPath path, IList<HoconObject> @default = null)
         {
             var value = GetNode(path);
-            if (value == null)
-                throw new HoconParserException($"Hocon path {path} does not exist.");
-
-            return value.GetObjectList();
+            return value == null ? @default : value.GetObjectList();
         }
 
         /// <summary>
