@@ -200,6 +200,27 @@ a.b.c = {
             Assert.Equal("2", config.GetString("a.b.c.y"));
             Assert.Equal("3", config.GetString("a.b.c.z"));
         }
+        
+        [Fact]
+        public void Getter_failures_Should_include_bad_path()
+        {
+            var badConfig = Parser.Parse("{a: abc}");
+            var badPath = "a";
+
+            badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetDouble(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetBooleanList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetByteList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetDecimalList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetDoubleList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetFloatList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetIntList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetLongList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetObjectList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetStringList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+        }
 
         [Fact]
         public void CanOverrideObject()
