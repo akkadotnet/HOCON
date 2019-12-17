@@ -204,8 +204,8 @@ a.b.c = {
         [Fact]
         public void Getter_failures_Should_include_bad_path()
         {
-            var badConfig = Parser.Parse("{a: abc}");
-            var badPath = "a";
+            var badConfig = Parser.Parse("{a.c: abc}");
+            var badPath = "a.c";
 
             badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
             badConfig.Invoking(c => c.GetDouble(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
