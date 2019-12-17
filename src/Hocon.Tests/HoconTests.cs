@@ -118,7 +118,7 @@ a {
 
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
         [Fact]
-        public void CanUsePathsAsKeys_3_14()
+        public void CanUsePathsAsKeys_3_14() 
         {
             var hocon1 = @"3.14 : 42";
             var hocon2 = @"3 { 14 : 42}";
