@@ -36,7 +36,7 @@ namespace Hocon.Extensions.Configuration.Tests
         }
 
         [Fact]
-        public void ShouldReloadConfigurationOnFileChange()
+        public async Task ShouldReloadConfigurationOnFileChange()
         {
             using (var fileSystem = new DisposableFileSystem())
             {
@@ -50,10 +50,28 @@ namespace Hocon.Extensions.Configuration.Tests
 
                 fileSystem.CreateFile("reference.conf", ModifiedConfigString);
                 // The default reload delay is 250 ms, add 100 ms to give the file monitoring system time to catch up and load the new config.
-                Task.Delay(350).Wait();
-                Assert.Equal("0.0.2 Akka", config["akka:version"]);
-                Assert.Equal("Akka.Actor.RemoteActorRefProvider", config["akka:actor:provider"]);
-                Assert.Equal("1024", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+                await Task.Delay(350);
+                var retries = 10;
+                while(retries > 0)
+                {
+                    try
+                    {
+                        Assert.Equal("0.0.2 Akka", config["akka:version"]);
+                        Assert.Equal("Akka.Actor.RemoteActorRefProvider", config["akka:actor:provider"]);
+                        Assert.Equal("1024", config["akka:io:tcp:direct-buffer-pool:buffer-size"]);
+                        break;
+                    }
+                    catch
+                    {
+                        retries--;
+                        if(retries == 0)
+                        { 
+                            throw; 
+                        }
+                        await Task.Delay(50);
+                    }
+                }
+                
             }
         }
 
