@@ -245,6 +245,25 @@ A {
         }
 
         [Fact]
+        public void Fix_cyclic_substitution_loop_error_Issue128()
+        {
+            var hocon = @"
+c: {
+    q: {
+        a: [2, 5]
+    }
+}
+c: {
+    m: ${c.q} {p: 75}
+    m.a: ${c.q.a} [6]
+}
+";
+            
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.Null(ex);
+        }
+
+        [Fact]
         public void CanTrimValue()
         {
             var hocon = "a= \t \t 1 \t \t,";
