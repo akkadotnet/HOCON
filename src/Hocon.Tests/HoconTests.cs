@@ -123,7 +123,7 @@ a {
 
         //Added tests to conform to the HOCON spec https://github.com/typesafehub/config/blob/master/HOCON.md
         [Fact]
-        public void CanUsePathsAsKeys_3_14()
+        public void CanUsePathsAsKeys_3_14() 
         {
             var hocon1 = @"3.14 : 42";
             var hocon2 = @"3 { 14 : 42}";
@@ -240,6 +240,25 @@ A {
 }
 ";
             var ex = Record.Exception(() => Parser.Parse(hocon).GetObject("A"));
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public void Fix_cyclic_substitution_loop_error_Issue128()
+        {
+            var hocon = @"
+c: {
+    q: {
+        a: [2, 5]
+    }
+}
+c: {
+    m: ${c.q} {p: 75}
+    m.a: ${c.q.a} [6]
+}
+";
+            
+            var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.Null(ex);
         }
 
