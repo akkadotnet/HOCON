@@ -186,7 +186,10 @@ foo : { a : 1 }
         {
             var hocon = @"
 foo : ${does-not-exist}
-foo : 42";
+foo : 42
+bar : ${yet-another-to-ignore}
+bar : [42]
+";
 
             HoconRoot config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
