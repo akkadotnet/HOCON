@@ -10,6 +10,9 @@ namespace Hocon
             FailPath = failPath;
         }
         
+        /// <summary>
+        /// Gets HOCON path of the value which caused failure
+        /// </summary>
         public string FailPath { get; }
     }
 }
