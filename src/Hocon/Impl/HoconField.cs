@@ -96,12 +96,13 @@ namespace Hocon
             if (value == null)
                 return;
 
-            if (value.Type == HoconType.Literal)
+            if (value.Type != HoconType.Object)
             {
                 foreach (var item in _internalValues)
                 {
                     var subs = item.GetSubstitutions();
-                    foreach (var sub in subs)
+                    var preservedSub = value.GetSubstitutions();
+                    foreach (var sub in subs.Except(preservedSub))
                     {
                         sub.Removed = true;
                     }
