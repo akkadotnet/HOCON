@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using FluentAssertions;
 using Xunit;
 
 namespace Hocon.Tests
@@ -158,15 +159,15 @@ a: {
 }";
             var config = Parser.Parse(hocon);
 
-            Assert.Throws<HoconException>(() =>
+            Assert.Throws<HoconValueException>(() =>
             {
                 config.GetObjectList("a");
             });
-            Assert.Throws<HoconException>(() =>
+            Assert.Throws<HoconValueException>(() =>
             {
                 config.GetStringList("a");
             });
-            Assert.Throws<HoconException>(() =>
+            Assert.Throws<HoconValueException>(() =>
             {
                 config.GetIntList("a");
             });
@@ -182,10 +183,12 @@ a: {
         public void WithEmptyOrNonPositiveIndicesShouldThrow(string hocon)
         {
             var config = Parser.Parse(hocon);
-            Assert.Throws<HoconException>(() =>
+            var ex = Assert.Throws<HoconValueException>(() =>
             {
                 config.GetObjectList("a");
             });
+            ex.GetBaseException().Should().BeOfType<HoconException>();
+            ex.FailPath.Should().Be("a");
         }
 
         /*

@@ -17,7 +17,7 @@ namespace Hocon
     /// the internal representation of a HOCON (Human-Optimized Config Object Notation)
     /// configuration string.
     /// </summary>
-    public class Config:HoconRoot
+    public class Config: HoconRoot
     {
         /// <summary>
         /// The configuration used as a secondary source.
@@ -65,7 +65,7 @@ namespace Hocon
             };
         }
 
-        protected override HoconValue GetNode(HoconPath path)
+        protected override HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
             HoconValue result;
             try
@@ -74,6 +74,9 @@ namespace Hocon
             }
             catch
             {
+                if (throwIfNotFound)
+                    throw;
+                
                 result = Fallback?.GetNode(path);
             }
 

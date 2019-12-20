@@ -164,9 +164,7 @@ namespace Hocon
                     return GetObject().GetArray();
 
                 case HoconType.Literal:
-                    return null;
-                    // TODO: this should throw according to spec
-                    // throw new HoconException("Hocon literal could not be converted to array.");
+                    throw new HoconException("Hocon literal could not be converted to array.");
 
                 case HoconType.Empty:
                     throw new HoconException("HoconValue is empty.");
@@ -489,8 +487,7 @@ namespace Hocon
         /// <returns>A list of string values represented by this <see cref="HoconValue"/>.</returns>
         public IList<string> GetStringList()
         {
-            // TODO: this should throw, remove the ?
-            return GetArray()?.Select(v => v.GetString()).ToList();
+            return GetArray().Select(v => v.GetString()).ToList();
         }
 
         /// <summary>
