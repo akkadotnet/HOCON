@@ -395,6 +395,24 @@ b {
             //Assert.True(new[] { 1, 2, 3 }.SequenceEqual(Parser.Parse(hocon).GetIntList("a")));
         }
 
+        /// <summary>
+        /// Related issue: https://github.com/akkadotnet/HOCON/issues/108
+        /// </summary>
+        [Fact]
+        public void Config_ToString_Should_work_properly()
+        {
+            var hocon = @"
+a {
+  b = 1
+  c : {
+    d = 2
+  }
+}
+";
+            var config = Parser.Parse(hocon);
+            Record.Exception(() => config.ToString()).Should().BeNull();
+        }
+
         [Fact]
         public void CanConcatenateArray()
         {
