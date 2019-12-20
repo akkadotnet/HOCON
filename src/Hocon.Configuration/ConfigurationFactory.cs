@@ -115,9 +115,12 @@ namespace Hocon
             // if we made it this far: no default HOCON files found. Check app.config
             try
             {
-                return Load("hocon"); // new default
-                return Load("akka"); // old Akka.NET-specific default
-                
+                var def = Load("hocon"); // new default
+                if (def == null || def.IsEmpty)
+                {
+                    return Load("akka"); // old Akka.NET-specific default
+                }
+
             }
             catch
             {
