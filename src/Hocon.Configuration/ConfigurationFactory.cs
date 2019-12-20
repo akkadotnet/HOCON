@@ -9,6 +9,7 @@ using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Hocon
@@ -57,6 +58,7 @@ namespace Hocon
         /// The configuration defined in the configuration file. If the section
         /// "akka" is not found, this returns an empty Config.
         /// </returns>
+        [Obsolete("Call the ConfigurationFactory.Default method instead.")]
         public static Config Load()
         {
            return Load("akka");
@@ -78,6 +80,25 @@ namespace Hocon
    
            return config;
         }
+
+        /// <summary>
+        /// Parses a HOCON file from the filesystem.
+        /// </summary>
+        /// <param name="filePath">The path to the file.</param>
+        /// <returns>A parsed HOCON configuration object.</returns>
+        /// <throws>ConfigurationException, when the supplied filePath can't be found.</throws>
+        public static Config FromFile(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                return ParseString(File.ReadAllText(filePath));
+            }
+
+            throw new ConfigurationException($"No HOCON file at {filePath} could be found.");
+        }
+
+        public static readonly string[] DefaultHoconFilePaths = { "app.conf", "app.hocon" };
+
         /// <summary>
         /// Retrieves the default configuration that Akka.NET uses
         /// when no configuration has been defined.
@@ -85,7 +106,25 @@ namespace Hocon
         /// <returns>The configuration that contains default values for all options.</returns>
         public static Config Default()
         {
-            return FromResource("Default.conf");
+            // attempt to load .hocon files first
+            foreach (var path in DefaultHoconFilePaths.Where(x => File.Exists(x)))
+            {
+                return FromFile(path);
+            }
+
+            // if we made it this far: no default HOCON files found. Check app.config
+            try
+            {
+                return Load("hocon"); // new default
+                return Load("akka"); // old Akka.NET-specific default
+                
+            }
+            catch
+            {
+
+            }
+
+            return Empty;
         }
 
         /// <summary>
