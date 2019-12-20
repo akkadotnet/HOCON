@@ -19,7 +19,7 @@ namespace Hocon.Immutable
     {
         public static readonly HoconImmutableLiteral Null = HoconImmutableLiteral.Create(null);
 
-        public string Value { get; }
+        public new string Value { get; }
 
         private HoconImmutableLiteral(string value)
         {
