@@ -17,7 +17,7 @@ namespace Hocon
     /// the internal representation of a HOCON (Human-Optimized Config Object Notation)
     /// configuration string.
     /// </summary>
-    public class Config:HoconRoot
+    public class Config: HoconRoot
     {
         /// <summary>
         /// The configuration used as a secondary source.

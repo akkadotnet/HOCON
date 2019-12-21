@@ -200,6 +200,27 @@ a.b.c = {
             Assert.Equal("2", config.GetString("a.b.c.y"));
             Assert.Equal("3", config.GetString("a.b.c.z"));
         }
+        
+        [Fact]
+        public void Getter_failures_Should_include_bad_path()
+        {
+            var badConfig = Parser.Parse("{a.c: abc}");
+            var badPath = "a.c";
+
+            badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetDouble(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetBooleanList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetByteList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetDecimalList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetDoubleList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetFloatList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetIntList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetLongList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetObjectList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetStringList(badPath)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+            badConfig.Invoking(c => c.GetInt(badPath, 0)).Should().Throw<HoconValueException>().Which.FailPath.Should().Be(badPath);
+        }
 
         [Fact]
         public void CanOverrideObject()
@@ -374,6 +395,24 @@ b {
             //Assert.True(new[] { 1, 2, 3 }.SequenceEqual(Parser.Parse(hocon).GetIntList("a")));
         }
 
+        /// <summary>
+        /// Related issue: https://github.com/akkadotnet/HOCON/issues/108
+        /// </summary>
+        [Fact]
+        public void Config_ToString_Should_work_properly()
+        {
+            var hocon = @"
+a {
+  b = 1
+  c : {
+    d = 2
+  }
+}
+";
+            var config = Parser.Parse(hocon);
+            Record.Exception(() => config.ToString()).Should().BeNull();
+        }
+
         [Fact]
         public void CanConcatenateArray()
         {
@@ -398,31 +437,31 @@ b {
             emptyConfig.GetDouble(missingKey, 0).Should().Be(0);
 
             emptyConfig.GetBooleanList(missingKey, new List<bool>()).Should().Equal(new List<bool>());
-            emptyConfig.Invoking(c => c.GetBooleanList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetBooleanList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();
             
             emptyConfig.GetByteList(missingKey, new List<byte>()).Should().Equal(new List<byte>());
-            emptyConfig.Invoking(c => c.GetByteList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetByteList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetDecimalList(missingKey, new List<decimal>()).Should().Equal(new List<decimal>());
-            emptyConfig.Invoking(c => c.GetDecimalList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetDecimalList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetDoubleList(missingKey, new List<double>()).Should().Equal(new List<double>());
-            emptyConfig.Invoking(c => c.GetDoubleList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetDoubleList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetFloatList(missingKey, new List<float>()).Should().Equal(new List<float>());
-            emptyConfig.Invoking(c => c.GetFloatList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetFloatList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetIntList(missingKey, new List<int>()).Should().Equal(new List<int>());
-            emptyConfig.Invoking(c => c.GetIntList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetIntList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetLongList(missingKey, new List<long>()).Should().Equal(new List<long>());
-            emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetObjectList(missingKey, new List<HoconObject>()).Should().Equal(new List<HoconObject>());
-            emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
             
             emptyConfig.GetStringList(missingKey, new List<string>()).Should().Equal(new List<string>());
-            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().Throw<HoconParserException>();
+            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().Throw<HoconValueException>().Which.InnerException.Should().BeOfType<HoconParserException>();;
         }
 
         [Fact]
@@ -452,9 +491,9 @@ h = 0377
             Assert.Equal(float.NaN, config.GetFloat("e"));
 
             Assert.Equal(1000.05m, config.GetDecimal("a"));
-            Assert.Throws<HoconException>(() => config.GetDecimal("b"));
-            Assert.Throws<HoconException>(() => config.GetDecimal("c"));
-            Assert.Throws<HoconException>(() => config.GetDecimal("d"));
+            Assert.Throws<HoconValueException>(() => config.GetDecimal("b")).GetBaseException().Should().BeOfType<HoconException>();
+            Assert.Throws<HoconValueException>(() => config.GetDecimal("c")).GetBaseException().Should().BeOfType<HoconException>();
+            Assert.Throws<HoconValueException>(() => config.GetDecimal("d")).GetBaseException().Should().BeOfType<HoconException>();
 
             Assert.Equal(255, config.GetLong("f"));
             Assert.Equal(255, config.GetLong("g"));
