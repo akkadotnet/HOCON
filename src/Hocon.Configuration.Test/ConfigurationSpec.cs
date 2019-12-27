@@ -42,6 +42,18 @@ namespace Hocon.Configuration.Tests
         }
 #endif
 
+        /// <summary>
+        /// Should follow the load order rules specified in https://github.com/akkadotnet/HOCON/issues/151
+        /// </summary>
+        [Fact]
+        public void CanLoadDefaultConfig()
+        {
+            var defaultConf = ConfigurationFactory.Default();
+            defaultConf.Should().NotBe(ConfigurationFactory.Empty);
+            defaultConf.HasPath("root.simple-string").Should().BeTrue();
+            defaultConf.GetString("root.simple-string").Should().Be("Hello HOCON2");
+        }
+
         [Fact]
         public void CanMergeObjects()
         {
