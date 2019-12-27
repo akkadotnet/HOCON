@@ -27,6 +27,12 @@
     <Reference Include="System.Configuration" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="app.conf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
     <Copy SourceFiles="App.config" DestinationFiles="$(OutDir)\testhost.dll.config" />
   </Target>
