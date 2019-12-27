@@ -41,6 +41,13 @@ HOCON is significantly harder to specify and to parse than
 JSON. Think of it as moving the work from the person maintaining
 the config file to the computer program.
 
+## Default HOCON Configuration Sources
+By default the HOCON library will look for HOCON configurations in the following locations whenever you call the `Hocon.Configuration.ConfigurationFactory.Default()` method:
+
+1. [.NET Core / .NET Framework] An "app.conf" or an "app.hocon" file in the current working directory of the executable when it loads;
+2. [.NET Framework] - the `<hocon>` `ConfigurationSection` inside `App.config` or `Web.config`, which should also resolve #8 and #9 
+3. [.NET Framework] - and a legacy option, to load the old `<akka>` HOCON section for backwards compatibility purposes with all users who have been using HOCON with Akka.NET.
+
 ## Definitions
 
  - a _key_ is a string JSON would have to the left of `:` and a _value_ is
