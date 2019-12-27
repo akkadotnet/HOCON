@@ -45,7 +45,7 @@ the config file to the computer program.
 By default the HOCON library will look for HOCON configurations in the following locations whenever you call the `Hocon.Configuration.ConfigurationFactory.Default()` method:
 
 1. [.NET Core / .NET Framework] An "app.conf" or an "app.hocon" file in the current working directory of the executable when it loads;
-2. [.NET Framework] - the `<hocon>` `ConfigurationSection` inside `App.config` or `Web.config`, which should also resolve #8 and #9 
+2. [.NET Framework] - the `<hocon>` `ConfigurationSection` inside `App.config` or `Web.config`; or
 3. [.NET Framework] - and a legacy option, to load the old `<akka>` HOCON section for backwards compatibility purposes with all users who have been using HOCON with Akka.NET.
 
 ## Definitions
