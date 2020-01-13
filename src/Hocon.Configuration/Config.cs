@@ -20,6 +20,14 @@ namespace Hocon
     public class Config: HoconRoot
     {
         /// <summary>
+        /// Identical to <see cref="ConfigurationFactory.Empty"/>.
+        /// </summary>
+        /// <remarks>
+        /// Added for brevity and API backwards-compatibility with Akka.Hocon.
+        /// </remarks>
+        public static Config Empty => ConfigurationFactory.Empty;
+
+        /// <summary>
         /// The configuration used as a secondary source.
         /// </summary>
         public Config Fallback { get; private set; }
