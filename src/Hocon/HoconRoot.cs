@@ -161,11 +161,11 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The string value defined in the specified path.</returns>
-        public string GetString(string path, string @default = null)
+        public virtual string GetString(string path, string @default = null)
             => WrapWithValueException(path, () => GetString(HoconPath.Parse(path), @default));
 
         /// <inheritdoc cref="GetString(string,string)"/>
-        public string GetString(HoconPath path, string @default = null)
+        public virtual string GetString(HoconPath path, string @default = null)
         {
             return WrapWithValueException(path.ToString(), () =>
             {

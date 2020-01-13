@@ -105,7 +105,7 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the configuration to retrieve.</param>
         /// <returns>A new configuration with the root node being the supplied path.</returns>
-        public Config GetConfig(string path)
+        public virtual Config GetConfig(string path)
             => GetConfig(HoconPath.Parse(path));
 
         public virtual Config GetConfig(HoconPath path)
