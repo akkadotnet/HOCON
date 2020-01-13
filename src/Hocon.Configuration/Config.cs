@@ -27,7 +27,7 @@ namespace Hocon
         /// <summary>
         /// The root node of this configuration section
         /// </summary>
-        public HoconValue Root => Value;
+        public virtual HoconValue Root => Value;
 
         /// <inheritdoc/>
         /// <summary>
