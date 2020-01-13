@@ -52,6 +52,22 @@ namespace Hocon
         }
 
         /// <summary>
+        /// Returns string representation of <see cref="Config"/>, allowing to include fallback values
+        /// </summary>
+        /// <param name="useFallbackValues">If set to <c>true</c>, fallback values are included in the output</param>
+        public string ToString(bool useFallbackValues)
+        {
+            if (!useFallbackValues)
+                return base.ToString();
+
+            var config = this;
+            while (config.Fallback != null)
+                config = config.Fallback;
+
+            return config.ToString();
+        }
+
+        /// <summary>
         /// Generates a deep clone of the current configuration.
         /// </summary>
         /// <returns>A deep clone of the current configuration</returns>

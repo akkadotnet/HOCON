@@ -261,6 +261,22 @@ foo {
         }
 
         [Fact]
+        public void ShouldSerializeFallbackValues()
+        {
+            var a = ConfigurationFactory.ParseString(@" akka : {
+                some-key : value
+            }");
+            var b = ConfigurationFactory.ParseString(@"akka : {
+                other-key : 42
+            }");
+
+            var c = a.WithFallback(b);
+            c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
+            c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
+            c.ToString(useFallbackValues: true).Should().Contain("other-key", "Fallback values should be displayed when requested");
+        }
+
+        [Fact]
         public void CanParseQuotedKeys()
         {
             var hocon = @"
