@@ -1,4 +1,4 @@
-#### 1.2.1 December 27 2019 ####
+#### 1.2.2 December 27 2019 ####
 HOCON 1.2.1 contains many minor bug fixes and behavioral changes.
 
 **Default HOCON loading order**
