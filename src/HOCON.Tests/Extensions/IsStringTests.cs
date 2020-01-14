@@ -29,10 +29,10 @@ namespace Hocon.Tests.Extensions
         [Fact]
         public void IsString_should_detect_String_literals()
         {
-            TestHocon.GetObject("root").IsString().Should().BeFalse();
-            TestHocon.GetObject("root.foo").IsString().Should().BeFalse();
+            TestHocon.GetObject("root").Type.Should().NotBe(HoconType.String);
+            TestHocon.GetObject("root.foo").Type.Should().NotBe(HoconType.String);
             var values = TestHocon.GetObject("root.foo");
-            values["bar"].IsString().Should().BeTrue();
+            values["bar"].Type.Should().Be(HoconType.String);
         }
     }
 }
