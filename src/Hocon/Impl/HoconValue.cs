@@ -649,10 +649,10 @@ namespace Hocon
                 {
                     Type = child.Type;
                 }
-                else if (Type != child.Type)
+                else if (!Type.IsMergeable(child.Type))
                 {
                     throw HoconParserException.Create(child, child.Path,
-                        "Invalid substitution, substituted type must match its sibling type. " +
+                        "Invalid substitution, substituted type be must be mergeable with its sibling type. " +
                         $"Sibling type:{Type}, substitution type:{child.Type}");
                 }
             }
