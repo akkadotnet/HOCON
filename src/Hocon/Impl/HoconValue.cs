@@ -99,10 +99,10 @@ namespace Hocon
         /// </summary>
         /// <returns>The string value represented by this <see cref="T:Hocon.HoconValue" />.</returns>
         public virtual string GetString()
-            => Type != HoconType.Literal ? null : ConcatString();
+            => !Type.IsLiteral() ? null : ConcatString();
 
         public virtual string Raw
-            => Type != HoconType.Literal ? null : ConcatRawString();
+            => !Type.IsLiteral() ? null : ConcatRawString();
 
         private string ConcatString()
         {
@@ -163,7 +163,9 @@ namespace Hocon
                 case HoconType.Object:
                     return GetObject().GetArray();
 
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.String:
+                case HoconType.Number:
                     throw new HoconException("Hocon literal could not be converted to array.");
 
                 case HoconType.Empty:
@@ -690,7 +692,9 @@ namespace Hocon
         {
             switch (Type)
             {
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.Number:
+                case HoconType.String:
                     return ConcatRawString();
                 case HoconType.Object:
                     return $"{{{Environment.NewLine}{GetObject().ToString(indent, indentSize)}{Environment.NewLine}{new string(' ', (indent - 1) * indentSize)}}}";
@@ -733,7 +737,9 @@ namespace Hocon
                     return other.Type == HoconType.Empty;
                 case HoconType.Array:
                     return GetArray().SequenceEqual(other.GetArray());
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.String:
+                case HoconType.Number:
                     return string.Equals(GetString(), other.GetString());
                 case HoconType.Object:
                     return GetObject().AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());

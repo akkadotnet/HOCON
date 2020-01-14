@@ -135,7 +135,9 @@ namespace Hocon
                     v.Add(newArray);
                     break;
 
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.Number:
+                case HoconType.String:
                     if (v.Count == 1)
                         return;
 

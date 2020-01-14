@@ -15,5 +15,18 @@ namespace Hocon.Extensions
         {
             return hoconElement is HoconSubstitution ? hoconElement : hoconElement.Clone(newParent);
         }
+
+        public static bool IsLiteral(this HoconType hoconType)
+        {
+            switch (hoconType)
+            {
+                case HoconType.Boolean:
+                case HoconType.Number:
+                case HoconType.String:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 }
