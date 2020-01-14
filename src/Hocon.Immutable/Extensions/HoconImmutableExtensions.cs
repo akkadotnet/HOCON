@@ -49,7 +49,9 @@ namespace Hocon.Immutable.Extensions
                     return new HoconImmutableArrayBuilder()
                         .AddRange(value)
                         .Build();
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.Number:
+                case HoconType.String:
                     return new HoconImmutableLiteralBuilder()
                         .Append(value)
                         .Build();
