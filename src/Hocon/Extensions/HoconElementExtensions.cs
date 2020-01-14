@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Hocon.Extensions
 {
     /// <summary>
@@ -21,10 +23,12 @@ namespace Hocon.Extensions
         /// if it's a supported string type.
         /// </summary>
         /// <param name="literal">The HOCON element to check.</param>
-        public static bool IsString(this IHoconElement literal)
+        public static bool IsString(this HoconObject literal)
         {
-            if (!(literal is HoconLiteral l)) return false;
-            switch (l.LiteralType)
+            if (literal.Values.Count == 1 && literal.All(x => x.Value.Type == HoconType.Literal))
+            {
+                var literalType = HoconLiteralType.QuotedString;
+                switch (literalType)
             {
                 case HoconLiteralType.QuotedString:
                 case HoconLiteralType.UnquotedString:
@@ -44,6 +48,9 @@ namespace Hocon.Extensions
                 case HoconLiteralType.Double:
                     break;
             }
+            }
+
+            
 
             return false;
         }
