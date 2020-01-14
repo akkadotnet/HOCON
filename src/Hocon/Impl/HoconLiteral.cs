@@ -154,7 +154,7 @@ namespace Hocon
 
     public sealed class HoconNull : HoconLiteral
     {
-        public override HoconType Type => HoconType.Empty;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Null;
         public override string Raw => "null";
         public override string Value => null;
