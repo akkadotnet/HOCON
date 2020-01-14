@@ -61,7 +61,7 @@ namespace Hocon
                 Type = value.Type;
             else
             {
-                if(!value.IsSubstitution() && Type != value.Type)
+                if(!value.IsSubstitution() && !this.IsMergeable(value))
                     throw new HoconException($"Hocon value merge mismatch. Existing value: {Type}, merged item: {value.Type}");
             }
 
