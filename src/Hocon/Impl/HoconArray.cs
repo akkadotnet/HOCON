@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hocon.Extensions;
 
 namespace Hocon
 {
@@ -64,7 +65,7 @@ namespace Hocon
             {
                 if(_arrayType == HoconType.Empty)
                     _arrayType = value.Type;
-                else if (value.Type != _arrayType)
+                else if (!value.Type.IsMergeable(_arrayType))
                     throw new HoconException(
                         $"Array value must match the rest of the array type or empty. Array value type: {_arrayType}, inserted type: {value.Type}");
             }

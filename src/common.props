@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Copyright>Copyright © 2014-2019 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
-    <VersionPrefix>1.2.1</VersionPrefix>
+    <VersionPrefix>1.2.2</VersionPrefix>
     <PackageReleaseNotes>HOCON 1.2.1 contains many minor bug fixes and behavioral changes.
 Default HOCON loading order**
 Per [issue 151](https://github.com/akkadotnet/HOCON/issues/151), `HOCON.Configuration` now looks for default HOCON content in the following places in the following order:
@@ -27,14 +27,12 @@ For a set of complete bug fixes and changes, please see [the HOCON v1.2.1 milest
   <PropertyGroup>
     <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
- 
     <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-  
     <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
-    <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>
