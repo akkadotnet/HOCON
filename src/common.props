@@ -35,6 +35,6 @@ For a set of complete bug fixes and changes, please see [the HOCON v1.2.1 milest
     <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
     <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
 </Project>
