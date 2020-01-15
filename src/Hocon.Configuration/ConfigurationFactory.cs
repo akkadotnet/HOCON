@@ -24,7 +24,7 @@ namespace Hocon
         /// <summary>
         /// Generates an empty configuration.
         /// </summary>
-        public static Config Empty => ParseString("{}");
+        public static Config Empty => new Config(new HoconRoot(new HoconEmptyValue(null)));
 
         /// <summary>
         /// Generates a configuration defined in the supplied

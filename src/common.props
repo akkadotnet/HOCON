@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Copyright>Copyright © 2014-2019 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
-    <VersionPrefix>1.2.1</VersionPrefix>
+    <VersionPrefix>1.2.2</VersionPrefix>
     <PackageReleaseNotes>HOCON 1.2.1 contains many minor bug fixes and behavioral changes.
 Default HOCON loading order**
 Per [issue 151](https://github.com/akkadotnet/HOCON/issues/151), `HOCON.Configuration` now looks for default HOCON content in the following places in the following order:

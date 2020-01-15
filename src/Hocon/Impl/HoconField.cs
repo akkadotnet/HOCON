@@ -135,7 +135,9 @@ namespace Hocon
                     case HoconType.Object:
                         filteredObjectValue.Add(value);
                         break;
-                    case HoconType.Literal:
+                    case HoconType.Boolean:
+                    case HoconType.Number:
+                    case HoconType.String:
                     case HoconType.Array:
                         filteredObjectValue.Clear();
                         break;

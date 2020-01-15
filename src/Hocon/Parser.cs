@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Hocon.Extensions;
 
 namespace Hocon
 {
@@ -755,7 +756,7 @@ namespace Hocon
                 value = new HoconEmptyValue(owner);
 
             // trim trailing whitespace if result is a literal
-            if (value.Type == HoconType.Literal)
+            if (value.Type.IsLiteral())
             {
                 if (value[value.Count - 1] is HoconWhitespace)
                     value.RemoveAt(value.Count - 1);
