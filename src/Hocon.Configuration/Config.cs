@@ -20,6 +20,14 @@ namespace Hocon
     public class Config: HoconRoot
     {
         /// <summary>
+        /// Identical to <see cref="ConfigurationFactory.Empty"/>.
+        /// </summary>
+        /// <remarks>
+        /// Added for brevity and API backwards-compatibility with Akka.Hocon.
+        /// </remarks>
+        public static Config Empty => ConfigurationFactory.Empty;
+
+        /// <summary>
         /// The configuration used as a secondary source.
         /// </summary>
         public Config Fallback { get; private set; }
@@ -27,7 +35,7 @@ namespace Hocon
         /// <summary>
         /// The root node of this configuration section
         /// </summary>
-        public HoconValue Root => Value;
+        public virtual HoconValue Root => Value;
 
         /// <inheritdoc/>
         /// <summary>
@@ -105,7 +113,7 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the configuration to retrieve.</param>
         /// <returns>A new configuration with the root node being the supplied path.</returns>
-        public Config GetConfig(string path)
+        public virtual Config GetConfig(string path)
             => GetConfig(HoconPath.Parse(path));
 
         public virtual Config GetConfig(HoconPath path)

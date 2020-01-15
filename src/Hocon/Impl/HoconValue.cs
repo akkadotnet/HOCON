@@ -48,6 +48,21 @@ namespace Hocon
         }
 
         /// <summary>
+        /// Wraps this <see cref="HoconValue"/> into a new <see cref="HoconObject"/> at the specified key.
+        /// </summary>
+        /// <param name="key">The key designated to be the new root element.</param>
+        /// <returns>A new HOCON root.</returns>
+        /// <remarks>
+        /// Immutable. Performs a deep copy on this <see cref="HoconValue"/> first.
+        /// </remarks>
+        public HoconRoot AtKey(string key)
+        {
+            var field = new HoconField(key, null);
+            var cloned = Clone(field);
+            return new HoconRoot((HoconValue)cloned);
+        }
+
+        /// <summary>
         /// Merge an <see cref="IHoconElement"/> into this <see cref="HoconValue"/>.
         /// </summary>
         /// <param name="value">The <see cref="IHoconElement"/> value to be merged into this <see cref="HoconValue"/></param>
