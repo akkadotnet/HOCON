@@ -13,6 +13,7 @@ For a set of complete bug fixes and changes, please see [the HOCON v1.3.0 milest
     <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</PackageLicenseUrl>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <HoconPackageTags>akka;actors;hocon;configuration;config</HoconPackageTags>
   </PropertyGroup>
   <PropertyGroup>
     <XunitVersion>2.4.1</XunitVersion>
