@@ -418,6 +418,12 @@ akka.actor {
             );
         }
 
+        [Fact]
+        public void Config_Empty_is_Empty()
+        {
+            ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
+        }
+
         public class MyObjectConfig
         {
             public string StringProperty { get; set; }
