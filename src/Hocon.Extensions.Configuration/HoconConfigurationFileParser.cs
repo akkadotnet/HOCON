@@ -59,8 +59,10 @@ namespace Hocon.Extensions.Configuration
                 case HoconType.Array:
                     VisitArray(value.GetArray());
                     break;
-                
-                case HoconType.Literal:
+
+                case HoconType.Boolean:
+                case HoconType.Number:
+                case HoconType.String:
                     VisitPrimitive(value);
                     break;
             }

@@ -17,9 +17,11 @@ namespace Hocon
     public enum HoconType
     {
         Empty,
-        Literal,
         Array,
         Object,
+        Number,
+        Boolean,
+        String
     }
 
     public enum HoconLiteralType

@@ -143,6 +143,63 @@ foo {
         }
 
         [Fact]
+        public void CanUseFallbackString()
+        {
+            var hocon1 = @"
+foo {
+   bar {
+      a=123str
+   }
+}";
+            var hocon2 = @"
+foo {
+   bar {
+      a=1str
+      b=2str
+      c=3str
+   }
+   car = ""bar""
+}
+dar = d";
+
+            var config1 = ConfigurationFactory.ParseString(hocon1);
+            var config2 = ConfigurationFactory.ParseString(hocon2);
+
+            var config = config1.WithFallback(config2);
+
+            Assert.Equal("123str", config.GetString("foo.bar.a"));
+            Assert.Equal("2str", config.GetString("foo.bar.b"));
+            Assert.Equal("3str", config.GetString("foo.bar.c"));
+            Assert.Equal("bar", config.GetString("foo.car"));
+            Assert.Equal("d", config.GetString("dar"));
+        }
+
+        [Fact]
+        public void CanUseFallbackWithEmpty()
+        {
+            var config1 = Config.Empty;
+            var hocon2 = @"
+foo {
+   bar {
+      a=1str
+      b=2str
+      c=3str
+   }
+   car = ""bar""
+}
+dar = d";
+            var config2 = ConfigurationFactory.ParseString(hocon2);
+
+            var config = config1.SafeWithFallback(config2);
+
+            Assert.Equal("1str", config.GetString("foo.bar.a"));
+            Assert.Equal("2str", config.GetString("foo.bar.b"));
+            Assert.Equal("3str", config.GetString("foo.bar.c"));
+            Assert.Equal("bar", config.GetString("foo.car"));
+            Assert.Equal("d", config.GetString("dar"));
+        }
+
+        [Fact]
         public void CanUseFallbackInSubConfig()
         {
             var hocon1 = @"
@@ -261,6 +318,22 @@ foo {
         }
 
         [Fact]
+        public void ShouldSerializeFallbackValues()
+        {
+            var a = ConfigurationFactory.ParseString(@" akka : {
+                some-key : value
+            }");
+            var b = ConfigurationFactory.ParseString(@"akka : {
+                other-key : 42
+            }");
+
+            var c = a.WithFallback(b);
+            c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
+            c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
+            c.ToString(useFallbackValues: true).Should().Contain("other-key", "Fallback values should be displayed when requested");
+        }
+
+        [Fact]
         public void CanParseQuotedKeys()
         {
             var hocon = @"
@@ -343,6 +416,12 @@ akka.actor {
                 "Akka.Remote.DaemonMsgCreate, Akka.Remote",
                 serializerBindingConfig.Select(kvp => kvp.Key).Last()
             );
+        }
+
+        [Fact]
+        public void Config_Empty_is_Empty()
+        {
+            ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
         }
 
         public class MyObjectConfig

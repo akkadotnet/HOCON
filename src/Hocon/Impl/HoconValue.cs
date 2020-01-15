@@ -48,6 +48,21 @@ namespace Hocon
         }
 
         /// <summary>
+        /// Wraps this <see cref="HoconValue"/> into a new <see cref="HoconObject"/> at the specified key.
+        /// </summary>
+        /// <param name="key">The key designated to be the new root element.</param>
+        /// <returns>A new HOCON root.</returns>
+        /// <remarks>
+        /// Immutable. Performs a deep copy on this <see cref="HoconValue"/> first.
+        /// </remarks>
+        public HoconRoot AtKey(string key)
+        {
+            var field = new HoconField(key, null);
+            var cloned = Clone(field);
+            return new HoconRoot((HoconValue)cloned);
+        }
+
+        /// <summary>
         /// Merge an <see cref="IHoconElement"/> into this <see cref="HoconValue"/>.
         /// </summary>
         /// <param name="value">The <see cref="IHoconElement"/> value to be merged into this <see cref="HoconValue"/></param>
@@ -61,7 +76,7 @@ namespace Hocon
                 Type = value.Type;
             else
             {
-                if(!value.IsSubstitution() && Type != value.Type)
+                if(!value.IsSubstitution() && !this.IsMergeable(value))
                     throw new HoconException($"Hocon value merge mismatch. Existing value: {Type}, merged item: {value.Type}");
             }
 
@@ -99,10 +114,10 @@ namespace Hocon
         /// </summary>
         /// <returns>The string value represented by this <see cref="T:Hocon.HoconValue" />.</returns>
         public virtual string GetString()
-            => Type != HoconType.Literal ? null : ConcatString();
+            => !Type.IsLiteral() ? null : ConcatString();
 
         public virtual string Raw
-            => Type != HoconType.Literal ? null : ConcatRawString();
+            => !Type.IsLiteral() ? null : ConcatRawString();
 
         private string ConcatString()
         {
@@ -163,7 +178,9 @@ namespace Hocon
                 case HoconType.Object:
                     return GetObject().GetArray();
 
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.String:
+                case HoconType.Number:
                     throw new HoconException("Hocon literal could not be converted to array.");
 
                 case HoconType.Empty:
@@ -647,10 +664,10 @@ namespace Hocon
                 {
                     Type = child.Type;
                 }
-                else if (Type != child.Type)
+                else if (!Type.IsMergeable(child.Type))
                 {
                     throw HoconParserException.Create(child, child.Path,
-                        "Invalid substitution, substituted type must match its sibling type. " +
+                        "Invalid substitution, substituted type be must be mergeable with its sibling type. " +
                         $"Sibling type:{Type}, substitution type:{child.Type}");
                 }
             }
@@ -690,7 +707,9 @@ namespace Hocon
         {
             switch (Type)
             {
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.Number:
+                case HoconType.String:
                     return ConcatRawString();
                 case HoconType.Object:
                     return $"{{{Environment.NewLine}{GetObject().ToString(indent, indentSize)}{Environment.NewLine}{new string(' ', (indent - 1) * indentSize)}}}";
@@ -733,7 +752,9 @@ namespace Hocon
                     return other.Type == HoconType.Empty;
                 case HoconType.Array:
                     return GetArray().SequenceEqual(other.GetArray());
-                case HoconType.Literal:
+                case HoconType.Boolean:
+                case HoconType.String:
+                case HoconType.Number:
                     return string.Equals(GetString(), other.GetString());
                 case HoconType.Object:
                     return GetObject().AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
