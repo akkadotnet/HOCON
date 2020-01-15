@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconConfigurationProvider.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconConfigurationProvider.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -14,18 +13,20 @@ using Microsoft.Extensions.Configuration;
 namespace Hocon.Extensions.Configuration
 {
     /// <summary>
-    /// A HOCON file based <see cref="FileConfigurationProvider"/>.
+    ///     A HOCON file based <see cref="FileConfigurationProvider" />.
     /// </summary>
     public class HoconConfigurationProvider : FileConfigurationProvider
     {
         /// <summary>
-        /// Initializes a new instance with the specified source.
+        ///     Initializes a new instance with the specified source.
         /// </summary>
         /// <param name="source">The source settings.</param>
-        public HoconConfigurationProvider(HoconConfigurationSource source) : base(source) { }
+        public HoconConfigurationProvider(HoconConfigurationSource source) : base(source)
+        {
+        }
 
         /// <summary>
-        /// Loads the HOCON data from a stream.
+        ///     Loads the HOCON data from a stream.
         /// </summary>
         /// <param name="stream">The stream to read.</param>
         public override void Load(Stream stream)
@@ -61,15 +62,15 @@ namespace Hocon.Extensions.Configuration
                 var errorContext = fileContent.Skip(e.LineNumber - 2).Take(2).ToList();
                 // Handle situations when the line number reported is out of bounds
                 if (errorContext.Count >= 2)
-                {
                     errorLine = errorContext[0].Trim() + Environment.NewLine + errorContext[1].Trim();
-                }
             }
+
             if (string.IsNullOrEmpty(errorLine))
             {
                 var possibleLineContent = fileContent.Skip(e.LineNumber - 1).FirstOrDefault();
                 errorLine = possibleLineContent ?? string.Empty;
             }
+
             return errorLine;
         }
 

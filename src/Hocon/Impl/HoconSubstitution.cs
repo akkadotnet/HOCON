@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconSubstitution.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconSubstitution.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -11,9 +10,9 @@ using System.Collections.Generic;
 namespace Hocon
 {
     /// <summary>
-    /// This class represents a substitution element in a HOCON (Human-Optimized Config Object Notation)
-    /// configuration string.
-    /// <code>
+    ///     This class represents a substitution element in a HOCON (Human-Optimized Config Object Notation)
+    ///     configuration string.
+    ///     <code>
     /// akka {  
     ///   defaultInstances = 10
     ///   deployment{
@@ -29,13 +28,27 @@ namespace Hocon
         private HoconValue _resolvedValue;
 
         /// <summary>
-        ///     The Hocon node that owned this substitution node
+        ///     Initializes a new instance of the <see cref="HoconSubstitution" /> class.
         /// </summary>
-        public IHoconElement Parent { get; private set; }
+        /// <param name="parent">The <see cref="HoconValue" /> parent of this substitution.</param>
+        /// <param name="path">The <see cref="HoconPath" /> that this substitution is pointing to.</param>
+        /// <param name="required">Marks wether this substitution uses the ${? notation or not.</param>
+        /// ///
+        /// <param name="lineInfo">The <see cref="IHoconLineInfo" /> of this substitution, used for exception generation purposes.</param>
+        internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
+        {
+            if (parent == null)
+                throw new ArgumentNullException(nameof(parent), "HoconSubstitution parent can not be null.");
 
-        public int LineNumber { get; }
+            if (!(parent is HoconValue))
+                throw new HoconException("HoconSubstitution parent must be HoconValue.");
 
-        public int LinePosition { get; }
+            Parent = parent;
+            LinePosition = lineInfo.LinePosition;
+            LineNumber = lineInfo.LineNumber;
+            Required = required;
+            Path = path;
+        }
 
         public bool Required { get; }
 
@@ -43,7 +56,8 @@ namespace Hocon
 
         internal HoconField ParentField
         {
-            get  {
+            get
+            {
                 var p = Parent;
                 while (p != null && !(p is HoconField))
                     p = p.Parent;
@@ -65,55 +79,42 @@ namespace Hocon
             internal set
             {
                 _resolvedValue = value;
-                ((HoconValue)Parent).ResolveValue(this);
+                ((HoconValue) Parent).ResolveValue(this);
             }
         }
 
+        /// <summary>
+        ///     The Hocon node that owned this substitution node
+        /// </summary>
+        public IHoconElement Parent { get; private set; }
+
         public HoconType Type => ResolvedValue?.Type ?? HoconType.Empty;
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="HoconSubstitution" /> class.
-        /// </summary>
-        /// <param name="parent">The <see cref="HoconValue"/> parent of this substitution.</param>
-        /// <param name="path">The <see cref="HoconPath"/> that this substitution is pointing to.</param>
-        /// <param name="required">Marks wether this substitution uses the ${? notation or not.</param>
-        /// /// <param name="lineInfo">The <see cref="IHoconLineInfo"/> of this substitution, used for exception generation purposes.</param>
-        internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
-        {
-            if(parent == null)
-                throw new ArgumentNullException(nameof(parent), "HoconSubstitution parent can not be null.");
-
-            if (!(parent is HoconValue))
-                throw new HoconException("HoconSubstitution parent must be HoconValue.");
-
-            Parent = parent;
-            LinePosition = lineInfo.LinePosition;
-            LineNumber = lineInfo.LineNumber;
-            Required = required;
-            Path = path;
-        }
-
         /// <inheritdoc />
-        public string GetString() => ResolvedValue?.GetString();
+        public string GetString()
+        {
+            return ResolvedValue?.GetString();
+        }
 
         public string Raw => ResolvedValue?.Raw;
 
         /// <inheritdoc />
-        public List<HoconValue> GetArray() => ResolvedValue?.GetArray();
+        public List<HoconValue> GetArray()
+        {
+            return ResolvedValue?.GetArray();
+        }
 
         /// <inheritdoc />
-        public HoconObject GetObject() => ResolvedValue?.GetObject();
-
-        /// <summary>
-        /// Returns the string representation of this element.
-        /// </summary>
-        /// <returns>The value of this element.</returns>
-        public override string ToString()
-            => ResolvedValue.ToString(0, 2);
+        public HoconObject GetObject()
+        {
+            return ResolvedValue?.GetObject();
+        }
 
         /// <inheritdoc />
         public string ToString(int indent, int indentSize)
-            => ResolvedValue.ToString(indent, indentSize);
+        {
+            return ResolvedValue.ToString(indent, indentSize);
+        }
 
         // Substitution can not be cloned because it is resolved at the end of the parsing process.
         // TODO: check for possible bugs
@@ -149,6 +150,19 @@ namespace Hocon
             return !(_resolvedValue is null) && _resolvedValue.Equals(other);
         }
 
+        public int LineNumber { get; }
+
+        public int LinePosition { get; }
+
+        /// <summary>
+        ///     Returns the string representation of this element.
+        /// </summary>
+        /// <returns>The value of this element.</returns>
+        public override string ToString()
+        {
+            return ResolvedValue.ToString(0, 2);
+        }
+
         public override bool Equals(object obj)
         {
             return obj is IHoconElement element && Equals(element);
@@ -170,4 +184,3 @@ namespace Hocon
         }
     }
 }
-

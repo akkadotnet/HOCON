@@ -1,4 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconImmutableLiteralBuilder.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.Text;
 
 namespace Hocon.Immutable.Builder
@@ -8,6 +14,7 @@ namespace Hocon.Immutable.Builder
         private readonly StringBuilder _builder;
 
         #region Properties
+
         public int Capacity
         {
             get => _builder.Capacity;
@@ -27,6 +34,7 @@ namespace Hocon.Immutable.Builder
         }
 
         public int MaxCapacity => _builder.MaxCapacity;
+
         #endregion
 
         #region Constructors
@@ -62,16 +70,18 @@ namespace Hocon.Immutable.Builder
         }
 
         #endregion
-        
+
         public HoconImmutableLiteralBuilder Append(HoconValue value)
         {
             foreach (var element in value)
             {
-                if(!(element is HoconLiteral lit))
-                    throw new HoconException($"Can only add Hocon class of type {nameof(HoconLiteral)} and its derived classes into a literal builder.");
+                if (!(element is HoconLiteral lit))
+                    throw new HoconException(
+                        $"Can only add Hocon class of type {nameof(HoconLiteral)} and its derived classes into a literal builder.");
 
                 _builder.Append(lit.Value);
             }
+
             return this;
         }
 
@@ -89,14 +99,15 @@ namespace Hocon.Immutable.Builder
 
         public HoconImmutableLiteral Build()
         {
-            return _builder.Length == 0 
-                ? HoconImmutableLiteral.Create(null) 
+            return _builder.Length == 0
+                ? HoconImmutableLiteral.Create(null)
                 : HoconImmutableLiteral.Create(_builder.ToString());
         }
 
         #region Facade wrapper functions
 
         #region Append facade
+
         public HoconImmutableLiteralBuilder Append(ushort value)
         {
             _builder.Append(value);
@@ -210,10 +221,13 @@ namespace Hocon.Immutable.Builder
             _builder.Append(value);
             return this;
         }
+
         #endregion
 
         #region AppendFormat facade
-        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0, object arg1, object arg2)
+
+        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0,
+            object arg1, object arg2)
         {
             _builder.AppendFormat(provider, format, arg0, arg1, arg2);
             return this;
@@ -249,7 +263,8 @@ namespace Hocon.Immutable.Builder
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0, object arg1)
+        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0,
+            object arg1)
         {
             _builder.AppendFormat(provider, format, arg0, arg1);
             return this;
@@ -260,6 +275,7 @@ namespace Hocon.Immutable.Builder
             _builder.AppendFormat(format, arg0, arg1, arg2);
             return this;
         }
+
         #endregion
 
 #if NS2_1
@@ -304,6 +320,7 @@ namespace Hocon.Immutable.Builder
 #endif
 
         #region AppendLine facade
+
         public HoconImmutableLiteralBuilder AppendLine()
         {
             _builder.AppendLine();
@@ -315,6 +332,7 @@ namespace Hocon.Immutable.Builder
             _builder.AppendLine(value);
             return this;
         }
+
         #endregion
 
         public HoconImmutableLiteralBuilder Clear()
@@ -342,6 +360,7 @@ namespace Hocon.Immutable.Builder
         }
 
         #region Insert facade
+
         public HoconImmutableLiteralBuilder Insert(int index, string value, int count)
         {
             _builder.Insert(index, value, count);
@@ -451,6 +470,7 @@ namespace Hocon.Immutable.Builder
             _builder.Insert(index, value);
             return this;
         }
+
         #endregion
 
         public HoconImmutableLiteralBuilder Remove(int startIndex, int length)
@@ -460,6 +480,7 @@ namespace Hocon.Immutable.Builder
         }
 
         #region Replace facade
+
         public HoconImmutableLiteralBuilder Replace(char oldChar, char newChar)
         {
             _builder.Replace(oldChar, newChar);
@@ -483,6 +504,7 @@ namespace Hocon.Immutable.Builder
             _builder.Replace(oldValue, newValue, startIndex, count);
             return this;
         }
+
         #endregion
 
         public override string ToString()
@@ -494,6 +516,7 @@ namespace Hocon.Immutable.Builder
         {
             return _builder.ToString(startIndex, length);
         }
+
         #endregion
     }
 }

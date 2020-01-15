@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconConfigurationTest.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconConfigurationTest.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Globalization;
@@ -17,9 +16,27 @@ namespace Hocon.Extensions.Configuration.Tests
     {
         private HoconConfigurationProvider LoadProvider(string hocon)
         {
-            var p = new HoconConfigurationProvider(new HoconConfigurationSource { Optional = true });
+            var p = new HoconConfigurationProvider(new HoconConfigurationSource {Optional = true});
             p.Load(TestStreamHelpers.StringToStream(hocon));
             return p;
+        }
+
+        [Fact]
+        public void HoconConfiguration_Does_Not_Throw_On_Optional_Configuration()
+        {
+            var config = new ConfigurationBuilder().AddHoconFile("NotExistingConfig.hocon", true).Build();
+        }
+
+        [Fact]
+        public void HoconConfiguration_Throws_On_Missing_Configuration_File()
+        {
+            var config = new ConfigurationBuilder().AddHoconFile("NotExistingConfig.hocon", false);
+            var exception = Assert.Throws<FileNotFoundException>(() => config.Build());
+
+            // Assert
+            Assert.StartsWith(
+                "The configuration file 'NotExistingConfig.hocon' was not found and is not optional. The physical path is '",
+                exception.Message);
         }
 
         [Fact]
@@ -104,20 +121,6 @@ namespace Hocon.Extensions.Configuration.Tests
         }
 
         [Fact]
-        public void ThrowExceptionWhenUnexpectedEndFoundBeforeFinishParsing()
-        {
-            var hocon = @"{
-                'name': 'test',
-                'address': {
-                    'street': 'Something street',
-                    'zipcode': '12345'
-                }
-            // Missing a right brace here";
-            var exception = Assert.Throws<FormatException>(() => LoadProvider(hocon));
-            Assert.NotNull(exception.Message);
-        }
-
-        [Fact]
         public void ThrowExceptionWhenMissingCurlyBeforeFinishParsing()
         {
             var hocon = @"
@@ -127,6 +130,17 @@ namespace Hocon.Extensions.Configuration.Tests
 
             var exception = Assert.Throws<FormatException>(() => LoadProvider(hocon));
             Assert.Contains("Could not parse the HOCON file.", exception.Message);
+        }
+
+        [Fact]
+        public void ThrowExceptionWhenPassingEmptyStringAsFilePath()
+        {
+            var expectedMsg = new ArgumentException(Resources.Error_InvalidFilePath, "path").Message;
+
+            var exception =
+                Assert.Throws<ArgumentException>(() => new ConfigurationBuilder().AddHoconFile(string.Empty));
+
+            Assert.Equal(expectedMsg, exception.Message);
         }
 
         [Fact]
@@ -140,29 +154,17 @@ namespace Hocon.Extensions.Configuration.Tests
         }
 
         [Fact]
-        public void ThrowExceptionWhenPassingEmptyStringAsFilePath()
+        public void ThrowExceptionWhenUnexpectedEndFoundBeforeFinishParsing()
         {
-            var expectedMsg = new ArgumentException(Resources.Error_InvalidFilePath, "path").Message;
-
-            var exception = Assert.Throws<ArgumentException>(() => new ConfigurationBuilder().AddHoconFile(string.Empty));
-
-            Assert.Equal(expectedMsg, exception.Message);
-        }
-
-        [Fact]
-        public void HoconConfiguration_Throws_On_Missing_Configuration_File()
-        {
-            var config = new ConfigurationBuilder().AddHoconFile("NotExistingConfig.hocon", optional: false);
-            var exception = Assert.Throws<FileNotFoundException>(() => config.Build());
-
-            // Assert
-            Assert.StartsWith("The configuration file 'NotExistingConfig.hocon' was not found and is not optional. The physical path is '", exception.Message);
-        }
-
-        [Fact]
-        public void HoconConfiguration_Does_Not_Throw_On_Optional_Configuration()
-        {
-            var config = new ConfigurationBuilder().AddHoconFile("NotExistingConfig.hocon", optional: true).Build();
+            var hocon = @"{
+                'name': 'test',
+                'address': {
+                    'street': 'Something street',
+                    'zipcode': '12345'
+                }
+            // Missing a right brace here";
+            var exception = Assert.Throws<FormatException>(() => LoadProvider(hocon));
+            Assert.NotNull(exception.Message);
         }
 
         [Fact]

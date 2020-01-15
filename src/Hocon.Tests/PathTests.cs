@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// -----------------------------------------------------------------------
+// <copyright file="PathTests.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,24 +12,24 @@ namespace Hocon.Tests
 {
     public class PathTests
     {
-        private readonly ITestOutputHelper _output;
-
         public PathTests(ITestOutputHelper output)
         {
             _output = output;
         }
 
+        private readonly ITestOutputHelper _output;
+
         [Theory]
-        [InlineData(new [] { "foo", "bar" }, "foo.bar")]
-        [InlineData(new [] { "foo", "bar.baz" }, "foo.\"bar.baz\"")]
-        [InlineData(new [] { "shoot", "a \"laser\" beam" }, "shoot.\"a \\\"laser\\\" beam\"")]
-        [InlineData(new [] { "foo", "bar\nbaz" }, "foo.\"bar\\nbaz\"")]
-        [InlineData(new [] { "foo", "bar baz", " wis " }, "foo.bar baz. wis ")]
-        [InlineData(new [] { "foo", "bar\tbaz"}, "foo.bar\tbaz")]
-        [InlineData(new [] { "foo", "bar\r\nbaz", "x\r" }, "foo.\"bar\r\\nbaz\".x\r")]
-        [InlineData(new [] { "foo", "" }, "foo.\"\"")]
-        [InlineData(new [] { "foo", "\\" }, "foo.\"\\\\\"")]
-        [InlineData(new [] { "$\"{}[]:=,#`^?!@*&\\" }, "\"" + "$\\\"{}[]:=,#`^?!@*&\\\\" + "\"")]
+        [InlineData(new[] {"foo", "bar"}, "foo.bar")]
+        [InlineData(new[] {"foo", "bar.baz"}, "foo.\"bar.baz\"")]
+        [InlineData(new[] {"shoot", "a \"laser\" beam"}, "shoot.\"a \\\"laser\\\" beam\"")]
+        [InlineData(new[] {"foo", "bar\nbaz"}, "foo.\"bar\\nbaz\"")]
+        [InlineData(new[] {"foo", "bar baz", " wis "}, "foo.bar baz. wis ")]
+        [InlineData(new[] {"foo", "bar\tbaz"}, "foo.bar\tbaz")]
+        [InlineData(new[] {"foo", "bar\r\nbaz", "x\r"}, "foo.\"bar\r\\nbaz\".x\r")]
+        [InlineData(new[] {"foo", ""}, "foo.\"\"")]
+        [InlineData(new[] {"foo", "\\"}, "foo.\"\\\\\"")]
+        [InlineData(new[] {"$\"{}[]:=,#`^?!@*&\\"}, "\"" + "$\\\"{}[]:=,#`^?!@*&\\\\" + "\"")]
         public void CanParseAndSerialize(string[] pathKeys, string path)
         {
             HoconPath hoconPath = new HoconPath(pathKeys);
@@ -77,7 +79,8 @@ akka {
   }
 }";
             var config = Parser.Parse(hocon);
-            var path = HoconPath.Parse("akka.persistence.journal.sql-server.event-adapter-bindings.\"Demo.IMyEvent, MyDemoAssembly\"");
+            var path = HoconPath.Parse(
+                "akka.persistence.journal.sql-server.event-adapter-bindings.\"Demo.IMyEvent, MyDemoAssembly\"");
             Assert.Equal("Demo.IMyEvent, MyDemoAssembly", path.Last());
             Assert.Equal("json-adapter", config.GetString(path));
         }
@@ -85,13 +88,14 @@ akka {
         [Fact]
         public void PathToStringQuoteKeysContainingDot()
         {
-            var path1 = new HoconPath(new [] {
+            var path1 = new HoconPath(new[]
+            {
                 "i am",
                 "kong.fu",
                 "panda"
             });
 
-            var path2 = new HoconPath(new []
+            var path2 = new HoconPath(new[]
             {
                 "i am",
                 "kong",

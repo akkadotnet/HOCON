@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconImmutableObject.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconImmutableObject.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections;
@@ -14,23 +13,24 @@ using System.Numerics;
 
 namespace Hocon.Immutable
 {
-    public sealed class HoconImmutableObject:
-        HoconImmutableElement, 
+    public sealed class HoconImmutableObject :
+        HoconImmutableElement,
         IReadOnlyDictionary<string, HoconImmutableElement>
     {
         private readonly ImmutableSortedDictionary<string, HoconImmutableElement> _fields;
-
-        public new HoconImmutableElement this[string path] => GetValue(path);
-        public HoconImmutableElement this[HoconPath path] => GetValue(path);
-
-        public IEnumerable<string> Keys => _fields.Keys;
-        public IEnumerable<HoconImmutableElement> Values => _fields.Values;
-        public int Count => _fields.Count;
 
         private HoconImmutableObject(IDictionary<string, HoconImmutableElement> fields)
         {
             _fields = fields.ToImmutableSortedDictionary();
         }
+
+        public HoconImmutableElement this[HoconPath path] => GetValue(path);
+
+        public new HoconImmutableElement this[string path] => GetValue(path);
+
+        public IEnumerable<string> Keys => _fields.Keys;
+        public IEnumerable<HoconImmutableElement> Values => _fields.Values;
+        public int Count => _fields.Count;
 
         public bool HasPath(string path)
         {
@@ -58,7 +58,8 @@ namespace Hocon.Immutable
             }
 
             if (sortedDict.Count == 0)
-                throw new HoconException("Object is empty, does not contain any numerically indexed fields, or contains only non-positive integer indices");
+                throw new HoconException(
+                    "Object is empty, does not contain any numerically indexed fields, or contains only non-positive integer indices");
 
             return HoconImmutableArray.Create(sortedDict.Values);
         }
@@ -69,6 +70,7 @@ namespace Hocon.Immutable
         }
 
         #region Interface implementation
+
         public HoconImmutableElement GetValue(string path)
         {
             return GetValue(HoconPath.Parse(path));
@@ -89,13 +91,15 @@ namespace Hocon.Immutable
                 var key = path[pathIndex];
 
                 if (!currentObject._fields.TryGetValue(key, out var field))
-                    throw new KeyNotFoundException($"Could not find field with key `{key}` at path `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
+                    throw new KeyNotFoundException(
+                        $"Could not find field with key `{key}` at path `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
 
                 if (pathIndex >= path.Count - 1)
                     return field;
 
                 if (!(field is HoconImmutableObject obj))
-                    throw new HoconException($"Invalid path, trying to access a key on a non object field. Path: `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
+                    throw new HoconException(
+                        $"Invalid path, trying to access a key on a non object field. Path: `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
 
                 currentObject = obj;
                 pathIndex++;
@@ -144,95 +148,96 @@ namespace Hocon.Immutable
 
         public IEnumerator<KeyValuePair<string, HoconImmutableElement>> GetEnumerator()
         {
-            return !_fields.IsEmpty ?
-                _fields.GetEnumerator() :
-                Enumerable.Empty<KeyValuePair<string, HoconImmutableElement>>().GetEnumerator();
+            return !_fields.IsEmpty
+                ? _fields.GetEnumerator()
+                : Enumerable.Empty<KeyValuePair<string, HoconImmutableElement>>().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
+
         #endregion
 
         #region Casting operators
 
-        public static implicit operator bool[] (HoconImmutableObject obj)
+        public static implicit operator bool[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator sbyte[] (HoconImmutableObject obj)
+        public static implicit operator sbyte[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator byte[] (HoconImmutableObject obj)
+        public static implicit operator byte[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator short[] (HoconImmutableObject obj)
+        public static implicit operator short[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator ushort[] (HoconImmutableObject obj)
+        public static implicit operator ushort[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator int[] (HoconImmutableObject obj)
+        public static implicit operator int[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator uint[] (HoconImmutableObject obj)
+        public static implicit operator uint[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator long[] (HoconImmutableObject obj)
+        public static implicit operator long[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator ulong[] (HoconImmutableObject obj)
+        public static implicit operator ulong[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator BigInteger[] (HoconImmutableObject obj)
+        public static implicit operator BigInteger[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator float[] (HoconImmutableObject obj)
+        public static implicit operator float[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator double[] (HoconImmutableObject obj)
+        public static implicit operator double[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator decimal[] (HoconImmutableObject obj)
+        public static implicit operator decimal[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator TimeSpan[] (HoconImmutableObject obj)
+        public static implicit operator TimeSpan[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator string[] (HoconImmutableObject obj)
+        public static implicit operator string[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator char[] (HoconImmutableObject obj)
+        public static implicit operator char[](HoconImmutableObject obj)
         {
             return obj.ToArray();
         }
