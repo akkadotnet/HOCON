@@ -361,6 +361,13 @@ akka.actor {
             );
         }
 
+        [Fact]
+        public void Parsing_empty_string_should_produce_empty_hocon_root()
+        {
+            var value = Parser.Parse("{}", null).Value;
+            value.Type.Should().Be(HoconType.Empty);
+        }
+
         public class MyObjectConfig
         {
             public string StringProperty { get; set; }
