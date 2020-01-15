@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="Enums.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="Enums.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 namespace Hocon
 {
@@ -35,6 +34,6 @@ namespace Hocon
         Long,
         Hex,
         Octal,
-        Double,
+        Double
     }
 }

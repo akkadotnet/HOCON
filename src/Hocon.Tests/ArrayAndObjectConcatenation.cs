@@ -1,13 +1,11 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="ArrayAndObjectConcatenation.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="ArrayAndObjectConcatenation.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,12 +14,12 @@ namespace Hocon.Tests
 {
     public class ArrayAndObjectConcatenation
     {
-        private readonly ITestOutputHelper _output;
-
         public ArrayAndObjectConcatenation(ITestOutputHelper output)
         {
             _output = output;
         }
+
+        private readonly ITestOutputHelper _output;
 
         public static IEnumerable<object[]> StringArrayData =>
             new List<object[]>
@@ -45,11 +43,12 @@ namespace Hocon.Tests
 ]"
                 }
             };
+
         [Theory]
         [MemberData(nameof(StringArrayData))]
         public void CanCreateLiteralArray(string hocon)
         {
-            Assert.True(new[] { "one", "two", "three" }.SequenceEqual(Parser.Parse(hocon).GetStringList("a")));
+            Assert.True(new[] {"one", "two", "three"}.SequenceEqual(Parser.Parse(hocon).GetStringList("a")));
         }
 
         public static IEnumerable<object[]> NumericArrayData =>
@@ -74,20 +73,22 @@ namespace Hocon.Tests
 ]"
                 }
             };
+
         [Theory]
         [MemberData(nameof(NumericArrayData))]
         public void CanCreateNumericArray(string hocon)
         {
-            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(Parser.Parse(hocon).GetIntList("a")));
+            Assert.True(new[] {1, 2, 3}.SequenceEqual(Parser.Parse(hocon).GetIntList("a")));
         }
-
 
 
         public static IEnumerable<object[]> ObjectArrayData =>
             new List<object[]>
             {
                 new object[] {"a=[{a=1, b=2}, {c=3,d=4}, {e=5,f=6}, ]"},
-                new object[]{@"a=[
+                new object[]
+                {
+                    @"a=[
   {
     a=1,
     b=2
@@ -100,16 +101,24 @@ namespace Hocon.Tests
     e=5,
     f=6
   },
-]"},
-                new object[]{@"a=[
+]"
+                },
+                new object[]
+                {
+                    @"a=[
 {a=1,b=2}, 
 {c=3,d=4}, 
-{e=5,f=6},]"},
-                new object[]{@"a=[
+{e=5,f=6},]"
+                },
+                new object[]
+                {
+                    @"a=[
 {a=1,b=2}, 
 {c=3,d=4}, 
-{e=5,f=6}]"}
+{e=5,f=6}]"
+                }
             };
+
         [Theory]
         [MemberData(nameof(ObjectArrayData))]
         public void CanCreateObjectArray(string hocon)
@@ -130,6 +139,21 @@ namespace Hocon.Tests
             Assert.Equal(6, obj["f"].Value.GetInt());
         }
 
+        // Undefined behavior in spec.
+        // In this implementation, mixed value types in an array will throw an exception.
+        [Theory]
+        [InlineData("b = [{a = 1}, test]")]
+        [InlineData("b = [test, {a = 1}]")]
+        [InlineData("b = [foo, [bar]]")]
+        [InlineData("b = [[foo], bar]")]
+        public void ThrowsWhenArrayItemTypesAreDifferent(string hocon)
+        {
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
         /*
          * FACT:
          * Arrays can be concatenated with arrays, and objects with objects, but it is an error if they are mixed.
@@ -138,7 +162,7 @@ namespace Hocon.Tests
         public void CanConcatenateArray()
         {
             var hocon = @"a=[1,2] [3,4]";
-            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(Parser.Parse(hocon).GetIntList("a")));
+            Assert.True(new[] {1, 2, 3, 4}.SequenceEqual(Parser.Parse(hocon).GetIntList("a")));
         }
 
         [Fact]
@@ -223,22 +247,6 @@ a {
                 config.PrettyPrint(2));
         }
 
-        // Undefined behavior in spec.
-        // In this implementation, mixed value types in an array will throw an exception.
-        [Theory]
-        [InlineData("b = [{a = 1}, test]")]
-        [InlineData("b = [test, {a = 1}]")]
-        [InlineData("b = [foo, [bar]]")]
-        [InlineData("b = [[foo], bar]")]
-        public void ThrowsWhenArrayItemTypesAreDifferent(string hocon)
-        {
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        #region Array and object concatenation exception spec
         [Fact]
         public void ThrowsWhenArrayAndObjectAreConcatenated_1()
         {
@@ -248,14 +256,13 @@ a {
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
-
         }
 
         [Fact]
         public void ThrowsWhenArrayAndObjectAreConcatenated_2()
         {
             var hocon = @"a : { c : 2 } [1,2]";
-            
+
             var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
@@ -288,110 +295,6 @@ b : ${a} [1,2]";
             _output.WriteLine($"Exception message: {ex.Message}");
         }
 
-        [Fact]
-        public void ThrowsWhenObjectAndArraySubstitutionAreConcatenated_1()
-        {
-            var hocon = @"
-a : [1,2]
-b : { c : 2 } ${a}";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsWhenObjectAndArraySubstitutionAreConcatenated_2()
-        {
-            var hocon = @"
-a : [1,2]
-b : ${a} { c : 2 }";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-        #endregion
-
-        #region String  and object concatenation exception spec
-        [Fact]
-        public void ThrowsWhenStringAndObjectAreConcatenated_1()
-        {
-            var hocon = @"a : literal { c : 2 }";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsWhenStringAndObjectAreConcatenated_2()
-        {
-            var hocon = @"a : { c : 2 } literal";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsWhenStringAndObjectSubstitutionAreConcatenated_1()
-        {
-            var hocon = @"
-a : { c : 2 }
-b : literal ${a}";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsWhenStringAndObjectSubstitutionAreConcatenated_2()
-        {
-            var hocon = @"
-a : { c : 2 }
-b : ${a} literal";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsWhenObjectAndStringSubstitutionAreConcatenated_1()
-        {
-            var hocon = @"
-a : literal
-b : ${a} { c : 2 }";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        [Fact]
-        public void ThrowsWhenObjectAndStringSubstitutionAreConcatenated_2()
-        {
-            var hocon = @"
-a : literal
-b : { c : 2 } ${a}";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-        #endregion
-
-        #region String and array concatenation exception spec
         [Fact]
         public void ThrowsWhenArrayAndStringAreConcatenated_1()
         {
@@ -441,6 +344,58 @@ b : [1,2] ${a}";
         }
 
         [Fact]
+        public void ThrowsWhenObjectAndArraySubstitutionAreConcatenated_1()
+        {
+            var hocon = @"
+a : [1,2]
+b : { c : 2 } ${a}";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsWhenObjectAndArraySubstitutionAreConcatenated_2()
+        {
+            var hocon = @"
+a : [1,2]
+b : ${a} { c : 2 }";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsWhenObjectAndStringSubstitutionAreConcatenated_1()
+        {
+            var hocon = @"
+a : literal
+b : ${a} { c : 2 }";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsWhenObjectAndStringSubstitutionAreConcatenated_2()
+        {
+            var hocon = @"
+a : literal
+b : { c : 2 } ${a}";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
         public void ThrowsWhenStringAndArraySubstitutionAreConcatenated_1()
         {
             var hocon = @"
@@ -465,6 +420,53 @@ b : literal ${a}";
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
         }
-        #endregion
+
+        [Fact]
+        public void ThrowsWhenStringAndObjectAreConcatenated_1()
+        {
+            var hocon = @"a : literal { c : 2 }";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsWhenStringAndObjectAreConcatenated_2()
+        {
+            var hocon = @"a : { c : 2 } literal";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsWhenStringAndObjectSubstitutionAreConcatenated_1()
+        {
+            var hocon = @"
+a : { c : 2 }
+b : literal ${a}";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsWhenStringAndObjectSubstitutionAreConcatenated_2()
+        {
+            var hocon = @"
+a : { c : 2 }
+b : ${a} literal";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
     }
 }

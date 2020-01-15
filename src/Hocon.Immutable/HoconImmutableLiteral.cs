@@ -1,12 +1,10 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconImmutableLiteral.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconImmutableLiteral.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -17,14 +15,14 @@ namespace Hocon.Immutable
 {
     public sealed class HoconImmutableLiteral : HoconImmutableElement, IEquatable<HoconImmutableLiteral>
     {
-        public static readonly HoconImmutableLiteral Null = HoconImmutableLiteral.Create(null);
-
-        public new string Value { get; }
+        public static readonly HoconImmutableLiteral Null = Create(null);
 
         private HoconImmutableLiteral(string value)
         {
             Value = value;
         }
+
+        public new string Value { get; }
 
         internal static HoconImmutableLiteral Create(string value)
         {
@@ -32,7 +30,11 @@ namespace Hocon.Immutable
         }
 
         #region Interface implementations
-        public override string ToString() => Value;
+
+        public override string ToString()
+        {
+            return Value;
+        }
 
         public bool Equals(HoconImmutableLiteral other)
         {
@@ -47,8 +49,9 @@ namespace Hocon.Immutable
 
         public override int GetHashCode()
         {
-            return (Value != null ? Value.GetHashCode() : 0);
+            return Value != null ? Value.GetHashCode() : 0;
         }
+
         #endregion
 
         #region Casting operators
@@ -60,7 +63,7 @@ namespace Hocon.Immutable
 
         public static implicit operator char[](HoconImmutableLiteral lit)
         {
-            return lit.Value?.ToCharArray() ?? new char[]{};
+            return lit.Value?.ToCharArray() ?? new char[] { };
         }
 
         public static implicit operator string(HoconImmutableLiteral lit)
@@ -90,7 +93,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToSByte(value, 16);
@@ -99,10 +101,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to sbyte.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToSByte(value, 8);
@@ -111,7 +111,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to sbyte.", e);
                 }
-            }
 
             try
             {
@@ -127,7 +126,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToByte(value, 16);
@@ -136,10 +134,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to byte.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToByte(value, 8);
@@ -148,7 +144,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to byte.", e);
                 }
-            }
 
             try
             {
@@ -164,7 +159,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToInt16(value, 16);
@@ -173,10 +167,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to short.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToInt16(value, 8);
@@ -185,7 +177,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to short.", e);
                 }
-            }
 
             try
             {
@@ -201,7 +192,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToUInt16(value, 16);
@@ -210,10 +200,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to ushort.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToUInt16(value, 8);
@@ -222,7 +210,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to ushort.", e);
                 }
-            }
 
             try
             {
@@ -238,7 +225,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToInt32(value, 16);
@@ -247,10 +233,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to int.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToInt32(value, 8);
@@ -259,7 +243,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to int.", e);
                 }
-            }
 
             try
             {
@@ -275,7 +258,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToUInt32(value, 16);
@@ -284,10 +266,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to uint.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToUInt32(value, 8);
@@ -296,7 +276,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to uint.", e);
                 }
-            }
 
             try
             {
@@ -312,7 +291,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToInt64(value, 16);
@@ -321,10 +299,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to long.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToInt64(value, 8);
@@ -333,7 +309,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to long.", e);
                 }
-            }
 
             try
             {
@@ -349,7 +324,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return Convert.ToUInt64(value, 16);
@@ -358,10 +332,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to ulong.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return Convert.ToUInt64(value, 8);
@@ -370,7 +342,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to ulong.", e);
                 }
-            }
 
             try
             {
@@ -386,7 +357,6 @@ namespace Hocon.Immutable
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
-            {
                 try
                 {
                     return BigInteger.Parse(value.Substring(2), NumberStyles.HexNumber);
@@ -395,10 +365,8 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert hex value `{value}` to ulong.", e);
                 }
-            }
 
             if (value.StartsWith("0"))
-            {
                 try
                 {
                     return value.Substring(1).Aggregate(new BigInteger(), (b, c) => b * 8 + c - '0');
@@ -407,7 +375,6 @@ namespace Hocon.Immutable
                 {
                     throw new HoconException($"Could not convert octal value `{value}` to ulong.", e);
                 }
-            }
 
             try
             {
@@ -476,7 +443,8 @@ namespace Hocon.Immutable
                 case "Infinity":
                 case "-Infinity":
                 case "NaN":
-                    throw new HoconException($"Could not convert `{value}` to decimal. Decimal does not support Infinity and NaN");
+                    throw new HoconException(
+                        $"Could not convert `{value}` to decimal. Decimal does not support Infinity and NaN");
                 default:
                     try
                     {
@@ -489,7 +457,9 @@ namespace Hocon.Immutable
             }
         }
 
-        private static readonly Regex TimeSpanRegex = new Regex(@"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$", RegexOptions.Compiled);
+        private static readonly Regex TimeSpanRegex = new Regex(
+            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$",
+            RegexOptions.Compiled);
 
         private static double ParsePositiveValue(string v)
         {
@@ -519,12 +489,12 @@ namespace Hocon.Immutable
                     case "nanos":
                     case "nano":
                     case "ns":
-                        return TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
+                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
                     case "microseconds":
                     case "microsecond":
                     case "micros":
                     case "micro":
-                        return TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
+                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
                     case "milliseconds":
                     case "millisecond":
                     case "millis":
@@ -556,7 +526,5 @@ namespace Hocon.Immutable
         }
 
         #endregion
-
     }
 }
-

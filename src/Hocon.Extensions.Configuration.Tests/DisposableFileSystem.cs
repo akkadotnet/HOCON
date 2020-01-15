@@ -1,7 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// -----------------------------------------------------------------------
+// <copyright file="DisposableFileSystem.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
+// </copyright>
+// -----------------------------------------------------------------------
+
+using System;
 using System.IO;
-using System.Text;
 
 namespace Hocon.Extensions.Configuration.Tests
 {
@@ -18,11 +22,27 @@ namespace Hocon.Extensions.Configuration.Tests
 
         public DirectoryInfo DirectoryInfo { get; }
 
+        public void Dispose()
+        {
+            try
+            {
+                Directory.Delete(RootPath, true);
+            }
+            catch
+            {
+                // Don't throw if this fails.
+            }
+        }
+
         public DirectoryInfo GetDirectory(string path)
-            => new DirectoryInfo(Path.Combine(RootPath, path));
+        {
+            return new DirectoryInfo(Path.Combine(RootPath, path));
+        }
 
         public FileInfo GetFile(string path)
-            => new FileInfo(Path.Combine(RootPath, path));
+        {
+            return new FileInfo(Path.Combine(RootPath, path));
+        }
 
         public DisposableFileSystem CreateFolder(string path)
         {
@@ -56,22 +76,11 @@ namespace Hocon.Extensions.Configuration.Tests
 
                 File.WriteAllText(
                     fullPath,
-                    string.Format("Automatically generated for testing on {0:yyyy}/{0:MM}/{0:dd} {0:hh}:{0:mm}:{0:ss}", DateTime.UtcNow));
+                    string.Format("Automatically generated for testing on {0:yyyy}/{0:MM}/{0:dd} {0:hh}:{0:mm}:{0:ss}",
+                        DateTime.UtcNow));
             }
 
             return this;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                Directory.Delete(RootPath, true);
-            }
-            catch
-            {
-                // Don't throw if this fails.
-            }
         }
     }
 }

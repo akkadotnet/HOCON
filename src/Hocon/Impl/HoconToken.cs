@@ -1,122 +1,121 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconToken.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconToken.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 namespace Hocon
 {
     /// <summary>
-    /// This enumeration defines the different types of tokens found within
-    /// a HOCON (Human-Optimized Config Object Notation) configuration string.
+    ///     This enumeration defines the different types of tokens found within
+    ///     a HOCON (Human-Optimized Config Object Notation) configuration string.
     /// </summary>
     internal enum TokenType
     {
         /// <summary>
-        /// This token type represents the end of the configuration string.
+        ///     This token type represents the end of the configuration string.
         /// </summary>
         EndOfFile,
 
         /// <summary>
-        /// This token type represents the beginning of an object, <c>{</c> .
+        ///     This token type represents the beginning of an object, <c>{</c> .
         /// </summary>
         StartOfObject,
 
         /// <summary>
-        /// This token type represents the end of an object, <c>}</c> .
+        ///     This token type represents the end of an object, <c>}</c> .
         /// </summary>
         EndOfObject,
 
         /// <summary>
-        /// This token type represents the beginning of an array, <c>[</c> .
+        ///     This token type represents the beginning of an array, <c>[</c> .
         /// </summary>
         StartOfArray,
 
         /// <summary>
-        /// This token type represents the end of an array, <c>]</c> .
+        ///     This token type represents the end of an array, <c>]</c> .
         /// </summary>
         EndOfArray,
 
         /// <summary>
-        /// This token type represents the opening parenthesis, <c>(</c> .
+        ///     This token type represents the opening parenthesis, <c>(</c> .
         /// </summary>
         ParenthesisStart,
 
         /// <summary>
-        /// This token type represents the closing parenthesis, <c>)</c> .
+        ///     This token type represents the closing parenthesis, <c>)</c> .
         /// </summary>
         ParenthesisEnd,
 
         /// <summary>
-        /// This token type represents a comment.
+        ///     This token type represents a comment.
         /// </summary>
         Comment,
 
         /// <summary>
-        /// This token type represents the value portion of a key-value pair.
+        ///     This token type represents the value portion of a key-value pair.
         /// </summary>
         LiteralValue,
 
         /// <summary>
-        /// This token type represents the assignment operator, <c>+=</c>.
+        ///     This token type represents the assignment operator, <c>+=</c>.
         /// </summary>
         PlusEqualAssign,
 
         /// <summary>
-        /// This token type represents the assignment operator, <c>=</c> or <c>:</c> .
+        ///     This token type represents the assignment operator, <c>=</c> or <c>:</c> .
         /// </summary>
         Assign,
 
         /// <summary>
-        /// This token type represents the separator in an array, <c>,</c> .
+        ///     This token type represents the separator in an array, <c>,</c> .
         /// </summary>
         Comma,
 
         /// <summary>
-        /// This token type represents the start of a replacement variable, <c>${</c> .
+        ///     This token type represents the start of a replacement variable, <c>${</c> .
         /// </summary>
         SubstituteRequired,
 
         /// <summary>
-        /// This token type represents the start of a replacement variable with question mark, <c>${?</c> .
+        ///     This token type represents the start of a replacement variable with question mark, <c>${?</c> .
         /// </summary>
         SubstituteOptional,
 
         /// <summary>
-        /// This token type represents a newline character, <c>\n</c> .
+        ///     This token type represents a newline character, <c>\n</c> .
         /// </summary>
         EndOfLine,
 
         /// <summary>
-        /// This token type represents the include directive.
+        ///     This token type represents the include directive.
         /// </summary>
         Include,
 
         /// <summary>
-        /// This token type represents the required() directive.
+        ///     This token type represents the required() directive.
         /// </summary>
         Required,
 
         /// <summary>
-        /// This token type represents the url() directive.
+        ///     This token type represents the url() directive.
         /// </summary>
         Url,
 
         /// <summary>
-        /// This token type represents the file() directive.
+        ///     This token type represents the file() directive.
         /// </summary>
         File,
 
         /// <summary>
-        /// This token type represents the classpath() directive.
+        ///     This token type represents the classpath() directive.
         /// </summary>
         Classpath,
 
         /// <summary>
-        /// This token type represents a tokenizer error.
+        ///     This token type represents a tokenizer error.
         /// </summary>
-        Error,
+        Error
     }
 
     internal enum TokenLiteralType
@@ -131,38 +130,21 @@ namespace Hocon
         Long,
         Double,
         Hex,
-        Octal,
-
+        Octal
     }
 
     /// <summary>
-    /// This class represents a token within a HOCON (Human-Optimized Config Object Notation)
-    /// configuration string.
+    ///     This class represents a token within a HOCON (Human-Optimized Config Object Notation)
+    ///     configuration string.
     /// </summary>
-    internal sealed class Token: IHoconLineInfo
+    internal sealed class Token : IHoconLineInfo
     {
         public static readonly Token Empty = new Token();
 
-        public int LineNumber { get; }
-        public int LinePosition { get; }
-
-        /// <summary>
-        /// The value associated with this token. If this token is
-        /// a <see cref="TokenType.LiteralValue"/>, then this property
-        /// holds the string literal.
-        /// </summary>
-        public string Value { get; }
-
-        /// <summary>
-        /// The type that represents this token.
-        /// </summary>
-        public TokenType Type { get; }
-
-        public TokenLiteralType LiteralType { get; }
-
         //for serialization
         private Token()
-        { }
+        {
+        }
 
         public Token(string value, TokenType type, TokenLiteralType literalType, IHoconLineInfo source)
         {
@@ -177,12 +159,32 @@ namespace Hocon
             }
         }
 
-        public override string ToString()
-            => $"Type:{Type}, Value:{Value ?? "null"}, Num:{LineNumber}, Pos:{LinePosition}";
-
-        public Token(string value, TokenType type, IHoconLineInfo source) 
+        public Token(string value, TokenType type, IHoconLineInfo source)
             : this(value, type, TokenLiteralType.None, source)
-        { }
+        {
+        }
+
+        /// <summary>
+        ///     The value associated with this token. If this token is
+        ///     a <see cref="TokenType.LiteralValue" />, then this property
+        ///     holds the string literal.
+        /// </summary>
+        public string Value { get; }
+
+        /// <summary>
+        ///     The type that represents this token.
+        /// </summary>
+        public TokenType Type { get; }
+
+        public TokenLiteralType LiteralType { get; }
+
+        public int LineNumber { get; }
+        public int LinePosition { get; }
+
+        public override string ToString()
+        {
+            return $"Type:{Type}, Value:{Value ?? "null"}, Num:{LineNumber}, Pos:{LinePosition}";
+        }
 
         /*
         /// <summary>
@@ -196,23 +198,30 @@ namespace Hocon
         */
 
         /// <summary>
-        /// Creates a substitution token with a given <paramref name="path"/>.
+        ///     Creates a substitution token with a given <paramref name="path" />.
         /// </summary>
         /// <param name="path">The path to associate with this token.</param>
-        /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
-        /// <param name="questionMarked">Designate whether the substitution <see cref="Token"/> was declared as `${?`.</param>
+        /// <param name="source">
+        ///     The <see cref="IHoconLineInfo" /> of this <see cref="Token" />, used for exception generation
+        ///     purposes.
+        /// </param>
+        /// <param name="questionMarked">Designate whether the substitution <see cref="Token" /> was declared as `${?`.</param>
         /// <returns>A substitution token with the given path.</returns>
         public static Token Substitution(string path, IHoconLineInfo source, bool questionMarked)
         {
-            return new Token(path, questionMarked ? TokenType.SubstituteOptional : TokenType.SubstituteRequired, TokenLiteralType.None, source);
+            return new Token(path, questionMarked ? TokenType.SubstituteOptional : TokenType.SubstituteRequired,
+                TokenLiteralType.None, source);
         }
 
         /// <summary>
-        /// Creates a string literal token with a given <paramref name="value"/>.
+        ///     Creates a string literal token with a given <paramref name="value" />.
         /// </summary>
         /// <param name="value">The value to associate with this token.</param>
-        /// <param name="literalType">The <see cref="TokenLiteralType"/> of this <see cref="Token"/>.</param>
-        /// <param name="source">The <see cref="IHoconLineInfo"/> of this <see cref="Token"/>, used for exception generation purposes.</param>
+        /// <param name="literalType">The <see cref="TokenLiteralType" /> of this <see cref="Token" />.</param>
+        /// <param name="source">
+        ///     The <see cref="IHoconLineInfo" /> of this <see cref="Token" />, used for exception generation
+        ///     purposes.
+        /// </param>
         /// <returns>A string literal token with the given value.</returns>
         public static Token LiteralValue(string value, TokenLiteralType literalType, IHoconLineInfo source)
         {

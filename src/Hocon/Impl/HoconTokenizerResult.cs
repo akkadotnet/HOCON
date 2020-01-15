@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconTokenizerResult.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconTokenizerResult.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +17,20 @@ namespace Hocon
 
         public Token Current => this[Index];
 
-        public void PushPosition() => _indexStack.Push(Index);
+        public void PushPosition()
+        {
+            _indexStack.Push(Index);
+        }
 
-        public void PopPosition() => Index = _indexStack.Pop();
+        public void PopPosition()
+        {
+            Index = _indexStack.Pop();
+        }
 
-        public void ResetPosition() => Index = 0;
+        public void ResetPosition()
+        {
+            Index = 0;
+        }
 
         public void Insert(Token token)
         {
@@ -54,15 +62,15 @@ namespace Hocon
         public void ToNextSignificant()
         {
             Next();
-            while (Current.LiteralType == TokenLiteralType.Whitespace || Current.Type == TokenType.Comment )
+            while (Current.LiteralType == TokenLiteralType.Whitespace || Current.Type == TokenType.Comment)
                 Next();
         }
 
         public void ToNextSignificantLine()
         {
             Next();
-            while (Current.LiteralType == TokenLiteralType.Whitespace 
-                   || Current.Type == TokenType.Comment 
+            while (Current.LiteralType == TokenLiteralType.Whitespace
+                   || Current.Type == TokenType.Comment
                    || Current.Type == TokenType.EndOfLine)
                 Next();
         }
@@ -71,10 +79,7 @@ namespace Hocon
         {
             PushPosition();
             Back();
-            while (Current.LiteralType == TokenLiteralType.Whitespace)
-            {
-                Back();
-            }
+            while (Current.LiteralType == TokenLiteralType.Whitespace) Back();
             var current = Current;
             PopPosition();
             return current.Type == token;
@@ -84,15 +89,14 @@ namespace Hocon
         {
             PushPosition();
             Back();
-            while (Current.LiteralType == TokenLiteralType.Whitespace)
-            {
-                Back();
-            }
+            while (Current.LiteralType == TokenLiteralType.Whitespace) Back();
             var c = Current;
-            if (tokens.Any(token => token == c.Type)) {
+            if (tokens.Any(token => token == c.Type))
+            {
                 PopPosition();
                 return true;
             }
+
             PopPosition();
             return false;
         }
@@ -101,10 +105,7 @@ namespace Hocon
         {
             PushPosition();
             Next();
-            while (Current.LiteralType == TokenLiteralType.Whitespace)
-            {
-                Next();
-            }
+            while (Current.LiteralType == TokenLiteralType.Whitespace) Next();
             var current = Current;
             PopPosition();
             return current.Type == token;
@@ -120,9 +121,9 @@ namespace Hocon
                 PopPosition();
                 return true;
             }
+
             PopPosition();
             return false;
         }
     }
-
 }

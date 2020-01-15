@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="TestStreamHelpers.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="TestStreamHelpers.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.IO;
@@ -19,6 +18,25 @@ namespace Hocon.Extensions.Configuration.Tests
         public static IFileProvider StringToFileProvider(string str)
         {
             return new TestFileProvider(str);
+        }
+
+        public static Stream StringToStream(string str)
+        {
+            var memStream = new MemoryStream();
+            var textWriter = new StreamWriter(memStream);
+            textWriter.Write(str);
+            textWriter.Flush();
+            memStream.Seek(0, SeekOrigin.Begin);
+
+            return memStream;
+        }
+
+        public static string StreamToString(Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            var reader = new StreamReader(stream);
+
+            return reader.ReadToEnd();
         }
 
         private class TestFile : IFileInfo
@@ -51,6 +69,7 @@ namespace Hocon.Extensions.Configuration.Tests
         private class TestFileProvider : IFileProvider
         {
             private readonly string _data;
+
             public TestFileProvider(string str)
             {
                 _data = str;
@@ -70,25 +89,6 @@ namespace Hocon.Extensions.Configuration.Tests
             {
                 throw new NotImplementedException();
             }
-        }
-
-        public static Stream StringToStream(string str)
-        {
-            var memStream = new MemoryStream();
-            var textWriter = new StreamWriter(memStream);
-            textWriter.Write(str);
-            textWriter.Flush();
-            memStream.Seek(0, SeekOrigin.Begin);
-
-            return memStream;
-        }
-
-        public static string StreamToString(Stream stream)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            var reader = new StreamReader(stream);
-
-            return reader.ReadToEnd();
         }
     }
 }

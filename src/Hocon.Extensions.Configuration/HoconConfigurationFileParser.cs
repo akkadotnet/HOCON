@@ -1,9 +1,8 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconConfigurationFileParser.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconConfigurationFileParser.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -15,8 +14,11 @@ namespace Hocon.Extensions.Configuration
 {
     internal class HoconConfigurationFileParser
     {
-        private readonly IDictionary<string, string> _data = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Stack<string> _context = new Stack<string>();
+
+        private readonly IDictionary<string, string> _data =
+            new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         private string _currentPath;
 
         public IDictionary<string, string> Parse(Stream input)
@@ -82,10 +84,7 @@ namespace Hocon.Extensions.Configuration
         {
             var key = _currentPath;
 
-            if (_data.ContainsKey(key))
-            {
-                throw new FormatException(string.Format(Resources.Error_KeyIsDuplicated, key));
-            }
+            if (_data.ContainsKey(key)) throw new FormatException(string.Format(Resources.Error_KeyIsDuplicated, key));
 
             _data[key] = data.GetString();
         }

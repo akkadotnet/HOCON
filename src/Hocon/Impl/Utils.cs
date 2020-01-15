@@ -1,23 +1,16 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="Utils.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="Utils.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Hocon
 {
     internal static class Utils
     {
-
         /*
          * These are all the characters defined as whitespace by Hocon spec.
          * Hocon spec only recognizes NewLine as an End of Line marker.
@@ -76,49 +69,84 @@ namespace Hocon
         public const string Digits = "1234567890";
         public const string Hexadecimal = "1234567890abcdefABCDEF";
 
+        public static bool IsSubstitution(this IHoconElement value)
+        {
+            switch (value)
+            {
+                case HoconValue v:
+                    return v.Any(n => n.IsSubstitution());
+                case HoconField f:
+                    return f.Value.Any(n => n.IsSubstitution());
+                case HoconObject o:
+                    foreach (var f in o.Values)
+                        if (f.Value.Any(n => n.IsSubstitution()))
+                            return true;
+                    return false;
+                case HoconArray a:
+                    foreach (var v in a)
+                        if (v.Any(n => n.IsSubstitution()))
+                            return true;
+                    return false;
+                case HoconSubstitution _:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         #region String extensions
 
         public static string TrimWhitespace(this string value)
         {
             int index = 0;
-            while (Whitespaces.Contains(value[index]) && index < value.Length)
-            {
-                index++;
-            }
+            while (Whitespaces.Contains(value[index]) && index < value.Length) index++;
 
             var trimmed = value.Substring(index);
             index = trimmed.Length - 1;
-            while (Whitespaces.Contains(value[index]) && index > 0)
-            {
-                index--;
-            }
+            while (Whitespaces.Contains(value[index]) && index > 0) index--;
             var res = trimmed.Substring(0, index + 1);
             return res;
         }
 
         public static bool IsNotInUnquotedText(this char c)
-            => NotInUnquotedText.Contains(c);
+        {
+            return NotInUnquotedText.Contains(c);
+        }
 
         public static bool IsHoconWhitespace(this char c)
-            => Whitespaces.Contains(c);
+        {
+            return Whitespaces.Contains(c);
+        }
 
         public static bool IsWhitespaceWithNoNewLine(this char c)
-            => WhitespaceWithoutNewLine.Contains(c);
+        {
+            return WhitespaceWithoutNewLine.Contains(c);
+        }
 
         public static bool IsDigit(this char c)
-            => Digits.Contains(c);
+        {
+            return Digits.Contains(c);
+        }
 
         public static bool IsOctal(this char c)
-            => Octals.Contains(c);
+        {
+            return Octals.Contains(c);
+        }
 
         public static bool IsHexadecimal(this char c)
-            => Hexadecimal.Contains(c);
+        {
+            return Hexadecimal.Contains(c);
+        }
 
         public static string ToHoconSafe(this string s)
-            => s.NeedTripleQuotes() ? $"\"\"\"{s}\"\"\"" : s.NeedQuotes() ? s.AddQuotes() : s;
+        {
+            return s.NeedTripleQuotes() ? $"\"\"\"{s}\"\"\"" : s.NeedQuotes() ? s.AddQuotes() : s;
+        }
 
         public static HoconPath ToHoconPath(this string path)
-            => HoconPath.Parse(path);
+        {
+            return HoconPath.Parse(path);
+        }
 
         public static bool Contains(this string s, char c)
         {
@@ -131,59 +159,33 @@ namespace Hocon
 
         [DebuggerStepThrough]
         public static bool IsSignificant(this Token token)
-            => token.Type != TokenType.Comment && token.LiteralType != TokenLiteralType.Whitespace;
+        {
+            return token.Type != TokenType.Comment && token.LiteralType != TokenLiteralType.Whitespace;
+        }
 
         [DebuggerStepThrough]
         public static bool IsNonSignificant(this Token token)
-            => !token.IsSignificant();
+        {
+            return !token.IsSignificant();
+        }
 
         #endregion
-
-        public static bool IsSubstitution(this IHoconElement value)
-        {
-            switch (value)
-            {
-                case HoconValue v:
-                    return v.Any(n => n.IsSubstitution());
-                case HoconField f:
-                    return f.Value.Any(n => n.IsSubstitution());
-                case HoconObject o:
-                    foreach (var f in o.Values)
-                    {
-                        if (f.Value.Any(n => n.IsSubstitution()))
-                            return true;
-                    }
-                    return false;
-                case HoconArray a:
-                    foreach (var v in a)
-                    {
-                        if (v.Any(n => n.IsSubstitution()))
-                            return true;
-                    }
-                    return false;
-                case HoconSubstitution _:
-                    return true;
-                default:
-                    return false;
-            }
-        }
     }
 
     public static class StringUtil
     {
-
         public static bool NeedQuotes(this string s)
         {
             foreach (var c in s)
-            {
-                if (Utils.NotInUnquotedText.Contains(c))
+                if (Enumerable.Contains(Utils.NotInUnquotedText, c))
                     return true;
-            }
             return false;
         }
 
         public static bool NeedTripleQuotes(this string s)
-            => s.NeedQuotes() && s.Contains(Utils.NewLine);
+        {
+            return s.NeedQuotes() && s.Contains(Utils.NewLine);
+        }
 
         public static string AddQuotes(this string s)
         {

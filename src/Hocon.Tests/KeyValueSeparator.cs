@@ -1,15 +1,10 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="KeyValueSeparator.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="KeyValueSeparator.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Hocon.Tests
@@ -56,9 +51,9 @@ root_2 : 1234
             Assert.Equal("foo", config.GetString("root.quoted-string"));
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
-            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("root.array")));
-            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("root.array-newline-element")));
-            Assert.True(new[] { "1 2 3 4" }.SequenceEqual(config.GetStringList("root.array-single-element")));
+            Assert.True(new[] {1, 2, 3, 4}.SequenceEqual(config.GetIntList("root.array")));
+            Assert.True(new[] {1, 2, 3, 4}.SequenceEqual(config.GetIntList("root.array-newline-element")));
+            Assert.True(new[] {"1 2 3 4"}.SequenceEqual(config.GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -81,6 +76,5 @@ root_2 {
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("bar", config.GetString("root_2.unquoted-string"));
         }
-
     }
 }
