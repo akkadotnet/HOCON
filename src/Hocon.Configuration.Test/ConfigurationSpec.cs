@@ -143,6 +143,63 @@ foo {
         }
 
         [Fact]
+        public void CanUseFallbackString()
+        {
+            var hocon1 = @"
+foo {
+   bar {
+      a=123str
+   }
+}";
+            var hocon2 = @"
+foo {
+   bar {
+      a=1str
+      b=2str
+      c=3str
+   }
+   car = ""bar""
+}
+dar = d";
+
+            var config1 = ConfigurationFactory.ParseString(hocon1);
+            var config2 = ConfigurationFactory.ParseString(hocon2);
+
+            var config = config1.WithFallback(config2);
+
+            Assert.Equal("123str", config.GetString("foo.bar.a"));
+            Assert.Equal("2str", config.GetString("foo.bar.b"));
+            Assert.Equal("3str", config.GetString("foo.bar.c"));
+            Assert.Equal("bar", config.GetString("foo.car"));
+            Assert.Equal("d", config.GetString("dar"));
+        }
+
+        [Fact]
+        public void CanUseFallbackWithEmpty()
+        {
+            var config1 = Config.Empty;
+            var hocon2 = @"
+foo {
+   bar {
+      a=1str
+      b=2str
+      c=3str
+   }
+   car = ""bar""
+}
+dar = d";
+            var config2 = ConfigurationFactory.ParseString(hocon2);
+
+            var config = config1.SafeWithFallback(config2);
+
+            Assert.Equal("1str", config.GetString("foo.bar.a"));
+            Assert.Equal("2str", config.GetString("foo.bar.b"));
+            Assert.Equal("3str", config.GetString("foo.bar.c"));
+            Assert.Equal("bar", config.GetString("foo.car"));
+            Assert.Equal("d", config.GetString("dar"));
+        }
+
+        [Fact]
         public void CanUseFallbackInSubConfig()
         {
             var hocon1 = @"
