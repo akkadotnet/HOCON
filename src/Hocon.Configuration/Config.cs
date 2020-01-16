@@ -59,7 +59,29 @@ namespace Hocon
         /// <summary>
         ///     The root node of this configuration section
         /// </summary>
-        public virtual HoconValue Root => Value;
+        public virtual HoconValue Root
+        {
+            get
+            {
+                var elements = Value.ToList();
+                var config = this;
+                while (config.Fallback != null)
+                {
+                    config = config.Fallback;
+                    if (config.Value != null)
+                        elements.AddRange(config.Value);
+                }
+
+                var aggregated = new HoconValue(null);
+                elements.Reverse();
+                foreach (var element in elements)
+                {
+                    aggregated.Add(element);
+                }
+
+                return aggregated;
+            }
+        }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -69,12 +91,8 @@ namespace Hocon
         {
             if (!useFallbackValues)
                 return base.ToString();
-
-            var config = this;
-            while (config.Fallback != null)
-                config = config.Fallback;
-
-            return config.ToString();
+            
+            return Root.ToString();
         }
 
         /// <summary>
@@ -96,7 +114,7 @@ namespace Hocon
             HoconValue result;
             try
             {
-                result = Root.GetObject().GetValue(path);
+                result = Value.GetObject().GetValue(path);
             }
             catch
             {
@@ -191,7 +209,7 @@ namespace Hocon
             var current = this;
             while (current != null)
             {
-                foreach (var kvp in current.Root.GetObject())
+                foreach (var kvp in current.Value.GetObject())
                 {
                     if (used.Contains(kvp.Key))
                         continue;
