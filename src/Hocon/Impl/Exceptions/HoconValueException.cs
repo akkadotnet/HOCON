@@ -11,8 +11,8 @@ namespace Hocon
     public class HoconValueException : HoconException
     {
         /// <inheritdoc />
-        public HoconValueException(string message, string failPath, Exception innerException) : base(message,
-            innerException)
+        public HoconValueException(string message, string failPath, Exception innerException) 
+            : base(message + $" at path [{failPath}]", innerException)
         {
             FailPath = failPath;
         }

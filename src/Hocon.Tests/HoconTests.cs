@@ -427,6 +427,15 @@ A {
         }
 
         [Fact]
+        public void AtKey_Should_work()
+        {
+            var initial = Parser.Parse("a = 5");
+            var config = initial.GetValue("a").AtKey("b");
+            config.GetInt("b").Should().Be(5);
+            config.HasPath("a").Should().BeFalse();
+        }
+
+        [Fact]
         public void CanTrimConcatenatedValue()
         {
             var hocon = "a= \t \t 1 2 3 \t \t,";
