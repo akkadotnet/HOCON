@@ -420,8 +420,9 @@ A {
             ;
 
             emptyConfig.GetStringList(missingKey, new List<string>()).Should().Equal(new List<string>());
-            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+            
+            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().NotThrow("String list is an exception of the rule")
+                .And.Subject().Should().BeEquivalentTo(new List<string>());
             ;
         }
 
