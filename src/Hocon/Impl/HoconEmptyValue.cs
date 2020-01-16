@@ -14,6 +14,8 @@ namespace Hocon
     /// </summary>
     public sealed class HoconEmptyValue : HoconValue
     {
+        public HoconEmptyValue() : base(null) { }
+        
         public HoconEmptyValue(IHoconElement parent) : base(parent)
         {
         }
