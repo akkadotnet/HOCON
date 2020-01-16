@@ -59,7 +59,29 @@ namespace Hocon
         /// <summary>
         ///     The root node of this configuration section
         /// </summary>
-        public virtual HoconValue Root => Value;
+        public virtual HoconValue Root
+        {
+            get
+            {
+                var elements = Value.ToList();
+                var config = this;
+                while (config.Fallback != null)
+                {
+                    config = config.Fallback;
+                    if (config.Value != null)
+                        elements.AddRange(config.Value);
+                }
+
+                var aggregated = new HoconValue(null);
+                elements.Reverse();
+                foreach (var element in elements)
+                {
+                    aggregated.Add(element);
+                }
+
+                return aggregated;
+            }
+        }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -69,12 +91,8 @@ namespace Hocon
         {
             if (!useFallbackValues)
                 return base.ToString();
-
-            var config = this;
-            while (config.Fallback != null)
-                config = config.Fallback;
-
-            return config.ToString();
+            
+            return Root.ToString();
         }
 
         /// <summary>
@@ -93,20 +111,17 @@ namespace Hocon
 
         protected override HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
-            HoconValue result;
             try
             {
-                result = Root.GetObject().GetValue(path);
+                return Root.GetObject().GetValue(path);
             }
             catch
             {
                 if (throwIfNotFound)
                     throw;
 
-                result = Fallback?.GetNode(path);
+                return null;
             }
-
-            return result;
         }
 
         /// <summary>
@@ -123,12 +138,6 @@ namespace Hocon
         public virtual Config GetConfig(HoconPath path)
         {
             var value = GetNode(path);
-            if (Fallback != null)
-            {
-                var f = Fallback.GetConfig(path);
-                return value == null ? f : new Config(new HoconRoot(value)).WithFallback(f);
-            }
-
             return value == null ? null : new Config(new HoconRoot(value));
         }
 
@@ -188,19 +197,13 @@ namespace Hocon
         public override IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
         {
             var used = new HashSet<string>();
-            var current = this;
-            while (current != null)
+            foreach (var kvp in Root.GetObject())
             {
-                foreach (var kvp in current.Root.GetObject())
-                {
-                    if (used.Contains(kvp.Key))
-                        continue;
+                if (used.Contains(kvp.Key))
+                    continue;
 
-                    yield return kvp;
-                    used.Add(kvp.Key);
-                }
-
-                current = current.Fallback;
+                yield return kvp;
+                used.Add(kvp.Key);
             }
         }
     }

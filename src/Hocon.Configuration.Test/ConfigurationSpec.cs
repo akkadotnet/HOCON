@@ -395,6 +395,47 @@ foo {
             ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
         }
 
+        [Fact]
+        public void HoconValue_GetObject_should_use_fallback_values()
+        {
+            var config1 = ConfigurationFactory.ParseString("a = 5");
+            var config2 = ConfigurationFactory.ParseString("b = 3");
+            var config = config1.WithFallback(config2);
+            var rootObject = config.Root.GetObject();
+            rootObject.ContainsKey("a").Should().BeTrue();
+            rootObject["a"].Raw.Should().Be("5");
+            rootObject.ContainsKey("b").Should().BeTrue();
+            rootObject["b"].Raw.Should().Be("3");
+        }
+        
+        [Fact]
+        public void HoconValue_GetObject_should_use_fallback_values_with_complex_objects()
+        {
+            var config1 = ConfigurationFactory.ParseString(@"
+	            akka.actor.deployment {
+		            /worker1 {
+			            router = round-robin-group1
+			            routees.paths = [""/user/testroutes/1""]
+		            }
+	            }");
+            var config2 = ConfigurationFactory.ParseString(@"
+	            akka.actor.deployment {
+		            /worker2 {
+			            router = round-robin-group2
+			            routees.paths = [""/user/testroutes/2""]
+		            }
+	            }");
+            var configWithFallback = config1.WithFallback(config2);
+            
+            var config = configWithFallback.GetConfig("akka.actor.deployment");
+            var rootObj = config.Root.GetObject();
+            rootObj.Unwrapped.Should().ContainKeys("/worker1", "/worker2");
+            rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
+            rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
+            rootObj["/worker1.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/1""");
+            rootObj["/worker2.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/2""");
+        }
+
 
 #if !NETCORE
         [Fact]
@@ -427,9 +468,15 @@ foo {
             }");
 
             var c = a.WithFallback(b);
+            
             c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
             c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
             c.ToString(true).Should().Contain("other-key", "Fallback values should be displayed when requested");
+            
+            c.GetString("akka.some-key").Should().Be("value", "Original value should remain");
+            c.ToString().Should().Contain("some-key", "Original values are shown by default");
+            c.ToString(true).Should().Contain("some-key", "Original values should be displayed always");
+
         }
 
         /// <summary>
