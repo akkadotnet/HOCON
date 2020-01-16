@@ -111,20 +111,17 @@ namespace Hocon
 
         protected override HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
-            HoconValue result;
             try
             {
-                result = Value.GetObject().GetValue(path);
+                return Root.GetObject().GetValue(path);
             }
             catch
             {
                 if (throwIfNotFound)
                     throw;
 
-                result = Fallback?.GetNode(path);
+                return null;
             }
-
-            return result;
         }
 
         /// <summary>
@@ -141,12 +138,6 @@ namespace Hocon
         public virtual Config GetConfig(HoconPath path)
         {
             var value = GetNode(path);
-            if (Fallback != null)
-            {
-                var f = Fallback.GetConfig(path);
-                return value == null ? f : new Config(new HoconRoot(value)).WithFallback(f);
-            }
-
             return value == null ? null : new Config(new HoconRoot(value));
         }
 
@@ -206,19 +197,13 @@ namespace Hocon
         public override IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
         {
             var used = new HashSet<string>();
-            var current = this;
-            while (current != null)
+            foreach (var kvp in Root.GetObject())
             {
-                foreach (var kvp in current.Value.GetObject())
-                {
-                    if (used.Contains(kvp.Key))
-                        continue;
+                if (used.Contains(kvp.Key))
+                    continue;
 
-                    yield return kvp;
-                    used.Add(kvp.Key);
-                }
-
-                current = current.Fallback;
+                yield return kvp;
+                used.Add(kvp.Key);
             }
         }
     }
