@@ -182,9 +182,14 @@ namespace Hocon
         /// </remarks>
         public HoconRoot AtKey(string key)
         {
-            var field = new HoconField(key, null);
-            var cloned = Clone(field);
-            return new HoconRoot((HoconValue) cloned);
+            var value = new HoconValue(null);
+            var obj = new HoconObject(value);
+            var field = new HoconField(key, obj);
+            field.SetValue(Clone(field) as HoconValue);
+            obj.Add(key, field);
+            value.Add(obj);
+            
+            return new HoconRoot(value);
         }
 
         /// <summary>

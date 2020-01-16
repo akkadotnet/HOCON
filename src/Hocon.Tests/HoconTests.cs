@@ -420,9 +420,19 @@ A {
             ;
 
             emptyConfig.GetStringList(missingKey, new List<string>()).Should().Equal(new List<string>());
-            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+            
+            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().NotThrow("String list is an exception of the rule")
+                .And.Subject().Should().BeEquivalentTo(new List<string>());
             ;
+        }
+
+        [Fact]
+        public void AtKey_Should_work()
+        {
+            var initial = Parser.Parse("a = 5");
+            var config = initial.GetValue("a").AtKey("b");
+            config.GetInt("b").Should().Be(5);
+            config.HasPath("a").Should().BeFalse();
         }
 
         [Fact]
