@@ -662,8 +662,7 @@ namespace Hocon
         public virtual IList<string> GetStringList(string path)
         {
             return WrapWithValueException(path,
-                () => GetStringList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+                () => GetStringList(HoconPath.Parse(path)) ?? new List<string>());
         }
 
         /// <summary>
