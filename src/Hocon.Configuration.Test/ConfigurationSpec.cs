@@ -5,9 +5,13 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace Hocon.Configuration.Tests
@@ -426,6 +430,50 @@ foo {
             c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
             c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
             c.ToString(true).Should().Contain("other-key", "Fallback values should be displayed when requested");
+        }
+
+        /// <summary>
+        /// Source issue: https://github.com/akkadotnet/HOCON/issues/175
+        /// </summary>
+        [Fact]
+        public void ShouldDeserializeFromJson()
+        {
+            var settings = new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                Converters = new List<JsonConverter>(),
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                ObjectCreationHandling = ObjectCreationHandling.Replace,
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                TypeNameHandling = TypeNameHandling.All,
+                ContractResolver = new AkkaContractResolver()
+            };
+            
+            var json = "{\"$id\":\"1\",\"$type\":\"Hocon.Config, Hocon.Configuration\",\"Root\":{\"$type\":\"Hocon.HoconEmptyValue, Hocon\",\"$values\":[]},\"Value\":{\"$type\":\"Hocon.HoconEmptyValue, Hocon\",\"$values\":[]},\"Substitutions\":{\"$type\":\"Hocon.HoconSubstitution[], Hocon\",\"$values\":[]},\"IsEmpty\":true}";
+            var restored = JsonConvert.DeserializeObject<Config>(json, settings);
+            restored.IsEmpty.Should().BeTrue();
+        }
+        
+        internal class AkkaContractResolver : DefaultContractResolver
+        {
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+            {
+                var prop = base.CreateProperty(member, memberSerialization);
+
+                if (!prop.Writable)
+                {
+                    var property = member as PropertyInfo;
+                    if (property != null)
+                    {
+                        var hasPrivateSetter = property.GetSetMethod(true) != null;
+                        prop.Writable = hasPrivateSetter;
+                    }
+                }
+
+                return prop;
+            }
         }
     }
 }
