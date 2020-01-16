@@ -2,7 +2,15 @@
 
 C# implementation of Typesafe's HOCON (Human-Optimized Object Configuration Notation)
 
-[![Build Status](https://travis-ci.org/akkadotnet/HOCON.svg)](https://travis-ci.org/akkadotnet/HOCON)
+## Installation
+To install [HOCON via NuGet](https://www.nuget.org/packages/Hocon.Configuration/):
+
+```
+PS> Install-Package Hocon.Configuration
+```
+
+### Nightly Build Access
+If you need access to nightly HOCON builds, you can [get them via the Akka.NET nightly build NuGet feed](https://getakka.net/community/getting-access-to-nightly-builds.html).
 
 # Spec
 
