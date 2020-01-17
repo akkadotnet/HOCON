@@ -407,6 +407,71 @@ foo {
             rootObject.ContainsKey("b").Should().BeTrue();
             rootObject["b"].Raw.Should().Be("3");
         }
+
+        [Fact]
+        public void Quoted_key_should_be_parsed()
+        {
+            var config1 = ConfigurationFactory.ParseString(
+                "akka : { version : \"0.0.1 Akka\", home : \"\", loggers : [\"Akka.TestKit.TestEventListener, Akka.TestKit\"], loggers-dispatcher : \"akka.actor.default-dispatcher\", logger-startup-timeout : 5s, loglevel : WARNING, suppress-json-serializer-warning : true, stdout-loglevel : WARNING, log-config-on-start : off, log-dead-letters : 10, log-dead-letters-during-shutdown : on, extensions : [], daemonic : off, actor : { provider : \"Akka.Actor.LocalActorRefProvider\", guardian-supervisor-strategy : \"Akka.Actor.DefaultSupervisorStrategy\", creation-timeout : 20s, reaper-interval : 5, serialize-messages : off, serialize-creators : off, unstarted-push-timeout : 10s, ask-timeout : infinite, typed : { timeout : 5 }, inbox : { inbox-size : 1000, default-timeout : 5s }, router : { type-mapping : { from-code : \"Akka.Routing.NoRouter\", round-robin-pool : \"Akka.Routing.RoundRobinPool\", round-robin-group : \"Akka.Routing.RoundRobinGroup\", random-pool : \"Akka.Routing.RandomPool\", random-group : \"Akka.Routing.RandomGroup\", smallest-mailbox-pool : \"Akka.Routing.SmallestMailboxPool\", broadcast-pool : \"Akka.Routing.BroadcastPool\", broadcast-group : \"Akka.Routing.BroadcastGroup\", scatter-gather-pool : \"Akka.Routing.ScatterGatherFirstCompletedPool\", scatter-gather-group : \"Akka.Routing.ScatterGatherFirstCompletedGroup\", consistent-hashing-pool : \"Akka.Routing.ConsistentHashingPool\", consistent-hashing-group : \"Akka.Routing.ConsistentHashingGroup\", tail-chopping-pool : \"Akka.Routing.TailChoppingPool\", tail-chopping-group : \"Akka.Routing.TailChoppingGroup\", my-router : \"Akka.Tests.Routing.ConfiguredLocalRoutingSpec+MyRouter, Akka.Tests\" } }, deployment : { default : { dispatcher : \"\", mailbox : \"\", router : \"from-code\", nr-of-instances : 1, within : 5 s, virtual-nodes-factor : 10, routees : { paths : [] }, resizer : { enabled : off, lower-bound : 1, upper-bound : 10, pressure-threshold : 1, rampup-rate : 0.2, backoff-threshold : 0.3, backoff-rate : 0.1, messages-per-resize : 10 } },   /config : { router : random-pool, nr-of-instances : 4, pool-dispatcher : { type : ForkJoinDispatcher, throughput : 100, dedicated-thread-pool : { thread-count : 4, deadlock-timeout : 3s, threadtype : background } } },   /paths : { router : random-group, routees : { paths : [\" /user /service1\",\" /user /service2\"] } },  /weird : { router : round-robin-pool, nr-of-instances : 3 } }, synchronized-dispatcher : { type : \"SynchronizedDispatcher\", executor : \"current-context-executor\", throughput : 10 }, task-dispatcher : { type : \"TaskDispatcher\", executor : \"task-executor\", throughput : 30 }, default-fork-join-dispatcher : { type : ForkJoinDispatcher, executor : fork-join-executor, throughput : 30, dedicated-thread-pool : { thread-count : 3, threadtype : background } }, default-dispatcher : { type : ForkJoinDispatcher, executor : \"default-executor\", default-executor : { }, thread-pool-executor : { }, fork-join-executor : { dedicated-thread-pool : { thread-count : 3, threadtype : background } }, current-context-executor : { }, shutdown-timeout : 1s, throughput : 100, throughput-deadline-time : 0ms, attempt-teamwork : on, mailbox-requirement : \"\", dedicated-thread-pool : { thread-count : 4, deadlock-timeout : 3s, threadtype : background } }, default-mailbox : { mailbox-type : \"Akka.Dispatch.UnboundedMailbox\", mailbox-capacity : 1000, mailbox-push-timeout-time : 10s, stash-capacity : -1 }, mailbox : { requirements : { Akka.Dispatch.IUnboundedMessageQueueSemantics : akka.actor.mailbox.unbounded-queue-based, Akka.Dispatch.IBoundedMessageQueueSemantics : akka.actor.mailbox.bounded-queue-based, Akka.Dispatch.IDequeBasedMessageQueueSemantics : akka.actor.mailbox.unbounded-deque-based, Akka.Dispatch.IUnboundedDequeBasedMessageQueueSemantics : akka.actor.mailbox.unbounded-deque-based, Akka.Dispatch.IBoundedDequeBasedMessageQueueSemantics : akka.actor.mailbox.bounded-deque-based, Akka.Dispatch.IMultipleConsumerSemantics : akka.actor.mailbox.unbounded-queue-based, Akka.Event.ILoggerMessageQueueSemantics : akka.actor.mailbox.logger-queue }, unbounded-queue-based : { mailbox-type : \"Akka.Dispatch.UnboundedMailbox\" }, bounded-queue-based : { mailbox-type : \"Akka.Dispatch.BoundedMailbox\" }, unbounded-deque-based : { mailbox-type : \"Akka.Dispatch.UnboundedDequeBasedMailbox\" }, bounded-deque-based : { mailbox-type : \"Akka.Dispatch.BoundedDequeBasedMailbox\" }, logger-queue : { mailbox-type : \"Akka.Event.LoggerMailboxType\" } }, debug : { receive : off, autoreceive : off, lifecycle : off, fsm : off, event-stream : off, unhandled : off, router-misconfiguration : off }, serializers : { json : \"Akka.Serialization.NewtonSoftJsonSerializer, Akka\", bytes : \"Akka.Serialization.ByteArraySerializer, Akka\" }, serialization-bindings : { \"System.Byte[]\" : bytes, \"System.Object\" : json }, serialization-identifiers : { \"Akka.Serialization.ByteArraySerializer, Akka\" : 4, \"Akka.Serialization.NewtonSoftJsonSerializer, Akka\" : 1 }, serialization-settings : { } }, scheduler : { tick-duration : 10ms, ticks-per-wheel : 512, implementation : \"Akka.Actor.HashedWheelTimerScheduler\", shutdown-timeout : 5s }, io : { pinned-dispatcher : { type : \"PinnedDispatcher\", executor : \"fork-join-executor\" }, tcp : { direct-buffer-pool : { class : \"Akka.IO.Buffers.DirectBufferPool, Akka\", buffer-size : 512, buffers-per-segment : 500, initial-segments : 1, buffer-pool-limit : 1024 }, disabled-buffer-pool : { class : \"Akka.IO.Buffers.DisabledBufferPool, Akka\", buffer-size : 512 }, buffer-pool : \"akka.io.tcp.disabled-buffer-pool\", max-channels : 256000, selector-association-retries : 10, batch-accept-limit : 10, register-timeout : 5s, max-received-message-size : unlimited, trace-logging : off, selector-dispatcher : \"akka.io.pinned-dispatcher\", worker-dispatcher : \"akka.actor.default-dispatcher\", management-dispatcher : \"akka.actor.default-dispatcher\", file-io-dispatcher : \"akka.actor.default-dispatcher\", file-io-transferTo-limit : 524288, finish-connect-retries : 5, windows-connection-abort-workaround-enabled : off, outgoing-socket-force-ipv4 : false }, udp : { direct-buffer-pool : { class : \"Akka.IO.Buffers.DirectBufferPool, Akka\", buffer-size : 512, buffers-per-segment : 500, initial-segments : 1, buffer-pool-limit : 1024 }, buffer-pool : \"akka.io.udp.direct-buffer-pool\", nr-of-socket-async-event-args : 32, max-channels : 4096, select-timeout : infinite, selector-association-retries : 10, receive-throughput : 3, direct-buffer-size : 18432, direct-buffer-pool-limit : 1000, received-message-size-limit : unlimited, trace-logging : off, selector-dispatcher : \"akka.io.pinned-dispatcher\", worker-dispatcher : \"akka.actor.default-dispatcher\", management-dispatcher : \"akka.actor.default-dispatcher\" }, udp-connected : { direct-buffer-pool : { class : \"Akka.IO.Buffers.DirectBufferPool, Akka\", buffer-size : 512, buffers-per-segment : 500, initial-segments : 1, buffer-pool-limit : 1024 }, buffer-pool : \"akka.io.udp-connected.direct-buffer-pool\", nr-of-socket-async-event-args : 32, max-channels : 4096, select-timeout : infinite, selector-association-retries : 10, receive-throughput : 3, direct-buffer-size : 18432, direct-buffer-pool-limit : 1000, received-message-size-limit : unlimited, trace-logging : off, selector-dispatcher : \"akka.io.pinned-dispatcher\", worker-dispatcher : \"akka.actor.default-dispatcher\", management-dispatcher : \"akka.actor.default-dispatcher\" }, dns : { dispatcher : \"akka.actor.default-dispatcher\", resolver : \"inet-address\", inet-address : { provider-object : \"Akka.IO.InetAddressDnsProvider\", positive-ttl : 30s, negative-ttl : 10s, cache-cleanup-interval : 120s, use-ipv6 : true } } }, coordinated-shutdown : { default-phase-timeout : 5 s, terminate-actor-system : on, exit-clr : off, run-by-clr-shutdown-hook : on, phases : { before-service-unbind : { }, service-unbind : { depends-on : [before-service-unbind] }, service-requests-done : { depends-on : [service-unbind] }, service-stop : { depends-on : [service-requests-done] }, before-cluster-shutdown : { depends-on : [service-stop] }, cluster-sharding-shutdown-region : { timeout : 10 s, depends-on : [before-cluster-shutdown] }, cluster-leave : { depends-on : [cluster-sharding-shutdown-region] }, cluster-exiting : { timeout : 10 s, depends-on : [cluster-leave] }, cluster-exiting-done : { depends-on : [cluster-exiting] }, cluster-shutdown : { depends-on : [cluster-exiting-done] }, before-actor-system-terminate : { depends-on : [cluster-shutdown] }, actor-system-terminate : { timeout : 10 s, depends-on : [before-actor-system-terminate] } } }, test : { timefactor : 1.0, filter-leeway : 3s, single-expect-default : 3s, default-timeout : 5s, calling-thread-dispatcher : { type : \"Akka.TestKit.CallingThreadDispatcherConfigurator, Akka.TestKit\", throughput : 2147483647 }, test-actor : { dispatcher : { type : \"Akka.TestKit.CallingThreadDispatcherConfigurator, Akka.TestKit\", throughput : 2147483647 } } }, serialize-messages : on, remote : { dot-netty : { tcp : { port : 0 } } }}"
+             );
+            var config2 = ConfigurationFactory.ParseString(
+                "akka : { loggers : [\"Akka.TestKit.TestEventListener, Akka.TestKit\"], suppress-json-serializer-warning : true, test : { timefactor : 1.0, filter-leeway : 3s, single-expect-default : 3s, default-timeout : 5s, calling-thread-dispatcher : { type : \"Akka.TestKit.CallingThreadDispatcherConfigurator, Akka.TestKit\", throughput : 2147483647 }, test-actor : { dispatcher : { type : \"Akka.TestKit.CallingThreadDispatcherConfigurator, Akka.TestKit\", throughput : 2147483647 } } }}"
+            );
+            var config3 = ConfigurationFactory.ParseString(
+                "akka : { loglevel : WARNING, stdout-loglevel : WARNING, serialize-messages : on, actor : { }, remote : { dot-netty : { tcp : { port : 0 } } }}"
+            );
+            var config4 = ConfigurationFactory.ParseString(
+                "akka : { loglevel : WARNING, stdout-loglevel : WARNING, serialize-messages : on, actor : { }, remote : { dot-netty : { tcp : { port : 0 } } }}"
+            );
+            var config5 = ConfigurationFactory.ParseString(@"
+                akka {
+                  actor {
+                    default-dispatcher {
+                        type = ForkJoinDispatcher
+                        throughput = 100
+                        dedicated-thread-pool {
+                            thread-count = 4
+                            deadlock-timeout = 3s
+                            threadtype = background
+                        }
+                    }
+                    router.type-mapping {
+                        my-router = ""Akka.Tests.Routing.ConfiguredLocalRoutingSpec+MyRouter, Akka.Tests""
+                    }
+                    deployment {
+                      /config {
+                        router = random-pool
+                        nr-of-instances = 4
+                        pool-dispatcher = ${akka.actor.default-dispatcher}
+                      }
+                      /paths {
+                        router = random-group
+                        routees.paths = [""/user/service1"", ""/user/service2""]
+                      }
+                      /weird {
+                        router = round-robin-pool
+                        nr-of-instances = 3
+                      }
+                      ""/weird/*"" {
+                        router = round-robin-pool
+                        nr-of-instances = 2
+                      }
+                      /myrouter {
+                        router = ""my-router""
+                        foo = bar
+                      }
+                      /sys-parent/round {
+                        router = round-robin-pool
+                        nr-of-instances = 6
+                      }
+                    }
+                  }
+                }
+            ");
+            
+            // Is throwing at "/weird/*" key parsing
+            config5.WithFallback(config4).WithFallback(config3).WithFallback(config2).WithFallback(config1).Root.Invoking(r => r.GetObject()).Should().NotThrow();
+        }
         
         [Fact]
         public void HoconValue_GetObject_should_use_fallback_values_with_complex_objects()
