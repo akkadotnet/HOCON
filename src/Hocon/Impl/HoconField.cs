@@ -94,7 +94,7 @@ namespace Hocon
         public IHoconElement Clone(IHoconElement newParent)
         {
             var newField = new HoconField(Key, (HoconObject) newParent);
-            foreach (var internalValue in _internalValues) newField._internalValues.Add(internalValue);
+            foreach (var internalValue in _internalValues) newField._internalValues.Add(internalValue.Clone(newField) as HoconValue);
             return newField;
         }
 

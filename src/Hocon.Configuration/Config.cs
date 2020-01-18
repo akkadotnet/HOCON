@@ -63,21 +63,14 @@ namespace Hocon
         {
             get
             {
-                var elements = Value.ToList();
-                var config = this;
-                while (config.Fallback != null)
+                var elements = new List<IHoconElement>();
+                for (var config = this; config != null; config = config.Fallback)
                 {
-                    config = config.Fallback;
-                    if (config.Value != null)
-                        elements.AddRange(config.Value);
+                    elements.AddRange(config.Value);
                 }
 
                 var aggregated = new HoconValue(null);
-                elements.Reverse();
-                foreach (var element in elements)
-                {
-                    aggregated.Add(element);
-                }
+                aggregated.AddRange(elements.AsEnumerable().Reverse());
 
                 return aggregated;
             }
@@ -156,7 +149,7 @@ namespace Hocon
 
             var current = clone;
             while (current.Fallback != null) current = current.Fallback;
-            current.Fallback = fallback;
+            current.Fallback = fallback.Copy();
 
             return clone;
         }

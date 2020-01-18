@@ -92,8 +92,7 @@ namespace Hocon
                 }
                 catch (HoconException e)
                 {
-                    throw HoconParserException.Create(sub, sub.Path, $"Invalid substitution declaration. {e.Message}.",
-                        e);
+                    throw HoconParserException.Create(sub, sub.Path, $"Invalid substitution declaration. {e.Message}.", e);
                 }
 
                 if (res != null)
