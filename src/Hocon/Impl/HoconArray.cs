@@ -65,7 +65,7 @@ namespace Hocon
         public IHoconElement Clone(IHoconElement newParent)
         {
             var newArray = new HoconArray(newParent);
-            foreach (var value in this) newArray.Add(value);
+            foreach (var value in this) newArray.Add(value.Clone(newArray) as HoconValue);
             return newArray;
         }
 
