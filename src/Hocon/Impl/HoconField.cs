@@ -1,20 +1,18 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconField.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconField.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Hocon
 {
     /// <summary>
-    /// This class represents a key and value tuple representing a Hocon field.
-    /// <code>
+    ///     This class represents a key and value tuple representing a Hocon field.
+    ///     <code>
     /// root {
     ///     items = [
     ///       "1",
@@ -22,25 +20,24 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-
-    public sealed class HoconField:IHoconElement
+    public sealed class HoconField : IHoconElement
     {
         private readonly List<HoconValue> _internalValues = new List<HoconValue>();
 
-        /// <inheritdoc/>
-        public IHoconElement Parent { get; }
+        public HoconField(string key, HoconObject parent)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
 
-        /// <inheritdoc/>
-        public HoconType Type => Value == null ? HoconType.Empty : Value.Type;
-
-        /// <inheritdoc/>
-        public string Raw => Value.Raw;
+            Path = new HoconPath(parent.Path) {key};
+            Parent = parent;
+        }
 
         public HoconPath Path { get; }
         public string Key => Path.Key;
 
         /// <summary>
-        /// Returns true if there are old values stored.
+        ///     Returns true if there are old values stored.
         /// </summary>
         internal bool HasOldValues => _internalValues.Count > 1;
 
@@ -51,19 +48,17 @@ namespace Hocon
                 var lastValue = _internalValues.LastOrDefault();
 
                 if (lastValue == null)
-                        return null;
+                    return null;
 
                 if (lastValue.Type != HoconType.Object)
                     return lastValue;
 
                 var filteredValues = new List<HoconValue>();
                 foreach (var value in _internalValues)
-                {
                     if (value.Type != HoconType.Object && value.Type != HoconType.Empty)
                         filteredValues.Clear();
                     else
                         filteredValues.Add(value);
-                }
 
                 var returnValue = new HoconValue(this);
                 foreach (var value in filteredValues)
@@ -72,13 +67,47 @@ namespace Hocon
             }
         }
 
-        public HoconField(string key, HoconObject parent)
-        {
-            if(string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key));
+        /// <inheritdoc />
+        public IHoconElement Parent { get; }
 
-            Path = new HoconPath(parent.Path) {key};
-            Parent = parent;
+        /// <inheritdoc />
+        public HoconType Type => Value == null ? HoconType.Empty : Value.Type;
+
+        /// <inheritdoc />
+        public string Raw => Value.Raw;
+
+        public HoconObject GetObject()
+        {
+            return Value.GetObject();
+        }
+
+        public string GetString()
+        {
+            return Value.GetString();
+        }
+
+        public List<HoconValue> GetArray()
+        {
+            return Value.GetArray();
+        }
+
+        public IHoconElement Clone(IHoconElement newParent)
+        {
+            var newField = new HoconField(Key, (HoconObject) newParent);
+            foreach (var internalValue in _internalValues) newField._internalValues.Add(internalValue.Clone(newField) as HoconValue);
+            return newField;
+        }
+
+        public string ToString(int indent, int indentSize)
+        {
+            return Value.ToString(indent, indentSize);
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return other is HoconField field && Path.Equals(field.Path) && Value.Equals(other);
         }
 
         internal void EnsureFieldIsObject()
@@ -97,24 +126,19 @@ namespace Hocon
                 return;
 
             if (value.Type != HoconType.Object)
-            {
                 foreach (var item in _internalValues)
                 {
                     var subs = item.GetSubstitutions();
                     var preservedSub = value.GetSubstitutions();
-                    foreach (var sub in subs.Except(preservedSub))
-                    {
-                        sub.Removed = true;
-                    }
+                    foreach (var sub in subs.Except(preservedSub)) sub.Removed = true;
                 }
-            }
 
             _internalValues.Add(value);
         }
 
         internal void RestoreOldValue()
         {
-            if(HasOldValues)
+            if (HasOldValues)
                 _internalValues.RemoveAt(_internalValues.Count - 1);
         }
 
@@ -125,10 +149,7 @@ namespace Hocon
             while (index < _internalValues.Count)
             {
                 var value = _internalValues[index];
-                if (value.Any(v => ReferenceEquals(v, marker)))
-                {
-                    break;
-                }
+                if (value.Any(v => ReferenceEquals(v, marker))) break;
 
                 switch (value.Type)
                 {
@@ -146,57 +167,25 @@ namespace Hocon
                 index++;
             }
 
-            if(filteredObjectValue.Count == 0)
+            if (filteredObjectValue.Count == 0)
                 return index == 0 ? null : _internalValues[index - 1];
 
             var result = new HoconValue(this);
-            foreach (var value in filteredObjectValue)
-            {
-                result.AddRange(value);
-            }
+            foreach (var value in filteredObjectValue) result.AddRange(value);
 
             return result;
         }
-
-        public HoconObject GetObject()
-        {
-            return Value.GetObject();
-        }
-
-        public string GetString()
-            => Value.GetString();
-
-        public List<HoconValue> GetArray()
-            => Value.GetArray();
 
         internal void ResolveValue(HoconValue value)
         {
             if (value.Type != HoconType.Empty)
                 return;
-            ((HoconObject)Parent).ResolveValue(this);
-        }
-
-        public IHoconElement Clone(IHoconElement newParent)
-        {
-            var newField = new HoconField(Key, (HoconObject)newParent);
-            foreach (var internalValue in _internalValues)
-            {
-                newField._internalValues.Add(internalValue);
-            }
-            return newField;
+            ((HoconObject) Parent).ResolveValue(this);
         }
 
         public override string ToString()
-            => ToString(0, 2);
-
-        public string ToString(int indent, int indentSize)
-            => Value.ToString(indent, indentSize);
-
-        public bool Equals(IHoconElement other)
         {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return other is HoconField field && Path.Equals(field.Path) && Value.Equals(other);
+            return ToString(0, 2);
         }
 
         public override bool Equals(object obj)

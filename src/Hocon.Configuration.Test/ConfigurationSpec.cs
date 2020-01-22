@@ -1,49 +1,52 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="ConfigurationSpec.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="ConfigurationSpec.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Reflection;
 using FluentAssertions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Hocon.Configuration.Tests
 {
     public class ConfigurationSpec
     {
         /// <summary>
-        /// Is <c>true</c> if we're running on a Mono VM. <c>false</c> otherwise.
+        ///     Is <c>true</c> if we're running on a Mono VM. <c>false</c> otherwise.
         /// </summary>
         public static readonly bool IsMono = Type.GetType("Mono.Runtime") != null;
 
-
-#if !NETCORE
-        [Fact]
-        public void DeserializesHoconConfigurationFromNetConfigFile()
+        public class MyObjectConfig
         {
-            /*
-             * BUG: as of 3-14-2019, this code throws a bunch of scary
-             * serialization exceptions on Mono.
-             *
-             */
-            if (IsMono) return;
-
-            var raw = ConfigurationManager.GetSection("akka");
-            var section = (HoconConfigurationSection)raw;
-            Assert.NotNull(section);
-            Assert.False(string.IsNullOrEmpty(section.Hocon.Content));
-            var config = section.Config;
-            Assert.NotNull(config);
+            public string StringProperty { get; set; }
+            public bool BoolProperty { get; set; }
+            public int[] IntergerArray { get; set; }
         }
-#endif
+
+        [Fact]
+        public void CanEnumerateQuotedKeys()
+        {
+            var hocon = @"
+a {
+   ""some quoted, key"": 123
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            var config2 = config.GetConfig("a");
+            var enumerable = config2.AsEnumerable();
+
+            Assert.Equal("some quoted, key", enumerable.Select(kvp => kvp.Key).First());
+        }
 
         /// <summary>
-        /// Should follow the load order rules specified in https://github.com/akkadotnet/HOCON/issues/151
+        ///     Should follow the load order rules specified in https://github.com/akkadotnet/HOCON/issues/151
         /// </summary>
         [Fact]
         public void CanLoadDefaultConfig()
@@ -94,7 +97,56 @@ a {
             Assert.Equal(888, config.GetInt("a.e"));
             Assert.Equal(123, config.GetInt("a.sub.aa"));
             Assert.Equal(456, config.GetInt("a.sub.bb"));
+        }
 
+        [Fact]
+        public void CanParseQuotedKeys()
+        {
+            var hocon = @"
+a {
+   ""some quoted, key"": 123
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            Assert.Equal(123, config.GetInt("a.\"some quoted, key\""));
+        }
+
+        [Fact]
+        public void CanParseSerializersAndBindings()
+        {
+            var hocon = @"
+akka.actor {
+    serializers {
+      akka-containers = ""Akka.Remote.Serialization.MessageContainerSerializer, Akka.Remote""
+      proto = ""Akka.Remote.Serialization.ProtobufSerializer, Akka.Remote""
+      daemon-create = ""Akka.Remote.Serialization.DaemonMsgCreateSerializer, Akka.Remote""
+    }
+
+    serialization-bindings {
+# Since com.google.protobuf.Message does not extend Serializable but
+# GeneratedMessage does, need to use the more specific one here in order
+# to avoid ambiguity
+      ""Akka.Actor.ActorSelectionMessage"" = akka-containers
+      ""Akka.Remote.DaemonMsgCreate, Akka.Remote"" = daemon-create
+    }
+
+}";
+
+            var config = ConfigurationFactory.ParseString(hocon);
+
+            var serializersConfig = config.GetConfig("akka.actor.serializers").AsEnumerable().ToList();
+            var serializerBindingConfig = config.GetConfig("akka.actor.serialization-bindings").AsEnumerable().ToList();
+
+            Assert.Equal(
+                "Akka.Remote.Serialization.MessageContainerSerializer, Akka.Remote",
+                serializersConfig.Select(kvp => kvp.Value)
+                    .First()
+                    .GetString()
+            );
+            Assert.Equal(
+                "Akka.Remote.DaemonMsgCreate, Akka.Remote",
+                serializerBindingConfig.Select(kvp => kvp.Key).Last()
+            );
         }
 
         [Fact]
@@ -111,6 +163,26 @@ a {
             var subConfig = config.GetConfig("a");
             Assert.Equal(1, subConfig.GetInt("b.c"));
             Assert.True(subConfig.GetBoolean("b.d"));
+        }
+
+        [Fact]
+        public void CanSubstituteArrayCorrectly()
+        {
+            var hocon = @"
+ c: {
+    q: {
+        a: [2, 5]
+    }
+}
+c: {
+    m: ${c.q} {a: [6]}
+}
+";
+            var config = ConfigurationFactory.ParseString(hocon);
+            var unchanged = config.GetIntList("c.q.a");
+            unchanged.Should().Equal(2, 5);
+            var changed = config.GetIntList("c.m.a");
+            changed.Should().Equal(6);
         }
 
 
@@ -140,6 +212,60 @@ foo {
             Assert.Equal(123, config.GetInt("foo.bar.a"));
             Assert.Equal(2, config.GetInt("foo.bar.b"));
             Assert.Equal(3, config.GetInt("foo.bar.c"));
+        }
+
+        [Fact]
+        public void Fallback_should_not_be_modified()
+        {
+            var config1 = ConfigurationFactory.ParseString(@"
+	            a {
+                    b {
+                        c = 5
+                        e = 7
+                    }
+	            }");
+            var config2 = ConfigurationFactory.ParseString(@"
+	            a {
+                    b {
+                        d = 3
+                        c = 1
+                    }
+	            }");
+            
+            var merged = config1.WithFallback(config2).Root.GetObject(); // Perform values loading
+            
+            config1.GetInt("a.b.c").Should().Be(5);
+            config1.GetInt("a.b.e").Should().Be(7);
+            config2.GetInt("a.b.c").Should().Be(1);
+            config2.GetInt("a.b.d").Should().Be(3);
+        }
+
+        [Fact]
+        public void CanUseFallbackInSubConfig()
+        {
+            var hocon1 = @"
+foo {
+   bar {
+      a=123
+   }
+}";
+            var hocon2 = @"
+foo {
+   bar {
+      a=1
+      b=2
+      c=3
+   }
+}";
+
+            var config1 = ConfigurationFactory.ParseString(hocon1);
+            var config2 = ConfigurationFactory.ParseString(hocon2);
+
+            var config = config1.WithFallback(config2).GetConfig("foo.bar");
+
+            Assert.Equal(123, config.GetInt("a"));
+            Assert.Equal(2, config.GetInt("b"));
+            Assert.Equal(3, config.GetInt("c"));
         }
 
         [Fact]
@@ -200,7 +326,7 @@ dar = d";
         }
 
         [Fact]
-        public void CanUseFallbackInSubConfig()
+        public void CanUseFluentMultiLevelFallback()
         {
             var hocon1 = @"
 foo {
@@ -216,15 +342,32 @@ foo {
       c=3
    }
 }";
+            var hocon3 = @"
+foo {
+   bar {
+      a=99
+      zork=555
+   }
+}";
+            var hocon4 = @"
+foo {
+   bar {
+      borkbork=-1
+   }
+}";
 
             var config1 = ConfigurationFactory.ParseString(hocon1);
             var config2 = ConfigurationFactory.ParseString(hocon2);
+            var config3 = ConfigurationFactory.ParseString(hocon3);
+            var config4 = ConfigurationFactory.ParseString(hocon4);
 
-            var config = config1.WithFallback(config2).GetConfig("foo.bar");
+            var config = config1.WithFallback(config2).WithFallback(config3).WithFallback(config4);
 
-            Assert.Equal(123, config.GetInt("a"));
-            Assert.Equal(2, config.GetInt("b"));
-            Assert.Equal(3, config.GetInt("c"));
+            Assert.Equal(123, config.GetInt("foo.bar.a"));
+            Assert.Equal(2, config.GetInt("foo.bar.b"));
+            Assert.Equal(3, config.GetInt("foo.bar.c"));
+            Assert.Equal(555, config.GetInt("foo.bar.zork"));
+            Assert.Equal(-1, config.GetInt("foo.bar.borkbork"));
         }
 
         [Fact]
@@ -273,49 +416,113 @@ foo {
         }
 
         [Fact]
-        public void CanUseFluentMultiLevelFallback()
+        public void Config_Empty_is_Empty()
         {
-            var hocon1 = @"
-foo {
-   bar {
-      a=123
-   }
-}";
-            var hocon2 = @"
-foo {
-   bar {
-      a=1
-      b=2
-      c=3
-   }
-}";
-            var hocon3 = @"
-foo {
-   bar {
-      a=99
-      zork=555
-   }
-}";
-            var hocon4 = @"
-foo {
-   bar {
-      borkbork=-1
-   }
-}";
-
-            var config1 = ConfigurationFactory.ParseString(hocon1);
-            var config2 = ConfigurationFactory.ParseString(hocon2);
-            var config3 = ConfigurationFactory.ParseString(hocon3);
-            var config4 = ConfigurationFactory.ParseString(hocon4);
-
-            var config = config1.WithFallback(config2).WithFallback(config3).WithFallback(config4);
-
-            Assert.Equal(123, config.GetInt("foo.bar.a"));
-            Assert.Equal(2, config.GetInt("foo.bar.b"));
-            Assert.Equal(3, config.GetInt("foo.bar.c"));
-            Assert.Equal(555, config.GetInt("foo.bar.zork"));
-            Assert.Equal(-1, config.GetInt("foo.bar.borkbork"));
+            ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
         }
+
+        [Fact]
+        public void HoconValue_GetObject_should_use_fallback_values()
+        {
+            var config1 = ConfigurationFactory.ParseString("a = 5");
+            var config2 = ConfigurationFactory.ParseString("b = 3");
+            var config = config1.WithFallback(config2);
+            var rootObject = config.Root.GetObject();
+            rootObject.ContainsKey("a").Should().BeTrue();
+            rootObject["a"].Raw.Should().Be("5");
+            rootObject.ContainsKey("b").Should().BeTrue();
+            rootObject["b"].Raw.Should().Be("3");
+        }
+
+        [Fact]
+        public void Quoted_key_should_be_parsed()
+        {
+            var config1 = ConfigurationFactory.ParseString(
+                "akka.actor.deployment.default = { }"
+             );
+            var config2 = ConfigurationFactory.ParseString(@"
+                akka.actor.deployment {
+                  ""/weird/*"" {
+                    router = round-robin-pool
+                    nr-of-instances = 2
+                  }
+                }
+            ");
+
+            var megred = config2.WithFallback(config1).Root;
+            // Is throwing at "/weird/*" key parsing
+            megred.Invoking(r => r.GetObject()).Should().NotThrow();
+        }
+        
+        [Fact]
+        public void Quoted_key_with_dot_should_be_parsed()
+        {
+            var config1 = ConfigurationFactory.ParseString(
+                @"akka.actor.serialization-bindings = {
+                    ""System.Byte[]"" : bytes,
+                    ""System.Object"" : json
+                }"
+            );
+            var config2 = ConfigurationFactory.ParseString(
+                @"akka.actor.serialization-bindings = {
+                    ""System.Byte[]"" : bytes,
+                    ""System.Object"" : json
+                }"
+            );
+
+            var megred = config2.WithFallback(config1).Root;
+            // Is throwing at "System.Byte[]" key parsing
+            megred.Invoking(r => r.GetObject()).Should().NotThrow();
+        }
+        
+        [Fact]
+        public void HoconValue_GetObject_should_use_fallback_values_with_complex_objects()
+        {
+            var config1 = ConfigurationFactory.ParseString(@"
+	            akka.actor.deployment {
+		            /worker1 {
+			            router = round-robin-group1
+			            routees.paths = [""/user/testroutes/1""]
+		            }
+	            }");
+            var config2 = ConfigurationFactory.ParseString(@"
+	            akka.actor.deployment {
+		            /worker2 {
+			            router = round-robin-group2
+			            routees.paths = [""/user/testroutes/2""]
+		            }
+	            }");
+            var configWithFallback = config1.WithFallback(config2);
+            
+            var config = configWithFallback.GetConfig("akka.actor.deployment");
+            var rootObj = config.Root.GetObject();
+            rootObj.Unwrapped.Should().ContainKeys("/worker1", "/worker2");
+            rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
+            rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
+            rootObj["/worker1.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/1""");
+            rootObj["/worker2.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/2""");
+        }
+
+
+#if !NETCORE
+        [Fact]
+        public void DeserializesHoconConfigurationFromNetConfigFile()
+        {
+            /*
+             * BUG: as of 3-14-2019, this code throws a bunch of scary
+             * serialization exceptions on Mono.
+             *
+             */
+            if (IsMono) return;
+
+            var raw = ConfigurationManager.GetSection("akka");
+            var section = (HoconConfigurationSection) raw;
+            Assert.NotNull(section);
+            Assert.False(string.IsNullOrEmpty(section.Hocon.Content));
+            var config = section.Config;
+            Assert.NotNull(config);
+        }
+#endif
 
         [Fact]
         public void ShouldSerializeFallbackValues()
@@ -328,108 +535,59 @@ foo {
             }");
 
             var c = a.WithFallback(b);
+            
             c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
             c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
-            c.ToString(useFallbackValues: true).Should().Contain("other-key", "Fallback values should be displayed when requested");
+            c.ToString(true).Should().Contain("other-key", "Fallback values should be displayed when requested");
+            
+            c.GetString("akka.some-key").Should().Be("value", "Original value should remain");
+            c.ToString().Should().Contain("some-key", "Original values are shown by default");
+            c.ToString(true).Should().Contain("some-key", "Original values should be displayed always");
+
         }
 
+        /// <summary>
+        /// Source issue: https://github.com/akkadotnet/HOCON/issues/175
+        /// </summary>
         [Fact]
-        public void CanParseQuotedKeys()
+        public void ShouldDeserializeFromJson()
         {
-            var hocon = @"
-a {
-   ""some quoted, key"": 123
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            Assert.Equal(123, config.GetInt("a.\"some quoted, key\""));
-        }
-
-        [Fact]
-        public void CanEnumerateQuotedKeys()
-        {
-            var hocon = @"
-a {
-   ""some quoted, key"": 123
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            var config2 = config.GetConfig("a");
-            var enumerable = config2.AsEnumerable();
-
-            Assert.Equal("some quoted, key", enumerable.Select(kvp => kvp.Key).First());
+            var settings = new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                Converters = new List<JsonConverter>(),
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                ObjectCreationHandling = ObjectCreationHandling.Replace,
+                ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                TypeNameHandling = TypeNameHandling.All,
+                ContractResolver = new AkkaContractResolver()
+            };
+            
+            var json = "{\"$id\":\"1\",\"$type\":\"Hocon.Config, Hocon.Configuration\",\"Root\":{\"$type\":\"Hocon.HoconEmptyValue, Hocon\",\"$values\":[]},\"Value\":{\"$type\":\"Hocon.HoconEmptyValue, Hocon\",\"$values\":[]},\"Substitutions\":{\"$type\":\"Hocon.HoconSubstitution[], Hocon\",\"$values\":[]},\"IsEmpty\":true}";
+            var restored = JsonConvert.DeserializeObject<Config>(json, settings);
+            restored.IsEmpty.Should().BeTrue();
         }
         
-        [Fact]
-        public void CanSubstituteArrayCorrectly()
+        internal class AkkaContractResolver : DefaultContractResolver
         {
-            var hocon = @"
- c: {
-    q: {
-        a: [2, 5]
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+            {
+                var prop = base.CreateProperty(member, memberSerialization);
+
+                if (!prop.Writable)
+                {
+                    var property = member as PropertyInfo;
+                    if (property != null)
+                    {
+                        var hasPrivateSetter = property.GetSetMethod(true) != null;
+                        prop.Writable = hasPrivateSetter;
+                    }
+                }
+
+                return prop;
+            }
+        }
     }
 }
-c: {
-    m: ${c.q} {a: [6]}
-}
-";
-            var config = ConfigurationFactory.ParseString(hocon);
-            var unchanged = config.GetIntList("c.q.a");
-            unchanged.Should().Equal(new [] { 2, 5 });
-            var changed = config.GetIntList("c.m.a");
-            changed.Should().Equal(new [] { 6 });
-        }
-
-        [Fact]
-        public void CanParseSerializersAndBindings()
-        {
-            var hocon = @"
-akka.actor {
-    serializers {
-      akka-containers = ""Akka.Remote.Serialization.MessageContainerSerializer, Akka.Remote""
-      proto = ""Akka.Remote.Serialization.ProtobufSerializer, Akka.Remote""
-      daemon-create = ""Akka.Remote.Serialization.DaemonMsgCreateSerializer, Akka.Remote""
-    }
-
-    serialization-bindings {
-# Since com.google.protobuf.Message does not extend Serializable but
-# GeneratedMessage does, need to use the more specific one here in order
-# to avoid ambiguity
-      ""Akka.Actor.ActorSelectionMessage"" = akka-containers
-      ""Akka.Remote.DaemonMsgCreate, Akka.Remote"" = daemon-create
-    }
-
-}";
-
-            var config = ConfigurationFactory.ParseString(hocon);
-
-            var serializersConfig = config.GetConfig("akka.actor.serializers").AsEnumerable().ToList();
-            var serializerBindingConfig = config.GetConfig("akka.actor.serialization-bindings").AsEnumerable().ToList();
-
-            Assert.Equal(
-                "Akka.Remote.Serialization.MessageContainerSerializer, Akka.Remote",
-                serializersConfig.Select(kvp => kvp.Value)
-                    .First()
-                    .GetString()
-            );
-            Assert.Equal(
-                "Akka.Remote.DaemonMsgCreate, Akka.Remote",
-                serializerBindingConfig.Select(kvp => kvp.Key).Last()
-            );
-        }
-
-        [Fact]
-        public void Config_Empty_is_Empty()
-        {
-            ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
-        }
-
-        public class MyObjectConfig
-        {
-            public string StringProperty { get; set; }
-            public bool BoolProperty { get; set; }
-            public int[] IntergerArray { get; set; }
-        }
-   }
-}
-

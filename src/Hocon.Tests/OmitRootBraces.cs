@@ -1,15 +1,10 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="OmitRootBraces.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="OmitRootBraces.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,108 +12,12 @@ namespace Hocon.Tests
 {
     public class OmitRootBraces
     {
-        private readonly ITestOutputHelper _output;
-
         public OmitRootBraces(ITestOutputHelper output)
         {
             _output = output;
         }
 
-        /*
-         * FACT:
-         * Empty files are invalid documents.
-         */
-        [Fact]
-        public void EmptyFilesShouldThrows()
-        {
-            var ex = Record.Exception(() => Parser.Parse(""));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-
-            ex = Record.Exception(() => Parser.Parse(null));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        /* 
-         * FACT:
-         * Files containing only a non-array non-object value such as a string are invalid.
-         */
-        [Fact]
-        public void FileWithLiteralOnlyShouldThrows()
-        {
-            var ex = Record.Exception(() => Parser.Parse("literal"));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-
-            ex = Record.Exception(() => Parser.Parse("${?path}"));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
-        /*
-         * FACT:
-         * If the file does not begin with a square bracket or curly brace, 
-         * it is parsed as if it were enclosed with {} curly braces.
-         */
-        [Fact]
-        public void CanParseJson()
-        {
-            var hocon = @"{
-  ""root"" : {
-    ""int"" : 1,
-    ""string"" : ""foo"",
-    ""object"" : {
-      ""hasContent"" : true
-    },
-    ""array"" : [1,2,3],
-    ""null"" : null,
-    ""double"" : 1.23,
-    ""bool"" : true
-  },
-  ""root_2"" : 1234
-}";
-            var config = Parser.Parse(hocon);
-            Assert.Equal("1", config.GetString("root.int"));
-            Assert.Equal("1.23", config.GetString("root.double"));
-            Assert.True(config.GetBoolean("root.bool"));
-            Assert.True(config.GetBoolean("root.object.hasContent"));
-            Assert.Null(config.GetString("root.null"));
-            Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
-            Assert.Equal("1234", config.GetString("root_2"));
-        }
-
-        [Fact]
-        public void CanParseJsonWithNoRootBraces()
-        {
-            var hocon = @"
-""root"" : {
-  ""int"" : 1,
-  ""string"" : ""foo"",
-  ""object"" : {
-    ""hasContent"" : true
-  },
-  ""array"" : [1,2,3],
-  ""null"" : null,
-  ""double"" : 1.23,
-  ""bool"" : true
-},
-""root_2"" : 1234";
-            var config = Parser.Parse(hocon);
-            Assert.Equal("1", config.GetString("root.int"));
-            Assert.Equal("1.23", config.GetString("root.double"));
-            Assert.True(config.GetBoolean("root.bool"));
-            Assert.True(config.GetBoolean("root.object.hasContent"));
-            Assert.Null(config.GetString("root.null"));
-            Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] { 1, 2, 3 }.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
-            Assert.Equal("1234", config.GetString("root_2"));
-        }
+        private readonly ITestOutputHelper _output;
 
         [Fact]
         public void CanParseHocon()
@@ -157,12 +56,12 @@ root_2 = 1234
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+                new[] {1, 2, 3, 4}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
             Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(
+                new[] {1, 2, 3, 4}.SequenceEqual(
                     Parser.Parse(hocon).GetIntList("root.array-newline-element")));
             Assert.True(
-                new[] { "1 2 3 4" }.SequenceEqual(
+                new[] {"1 2 3 4"}.SequenceEqual(
                     Parser.Parse(hocon).GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
@@ -205,14 +104,121 @@ root_2 = 1234
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+                new[] {1, 2, 3, 4}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
             Assert.True(
-                new[] { 1, 2, 3, 4 }.SequenceEqual(
+                new[] {1, 2, 3, 4}.SequenceEqual(
                     Parser.Parse(hocon).GetIntList("root.array-newline-element")));
             Assert.True(
-                new[] { "1 2 3 4" }.SequenceEqual(
+                new[] {"1 2 3 4"}.SequenceEqual(
                     Parser.Parse(hocon).GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
+        }
+
+        /*
+         * FACT:
+         * If the file does not begin with a square bracket or curly brace, 
+         * it is parsed as if it were enclosed with {} curly braces.
+         */
+        [Fact]
+        public void CanParseJson()
+        {
+            var hocon = @"{
+  ""root"" : {
+    ""int"" : 1,
+    ""string"" : ""foo"",
+    ""object"" : {
+      ""hasContent"" : true
+    },
+    ""array"" : [1,2,3],
+    ""null"" : null,
+    ""double"" : 1.23,
+    ""bool"" : true
+  },
+  ""root_2"" : 1234
+}";
+            var config = Parser.Parse(hocon);
+            Assert.Equal("1", config.GetString("root.int"));
+            Assert.Equal("1.23", config.GetString("root.double"));
+            Assert.True(config.GetBoolean("root.bool"));
+            Assert.True(config.GetBoolean("root.object.hasContent"));
+            Assert.Null(config.GetString("root.null"));
+            Assert.Equal("foo", config.GetString("root.string"));
+            Assert.True(new[] {1, 2, 3}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+            Assert.Equal("1234", config.GetString("root_2"));
+        }
+
+        [Fact]
+        public void CanParseJsonWithNoRootBraces()
+        {
+            var hocon = @"
+""root"" : {
+  ""int"" : 1,
+  ""string"" : ""foo"",
+  ""object"" : {
+    ""hasContent"" : true
+  },
+  ""array"" : [1,2,3],
+  ""null"" : null,
+  ""double"" : 1.23,
+  ""bool"" : true
+},
+""root_2"" : 1234";
+            var config = Parser.Parse(hocon);
+            Assert.Equal("1", config.GetString("root.int"));
+            Assert.Equal("1.23", config.GetString("root.double"));
+            Assert.True(config.GetBoolean("root.bool"));
+            Assert.True(config.GetBoolean("root.object.hasContent"));
+            Assert.Null(config.GetString("root.null"));
+            Assert.Equal("foo", config.GetString("root.string"));
+            Assert.True(new[] {1, 2, 3}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+            Assert.Equal("1234", config.GetString("root_2"));
+        }
+
+        /*
+         * FACT:
+         * Empty files are invalid documents.
+         */
+        [Fact]
+        public void EmptyFilesShouldThrows()
+        {
+            var ex = Record.Exception(() => Parser.Parse(""));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+
+            ex = Record.Exception(() => Parser.Parse(null));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        /* 
+         * FACT:
+         * Files containing only a non-array non-object value such as a string are invalid.
+         */
+        [Fact]
+        public void FileWithLiteralOnlyShouldThrows()
+        {
+            var ex = Record.Exception(() => Parser.Parse("literal"));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+
+            ex = Record.Exception(() => Parser.Parse("${?path}"));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        [Fact]
+        public void ThrowsParserExceptionOnInvalidTerminatedFile()
+        {
+            var hocon = "root { string : \"hello\" }}";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
+            _output.WriteLine($"Exception message: {ex.Message}");
         }
 
         /*
@@ -233,9 +239,9 @@ root_2 = 1234
         }
 
         [Fact]
-        public void ThrowsParserExceptionOnInvalidTerminatedFile()
+        public void ThrowsParserExceptionOnUnterminatedNestedObject()
         {
-            var hocon = "root { string : \"hello\" }}";
+            var hocon = " root { bar { string : \"hello\" } ";
 
             var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
@@ -253,17 +259,5 @@ root_2 = 1234
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
         }
-
-        [Fact]
-        public void ThrowsParserExceptionOnUnterminatedNestedObject()
-        {
-            var hocon = " root { bar { string : \"hello\" } ";
-
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
-        }
-
     }
 }

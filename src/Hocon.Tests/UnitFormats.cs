@@ -1,15 +1,10 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="UnitFormats.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="UnitFormats.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Hocon.Tests
@@ -21,11 +16,9 @@ namespace Hocon.Tests
         [InlineData("11b", 11L)]
         [InlineData("11byte", 11L)]
         [InlineData("11bytes", 11L)]
-
         [InlineData("11 b", 11L)]
         [InlineData("11 byte", 11L)]
         [InlineData("11 bytes", 11L)]
-
         [InlineData("11kB", 11L * 1000L)]
         [InlineData("11kilobyte", 11L * 1000L)]
         [InlineData("11kilobytes", 11L * 1000L)]
@@ -35,7 +28,6 @@ namespace Hocon.Tests
         [InlineData("11KiB", 11L * 1024L)]
         [InlineData("11kibibyte", 11L * 1024L)]
         [InlineData("11kibibytes", 11L * 1024L)]
-
         [InlineData("11 kB", 11L * 1000L)]
         [InlineData("11 kilobyte", 11L * 1000L)]
         [InlineData("11 kilobytes", 11L * 1000L)]
@@ -45,7 +37,6 @@ namespace Hocon.Tests
         [InlineData("11 KiB", 11L * 1024L)]
         [InlineData("11 kibibyte", 11L * 1024L)]
         [InlineData("11 kibibytes", 11L * 1024L)]
-
         [InlineData("11MB", 11L * 1000L * 1000L)]
         [InlineData("11megabyte", 11L * 1000L * 1000L)]
         [InlineData("11megabytes", 11L * 1000L * 1000L)]
@@ -55,7 +46,6 @@ namespace Hocon.Tests
         [InlineData("11MiB", 11L * 1024L * 1024L)]
         [InlineData("11mebibyte", 11L * 1024L * 1024L)]
         [InlineData("11mebibytes", 11L * 1024L * 1024L)]
-
         [InlineData("11 MB", 11L * 1000L * 1000L)]
         [InlineData("11 megabyte", 11L * 1000L * 1000L)]
         [InlineData("11 megabytes", 11L * 1000L * 1000L)]
@@ -65,7 +55,6 @@ namespace Hocon.Tests
         [InlineData("11 MiB", 11L * 1024L * 1024L)]
         [InlineData("11 mebibyte", 11L * 1024L * 1024L)]
         [InlineData("11 mebibytes", 11L * 1024L * 1024L)]
-
         [InlineData("11GB", 11L * 1000L * 1000L * 1000L)]
         [InlineData("11gigabyte", 11L * 1000L * 1000L * 1000L)]
         [InlineData("11gigabytes", 11L * 1000L * 1000L * 1000L)]
@@ -75,7 +64,6 @@ namespace Hocon.Tests
         [InlineData("11GiB", 11L * 1024L * 1024L * 1024L)]
         [InlineData("11gibibyte", 11L * 1024L * 1024L * 1024L)]
         [InlineData("11gibibytes", 11L * 1024L * 1024L * 1024L)]
-
         [InlineData("11 GB", 11L * 1000L * 1000L * 1000L)]
         [InlineData("11 gigabyte", 11L * 1000L * 1000L * 1000L)]
         [InlineData("11 gigabytes", 11L * 1000L * 1000L * 1000L)]
@@ -85,7 +73,6 @@ namespace Hocon.Tests
         [InlineData("11 GiB", 11L * 1024L * 1024L * 1024L)]
         [InlineData("11 gibibyte", 11L * 1024L * 1024L * 1024L)]
         [InlineData("11 gibibytes", 11L * 1024L * 1024L * 1024L)]
-
         [InlineData("11 TB", 11L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11 terabyte", 11L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11 terabytes", 11L * 1000L * 1000L * 1000L * 1000L)]
@@ -95,7 +82,6 @@ namespace Hocon.Tests
         [InlineData("11 TiB", 11L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11 tebibyte", 11L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11 tebibytes", 11L * 1024L * 1024L * 1024L * 1024L)]
-
         [InlineData("11TB", 11L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11terabyte", 11L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11terabytes", 11L * 1000L * 1000L * 1000L * 1000L)]
@@ -105,7 +91,6 @@ namespace Hocon.Tests
         [InlineData("11TiB", 11L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11tebibyte", 11L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11tebibytes", 11L * 1024L * 1024L * 1024L * 1024L)]
-
         [InlineData("11PB", 11L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11petabyte", 11L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11petabytes", 11L * 1000L * 1000L * 1000L * 1000L * 1000L)]
@@ -115,7 +100,6 @@ namespace Hocon.Tests
         [InlineData("11PiB", 11L * 1024L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11pebibyte", 11L * 1024L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11pebibytes", 11L * 1024L * 1024L * 1024L * 1024L * 1024L)]
-
         [InlineData("11 PB", 11L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11 petabyte", 11L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("11 petabytes", 11L * 1000L * 1000L * 1000L * 1000L * 1000L)]
@@ -125,7 +109,6 @@ namespace Hocon.Tests
         [InlineData("11 PiB", 11L * 1024L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11 pebibyte", 11L * 1024L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("11 pebibytes", 11L * 1024L * 1024L * 1024L * 1024L * 1024L)]
-
         [InlineData("1EB", 1L * 1000L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("1exabyte", 1L * 1000L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("1exabytes", 1L * 1000L * 1000L * 1000L * 1000L * 1000L * 1000L)]
@@ -135,7 +118,6 @@ namespace Hocon.Tests
         [InlineData("1EiB", 1L * 1024L * 1024L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("1exbibyte", 1L * 1024L * 1024L * 1024L * 1024L * 1024L * 1024L)]
         [InlineData("1exbibytes", 1L * 1024L * 1024L * 1024L * 1024L * 1024L * 1024L)]
-
         [InlineData("1 EB", 1L * 1000L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("1 exabyte", 1L * 1000L * 1000L * 1000L * 1000L * 1000L * 1000L)]
         [InlineData("1 exabytes", 1L * 1000L * 1000L * 1000L * 1000L * 1000L * 1000L)]
@@ -156,6 +138,17 @@ namespace Hocon.Tests
                 Assert.True(null == actual, $"'{value}' should be null");
         }
 
+        [Fact]
+        public void Can_parse_microseconds()
+        {
+            var expected = TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * 0.123));
+            var value = "123 microseconds";
+            var hocon = $"timespan = {value}";
+
+            var res = Parser.Parse(hocon).GetTimeSpan("timespan");
+            Assert.True(expected.Equals(res), $"'{value}' is {expected}");
+        }
+
 
         [Fact]
         public void Can_parse_nanoseconds()
@@ -167,17 +160,5 @@ namespace Hocon.Tests
             var res = Parser.Parse(hocon).GetTimeSpan("timespan");
             Assert.True(expected.Equals(res), $"'{value}' should rounds to 12 ticks");
         }
-
-        [Fact]
-        public void Can_parse_microseconds()
-        {
-            var expected = TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * 0.123));
-            var value = "123 microseconds";
-            var hocon = $"timespan = {value}";
-
-            var res = Parser.Parse(hocon).GetTimeSpan("timespan");
-            Assert.True(expected.Equals(res), $"'{value}' is {expected}");
-        }
-
     }
 }
