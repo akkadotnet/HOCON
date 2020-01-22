@@ -215,6 +215,32 @@ foo {
         }
 
         [Fact]
+        public void Fallback_should_not_be_modified()
+        {
+            var config1 = ConfigurationFactory.ParseString(@"
+	            a {
+                    b {
+                        c = 5
+                        e = 7
+                    }
+	            }");
+            var config2 = ConfigurationFactory.ParseString(@"
+	            a {
+                    b {
+                        d = 3
+                        c = 1
+                    }
+	            }");
+            
+            var merged = config1.WithFallback(config2).Root.GetObject(); // Perform values loading
+            
+            config1.GetInt("a.b.c").Should().Be(5);
+            config1.GetInt("a.b.e").Should().Be(7);
+            config2.GetInt("a.b.c").Should().Be(1);
+            config2.GetInt("a.b.d").Should().Be(3);
+        }
+
+        [Fact]
         public void CanUseFallbackInSubConfig()
         {
             var hocon1 = @"

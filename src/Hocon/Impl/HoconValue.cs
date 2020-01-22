@@ -136,7 +136,7 @@ namespace Hocon
         public virtual IHoconElement Clone(IHoconElement newParent)
         {
             var clone = new HoconValue(newParent);
-            foreach (var element in this) clone.Add(element.CloneValue(clone));
+            foreach (var element in this) clone.Add(element.Clone(clone));
             return clone;
         }
 
