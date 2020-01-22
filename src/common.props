@@ -2,13 +2,9 @@
   <PropertyGroup>
     <Copyright>Copyright © 2014-2019 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
-    <VersionPrefix>1.3.0</VersionPrefix>
-    <PackageReleaseNotes>HOCON 1.3.0 contains some significant API changes:
-[API parity with pre-existing Akka.NET HOCON implementation](https://github.com/akkadotnet/HOCON/issues/157)
-Added `HoconType.String`, `HoconType.Number`, `HoconType.Bool`, and removed `HoconType.Literal` - now it's possible to discover data types more easily while inspecting individual HOCON objects.
-[Fixed: Need to be able to include Config fallback values to string representation](https://github.com/akkadotnet/HOCON/issues/161)
-[Added SourceLink.Github support](https://github.com/akkadotnet/HOCON/pull/166)
-For a set of complete bug fixes and changes, please see [the HOCON v1.3.0 milestone on Github](https://github.com/akkadotnet/HOCON/milestone/3).</PackageReleaseNotes>
+    <VersionPrefix>1.3.1</VersionPrefix>
+    <PackageReleaseNotes>Bugfix release for HOCON v1.3.0**
+You can [see the full set of changes in the HOCON v1.3.1 milestone](https://github.com/akkadotnet/HOCON/milestone/4).</PackageReleaseNotes>
     <PackageIconUrl>http://getakka.net/images/akkalogo.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/akkadotnet/HOCON/blob/master/LICENSE</PackageLicenseUrl>
