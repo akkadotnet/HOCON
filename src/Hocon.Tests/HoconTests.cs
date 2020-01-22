@@ -521,6 +521,22 @@ a {
         }
 
         [Fact]
+        public void CanMergeQuotedStrings()
+        {
+            var hocon = @"akka.actor.deployment { 
+                            default { }
+                        }
+                        akka.actor.deployment { 
+                            ""/weird/*"" {
+                                router = round-robin-pool
+                                nr-of-instances = 2
+                              }
+                        }";
+
+            Parser.Parse(hocon).GetObject(@"akka.actor.deployment.""/weird/*""").Should().NotBeNull();
+        }
+
+        [Fact]
         public void CanUsePathsAsKeys_FooBar()
         {
             var hocon1 = @"foo.bar : 42";
