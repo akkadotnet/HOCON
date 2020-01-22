@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 // <copyright file="HoconObject.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
@@ -167,6 +167,11 @@ namespace Hocon
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
+            
+            // Sometimes path may be a double-quoted string like "a.b.c" with quotes ommited,
+            // so check if there is such key first
+            if (TryGetValue(key, out var rootField))
+                return rootField;
 
             var path = HoconPath.Parse(key);
             return GetField(path);
@@ -203,11 +208,6 @@ namespace Hocon
                 throw new ArgumentException("Path is empty.", nameof(path));
 
             var currentObject = this;
-
-            // Sometimes path may be a double-quoted string like "a.b.c" with quotes ommited,
-            // so check if there is such key first
-            if (currentObject.TryGetValue(path.ToString(), out var rootField))
-                return rootField;
 
             var pathIndex = 0;
             while (true)

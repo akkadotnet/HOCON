@@ -433,6 +433,47 @@ foo {
             rootObject.ContainsKey("b").Should().BeTrue();
             rootObject["b"].Raw.Should().Be("3");
         }
+
+        [Fact]
+        public void Quoted_key_should_be_parsed()
+        {
+            var config1 = ConfigurationFactory.ParseString(
+                "akka.actor.deployment.default = { }"
+             );
+            var config2 = ConfigurationFactory.ParseString(@"
+                akka.actor.deployment {
+                  ""/weird/*"" {
+                    router = round-robin-pool
+                    nr-of-instances = 2
+                  }
+                }
+            ");
+
+            var megred = config2.WithFallback(config1).Root;
+            // Is throwing at "/weird/*" key parsing
+            megred.Invoking(r => r.GetObject()).Should().NotThrow();
+        }
+        
+        [Fact]
+        public void Quoted_key_with_dot_should_be_parsed()
+        {
+            var config1 = ConfigurationFactory.ParseString(
+                @"akka.actor.serialization-bindings = {
+                    ""System.Byte[]"" : bytes,
+                    ""System.Object"" : json
+                }"
+            );
+            var config2 = ConfigurationFactory.ParseString(
+                @"akka.actor.serialization-bindings = {
+                    ""System.Byte[]"" : bytes,
+                    ""System.Object"" : json
+                }"
+            );
+
+            var megred = config2.WithFallback(config1).Root;
+            // Is throwing at "System.Byte[]" key parsing
+            megred.Invoking(r => r.GetObject()).Should().NotThrow();
+        }
         
         [Fact]
         public void HoconValue_GetObject_should_use_fallback_values_with_complex_objects()
