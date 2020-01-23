@@ -31,6 +31,10 @@ namespace Hocon
         ///     Retrieves the string representation of this element.
         /// </summary>
         /// <returns>The string representation of this element.</returns>
+        /// <remarks>
+        /// NOTE: this returns an unquoted string. If you want the raw, underlying string
+        /// including quotes call <see cref="object.ToString()"/> instead.
+        /// </remarks>
         string GetString();
 
         /// <summary>
