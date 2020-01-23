@@ -1,15 +1,10 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="SelfReferentialSubstitution.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="SelfReferentialSubstitution.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,38 +12,12 @@ namespace Hocon.Tests
 {
     public class SelfReferentialSubstitution
     {
-        private readonly ITestOutputHelper _output;
-
         public SelfReferentialSubstitution(ITestOutputHelper output)
         {
             _output = output;
         }
 
-        /*
-         * FACT:
-         * Allow a new value for a field to be based on the older value
-         */
-        [Fact]
-        public void CanValueConcatenateOlderValue()
-        {
-            var hocon = @"
-path : ""a:b:c""
-path : ${path} "":d""";
-
-            var config = Parser.Parse(hocon);
-            Assert.Equal("a:b:c:d", config.GetString("path"));
-        }
-
-        [Fact]
-        public void CanValueConcatenateOlderArray()
-        {
-            var hocon = @"
-path : [ /usr/etc, /usr/home ]
-path : ${path} [ /usr/bin ]";
-
-            var config = Parser.Parse(hocon);
-            Assert.True(new []{"/usr/etc", "/usr/home", "/usr/bin"}.SequenceEqual(config.GetStringList("path")));
-        }
+        private readonly ITestOutputHelper _output;
 
         [Theory]
         [InlineData(@"{
@@ -109,21 +78,32 @@ path : ${path} [ /usr/bin ]";
         public void CanValueConcatenateOlderArrayInsideObject_Issue_95_97(string hocon)
         {
             var config = Parser.Parse(hocon);
-            Assert.True(new[] { 1, 2, 3, 4 }.SequenceEqual(config.GetIntList("a.b")));
+            Assert.True(new[] {1, 2, 3, 4}.SequenceEqual(config.GetIntList("a.b")));
         }
 
         /*
          * FACT:
-         * In isolation (with no merges involved), a self-referential field is an error because the substitution cannot be resolved.
+         * A cyclic or circular loop substitution should be detected as invalid.
          */
-        [Fact]
-        public void ThrowsWhenThereAreNoOldValue()
+        [Theory]
+        [InlineData(@"
+bar : ${foo}
+foo : ${bar}")]
+        [InlineData(@"
+a : ${b}
+b : ${c}
+c : ${a}")]
+        [InlineData(@"
+a : 1
+b : 2
+a : ${b}
+b : ${a}")]
+        public void ThrowsOnCyclicSubstitutionDetection(string hocon)
         {
-            var hocon = "foo : ${foo}";
-
             var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
+            Assert.Contains("cyclic", ex.Message);
             _output.WriteLine($"Exception message: {ex.Message}");
         }
 
@@ -142,38 +122,30 @@ foo : ${foo}";
             Assert.Equal("1", config.GetString("foo.a"));
         }
 
-        /*
-         * FACT:
-         * It would be an error if these two fields were reversed
-         */
         [Fact]
-        public void ThrowsWhenThereAreNoOverriddenValueAvailable()
+        public void CanValueConcatenateOlderArray()
         {
             var hocon = @"
-foo : ${foo}
-foo : { a : 1 }
-";
+path : [ /usr/etc, /usr/home ]
+path : ${path} [ /usr/bin ]";
 
-            var ex = Record.Exception(() => Parser.Parse(hocon));
-            Assert.NotNull(ex);
-            Assert.IsType<HoconParserException>(ex);
-            _output.WriteLine($"Exception message: {ex.Message}");
+            var config = Parser.Parse(hocon);
+            Assert.True(new[] {"/usr/etc", "/usr/home", "/usr/bin"}.SequenceEqual(config.GetStringList("path")));
         }
 
         /*
          * FACT:
-         *  the optional substitution syntax ${?foo} does not create a cycle
+         * Allow a new value for a field to be based on the older value
          */
         [Fact]
-        public void OptionalSubstitutionCycleShouldBeIgnored()
+        public void CanValueConcatenateOlderValue()
         {
-            var hocon = "foo : ${?foo}";
+            var hocon = @"
+path : ""a:b:c""
+path : ${path} "":d""";
 
-            HoconRoot config = null;
-            var ex = Record.Exception(() => config = Parser.Parse(hocon));
-            Assert.Null(ex);
-            // should not create a field
-            Assert.False(config.HasPath("foo"));
+            var config = Parser.Parse(hocon);
+            Assert.Equal("a:b:c:d", config.GetString("path"));
         }
 
         /*
@@ -199,31 +171,6 @@ bar : [42]
 
         /*
          * FACT:
-         * Fields may have += as a separator rather than : or =. A field with += transforms into an optional self-referential array concatenation 
-         * {a += b} becomes {a = ${?a} [b]}
-         */
-        [Fact]
-        public void PlusEqualOperatorShouldExpandToSelfReferencingArrayConcatenation()
-        {
-            var hocon = @"
-a = [ 1, 2 ]
-a += 3
-a += ${b}
-b = [ 4, 5 ]
-";
-
-            HoconRoot config = null;
-            var ex = Record.Exception(() => config = Parser.Parse(hocon));
-            Assert.Null(ex);
-            var array = config.GetValue("a").GetArray();
-            Assert.Equal(1, array[0].GetInt());
-            Assert.Equal(2, array[1].GetInt());
-            Assert.Equal(3, array[2].GetInt());
-            Assert.True( new []{4, 5}.SequenceEqual(array[3].GetIntList()) );
-        }
-
-        /*
-         * FACT:
          * A self-reference resolves to the value "below" even if it's part of a path expression.
          * Here, ${foo.a} would refer to { c : 1 } rather than 2 and so the final merge would be { a : 2, c : 1 }
          */
@@ -242,29 +189,6 @@ foo : { a : 2 }";
             Assert.Equal(2, config.GetInt("foo.a"));
             Assert.Equal(1, config.GetInt("foo.c"));
             Assert.False(config.HasPath("foo.a.c"));
-        }
-
-        /*
-         * FACT:
-         * Implementations must be careful to allow objects to refer to paths within themselves.
-         * The test below is NOT a self reference nor a cycle, the final value for bar.foo 
-         * and bar.baz should be 43 (forward checking)
-         */
-        [Fact]
-        public void SubstitutionToAnotherMemberOfTheSameObjectAreResolvedNormally()
-        {
-            var hocon = @"
-bar : { foo : 42,
-        baz : ${bar.foo}
-      }
-bar : { foo : 43 }";
-
-            HoconRoot config = null;
-            var ex = Record.Exception(() => config = Parser.Parse(hocon));
-            Assert.Null(ex);
-
-            Assert.Equal(43, config.GetInt("bar.foo"));
-            Assert.Equal(43, config.GetInt("bar.baz"));
         }
 
         /*
@@ -292,6 +216,47 @@ foo.d = 4";
 
         /*
          * FACT:
+         *  the optional substitution syntax ${?foo} does not create a cycle
+         */
+        [Fact]
+        public void OptionalSubstitutionCycleShouldBeIgnored()
+        {
+            var hocon = "foo : ${?foo}";
+
+            HoconRoot config = null;
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
+            Assert.Null(ex);
+            // should not create a field
+            Assert.False(config.HasPath("foo"));
+        }
+
+        /*
+         * FACT:
+         * Fields may have += as a separator rather than : or =. A field with += transforms into an optional self-referential array concatenation 
+         * {a += b} becomes {a = ${?a} [b]}
+         */
+        [Fact]
+        public void PlusEqualOperatorShouldExpandToSelfReferencingArrayConcatenation()
+        {
+            var hocon = @"
+a = [ 1, 2 ]
+a += 3
+a += ${b}
+b = [ 4, 5 ]
+";
+
+            HoconRoot config = null;
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
+            Assert.Null(ex);
+            var array = config.GetValue("a").GetArray();
+            Assert.Equal(1, array[0].GetInt());
+            Assert.Equal(2, array[1].GetInt());
+            Assert.Equal(3, array[2].GetInt());
+            Assert.True(new[] {4, 5}.SequenceEqual(array[3].GetIntList()));
+        }
+
+        /*
+         * FACT:
          * Value concatenated optional substitution should be ignored and dropped silently
          */
         [Fact]
@@ -308,27 +273,57 @@ foo.d = 4";
 
         /*
          * FACT:
-         * A cyclic or circular loop substitution should be detected as invalid.
+         * Implementations must be careful to allow objects to refer to paths within themselves.
+         * The test below is NOT a self reference nor a cycle, the final value for bar.foo 
+         * and bar.baz should be 43 (forward checking)
          */
-        [Theory]
-        [InlineData(@"
-bar : ${foo}
-foo : ${bar}")]
-        [InlineData(@"
-a : ${b}
-b : ${c}
-c : ${a}")]
-        [InlineData(@"
-a : 1
-b : 2
-a : ${b}
-b : ${a}")]
-        public void ThrowsOnCyclicSubstitutionDetection(string hocon)
+        [Fact]
+        public void SubstitutionToAnotherMemberOfTheSameObjectAreResolvedNormally()
         {
+            var hocon = @"
+bar : { foo : 42,
+        baz : ${bar.foo}
+      }
+bar : { foo : 43 }";
+
+            HoconRoot config = null;
+            var ex = Record.Exception(() => config = Parser.Parse(hocon));
+            Assert.Null(ex);
+
+            Assert.Equal(43, config.GetInt("bar.foo"));
+            Assert.Equal(43, config.GetInt("bar.baz"));
+        }
+
+        /*
+         * FACT:
+         * In isolation (with no merges involved), a self-referential field is an error because the substitution cannot be resolved.
+         */
+        [Fact]
+        public void ThrowsWhenThereAreNoOldValue()
+        {
+            var hocon = "foo : ${foo}";
+
             var ex = Record.Exception(() => Parser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
-            Assert.Contains("cyclic", ex.Message);
+            _output.WriteLine($"Exception message: {ex.Message}");
+        }
+
+        /*
+         * FACT:
+         * It would be an error if these two fields were reversed
+         */
+        [Fact]
+        public void ThrowsWhenThereAreNoOverriddenValueAvailable()
+        {
+            var hocon = @"
+foo : ${foo}
+foo : { a : 1 }
+";
+
+            var ex = Record.Exception(() => Parser.Parse(hocon));
+            Assert.NotNull(ex);
+            Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
         }
     }

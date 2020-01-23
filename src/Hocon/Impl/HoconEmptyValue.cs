@@ -1,21 +1,24 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="HoconEmptyValue.cs" company="Hocon Project">
-//     Copyright (C) 2009-2018 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2018 .NET Foundation <https://github.com/akkadotnet/hocon>
+﻿// -----------------------------------------------------------------------
+// <copyright file="HoconEmptyValue.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
-//-----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
 using System.Collections.Generic;
 
 namespace Hocon
 {
     /// <summary>
-    /// This class represents an empty <see cref="HoconValue"/>, 
-    /// it masquerades as all other types and are usually used to represent empty or unresolved substitution.
+    ///     This class represents an empty <see cref="HoconValue" />,
+    ///     it masquerades as all other types and are usually used to represent empty or unresolved substitution.
     /// </summary>
-    public sealed class HoconEmptyValue:HoconValue
+    public sealed class HoconEmptyValue : HoconValue
     {
-        public HoconEmptyValue(IHoconElement parent):base(parent) { }
+        public HoconEmptyValue() : base(null) { }
+        
+        public HoconEmptyValue(IHoconElement parent) : base(parent)
+        {
+        }
 
         public override HoconType Type => HoconType.Empty;
 
@@ -31,11 +34,20 @@ namespace Hocon
             throw new HoconException($"Can not add new values to {nameof(HoconEmptyValue)}");
         }
 
-        public override HoconObject GetObject() => new HoconObject(Parent);
+        public override HoconObject GetObject()
+        {
+            return new HoconObject(Parent);
+        }
 
-        public override string GetString() => "";
+        public override string GetString()
+        {
+            return "";
+        }
 
-        public override List<HoconValue> GetArray() => new List<HoconValue>();
+        public override List<HoconValue> GetArray()
+        {
+            return new List<HoconValue>();
+        }
 
         public override bool Equals(IHoconElement other)
         {
