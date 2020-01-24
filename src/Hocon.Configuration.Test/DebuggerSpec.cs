@@ -5,7 +5,6 @@
 // -----------------------------------------------------------------------
 
 using FluentAssertions;
-using Hocon.Debugger;
 using Xunit;
 
 namespace Hocon.Configuration.Tests
