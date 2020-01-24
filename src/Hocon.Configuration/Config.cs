@@ -64,7 +64,7 @@ namespace Hocon
             get
             {
                 var elements = new List<IHoconElement>();
-                for (var config = this; config != null; config = config.Fallback)
+                for (var config = this; config != null; config = config.Fallback?.Copy())
                 {
                     elements.AddRange(config.Value);
                 }

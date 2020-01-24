@@ -99,7 +99,7 @@ namespace Hocon.Configuration.Tests
                 .SafeWithFallback(myHocon2)
                 .SafeWithFallback(myHocon3);
 
-            //fullHocon.GetString("akka.remote.transport").Should().Be("foo");
+            fullHocon.GetString("akka.remote.transport").Should().Be("foo");
 
             var dump = fullHocon.DumpConfig();
             dump.Should().Contain(myHocon1.PrettyPrint(2));
