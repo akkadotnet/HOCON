@@ -45,18 +45,6 @@ a {
             Assert.Equal("some quoted, key", enumerable.Select(kvp => kvp.Key).First());
         }
 
-        [Fact]
-        public void Using_another_config_with_fallback_as_fallback_itself_Should_work()
-        {
-            var config = ConfigurationFactory.ParseString("a = 1");
-            var fallback = ConfigurationFactory.ParseString("b = 2");
-            var configWithFallback = config.WithFallback(fallback);
-
-            var anotherConfig = ConfigurationFactory.ParseString("c = 1");
-            var merged = anotherConfig.WithFallback(configWithFallback);
-            merged.GetInt("b").Should().Be(2);
-        }
-
         /// <summary>
         ///     Should follow the load order rules specified in https://github.com/akkadotnet/HOCON/issues/151
         /// </summary>

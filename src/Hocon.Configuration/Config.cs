@@ -21,7 +21,6 @@ namespace Hocon
         [Obsolete("For json serialization/deserialization only", true)]
         private Config()
         {
-            
         }
         
         /// <inheritdoc />
