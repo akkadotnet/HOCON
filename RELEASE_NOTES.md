@@ -1,4 +1,4 @@
-#### 1.3.2 January 22 2020 ####
+#### 1.3.2 January 24 2020 ####
 **Bugfix release for HOCON v1.3.0**
 
 Key changes include:
