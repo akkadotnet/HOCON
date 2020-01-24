@@ -18,6 +18,30 @@ namespace Hocon
     /// </summary>
     public class Config : HoconRoot
     {
+        /// <summary>
+        /// INTERNAL API
+        ///
+        /// Special case for empty configurations. Immutable and can't be added as a fallback.
+        /// </summary>
+        internal sealed class EmptyConfig : Config
+        {
+            public static EmptyConfig Instance = new EmptyConfig();
+
+            private EmptyConfig() : base(new HoconRoot(new HoconEmptyValue(null)))
+            {
+            }
+
+            protected override Config Copy(Config fallback = null)
+            {
+                return Instance;
+            }
+
+            public override Config WithFallback(Config fallback)
+            {
+                return fallback;
+            }
+        }
+
         [Obsolete("For json serialization/deserialization only", true)]
         private Config()
         {
@@ -89,10 +113,10 @@ namespace Hocon
         ///     Generates a deep clone of the current configuration.
         /// </summary>
         /// <returns>A deep clone of the current configuration</returns>
-        public Config Copy()
+        protected virtual Config Copy(Config fallback = null)
         {
             //deep clone
-            return new Config((HoconValue) Value.Clone(null), Fallback?.Copy());
+            return new Config((HoconValue) Value.Clone(null), fallback?.Copy() ?? Fallback?.Copy());
         }
 
         protected override HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
@@ -137,10 +161,13 @@ namespace Hocon
         {
             if (fallback == this)
                 throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
+
+            if (fallback == Config.Empty)
+                return this; // no-op
             
             // If Fallback is not set - we will set it in new copy
             // If Fallback was set - just use it, but with adding new fallback values
-            return new Config((HoconValue) Value.Clone(null), Fallback.SafeWithFallback(fallback));
+            return Copy(Fallback.SafeWithFallback(fallback));
         }
 
         /// <summary>
