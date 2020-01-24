@@ -194,13 +194,10 @@ namespace Hocon
         private HoconValue GetRootValue()
         {
             var elements = new List<IHoconElement>();
-            elements.AddRange(Value);
 
-            var config = this.Fallback?.Copy();
-            while (config != null)
+            for (var config = this; config != null; config = config.Fallback?.Copy())
             {
-                elements.AddRange(config.Root);
-                config = config.Fallback?.Copy();
+                elements.AddRange(config.Value);
             }
 
             var aggregated = new HoconValue(null);
