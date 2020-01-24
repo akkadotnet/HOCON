@@ -435,6 +435,23 @@ foo {
         }
 
         [Fact]
+        public void Config_will_not_throw_on_duplicate_fallbacks()
+        {
+            var c1 = ConfigurationFactory.ParseString(@"foo.bar = baz");
+            var c2 = ConfigurationFactory.ParseString(@"bar.biz = fuber");
+
+            // normal fallback
+            var f1 = c1.WithFallback(c2).WithFallback(Config.Empty);
+            c1.Fallback.Should().BeNull(); // original copy should not have been modified.
+
+            // someone adds the same fallback again with realizing it
+            f1.WithFallback(Config.Empty).GetString("bar.biz").Should().Be("fuber"); // shouldn't throw
+            
+            var final = f1.WithFallback(c2);
+            final.GetString("bar.biz").Should().Be("fuber"); // shouldn't throw
+        }
+
+        [Fact]
         public void Quoted_key_should_be_parsed()
         {
             var config1 = ConfigurationFactory.ParseString(
