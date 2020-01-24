@@ -138,6 +138,8 @@ namespace Hocon
             if (fallback == this)
                 throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
             
+            // If Fallback is not set - we will set it in new copy
+            // If Fallback was set - just use it, but with adding new fallback values
             return new Config((HoconValue) Value.Clone(null), Fallback?.WithFallback(fallback) ?? fallback);
         }
 
