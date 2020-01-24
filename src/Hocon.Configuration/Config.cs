@@ -89,7 +89,7 @@ namespace Hocon
         ///     Generates a deep clone of the current configuration.
         /// </summary>
         /// <returns>A deep clone of the current configuration</returns>
-        protected Config Copy()
+        public Config Copy()
         {
             //deep clone
             return new Config((HoconValue) Value.Clone(null), Fallback?.Copy());
