@@ -76,11 +76,13 @@ namespace Hocon
         /// <inheritdoc />
         public string Raw => Value.Raw;
 
+        /// <inheritdoc />
         public HoconObject GetObject()
         {
             return Value.GetObject();
         }
 
+        /// <inheritdoc />
         public string GetString()
         {
             return Value.GetString();

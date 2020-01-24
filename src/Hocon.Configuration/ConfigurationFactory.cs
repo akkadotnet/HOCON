@@ -62,7 +62,7 @@ namespace Hocon
         [Obsolete("Call the ConfigurationFactory.Default method instead.")]
         public static Config Load()
         {
-            return Load("akka");
+            return Default();
         }
 
         /// <summary>
