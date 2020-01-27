@@ -1,8 +1,10 @@
-﻿using System;
+﻿// -----------------------------------------------------------------------
+// <copyright file="SerializationSpec.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Xunit;
@@ -37,7 +39,7 @@ namespace Hocon.Configuration.Tests
             VerifySerialization(final);
         }
 
-        public void VerifySerialization(Config config)
+        private void VerifySerialization(Config config)
         {
             var serialized = JsonConvert.SerializeObject(config);
             var deserialized = (Config)JsonConvert.DeserializeObject(serialized);
