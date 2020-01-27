@@ -6,8 +6,7 @@
 
 using System.Text;
 
-
-namespace Hocon.Debugger
+namespace Hocon
 {
     /// <summary>
     /// Debugging extensions for <see cref="Config"/> objects.

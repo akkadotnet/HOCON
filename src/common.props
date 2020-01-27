@@ -19,6 +19,7 @@ You can [see the full set of changes in the HOCON v1.3.2 milestone](https://gith
     <XunitVersion>2.4.1</XunitVersion>
     <XunitCliVersion>2.3.1</XunitCliVersion>
     <TestSdkVersion>16.4.0</TestSdkVersion>
+    <NetCoreVersion>netcoreapp2.1</NetCoreVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
