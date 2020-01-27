@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Hocon
 {
@@ -16,8 +17,11 @@ namespace Hocon
     ///     the internal representation of a HOCON (Human-Optimized Config Object Notation)
     ///     configuration string.
     /// </summary>
-    public class Config : HoconRoot
+    [Serializable]
+    public class Config : HoconRoot, ISerializable
     {
+        public const string SerializedPropertyName = "_dump";
+        
         [Obsolete("For json serialization/deserialization only", true)]
         private Config()
         {
@@ -205,6 +209,23 @@ namespace Hocon
             aggregated.AddRange(elements.AsEnumerable().Reverse());
 
             return aggregated;
+        }
+
+        /// <inheritdoc />
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue(SerializedPropertyName, this.ToString(useFallbackValues: true), typeof(string));
+        }
+
+        [Obsolete("Used for serialization only", true)]
+        public Config(SerializationInfo info, StreamingContext context)
+        {
+            var config = ConfigurationFactory.ParseString(info.GetValue(SerializedPropertyName, typeof(string)) as string);
+            
+            Value = config.Value;
+            Fallback = config.Fallback;
+
+            Root = GetRootValue();
         }
     }
 
