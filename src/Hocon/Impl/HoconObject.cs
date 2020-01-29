@@ -168,11 +168,6 @@ namespace Hocon
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
             
-            // Sometimes path may be a double-quoted string like "a.b.c" with quotes ommited,
-            // so check if there is such key first
-            if (TryGetValue(key, out var rootField))
-                return rootField;
-
             var path = HoconPath.Parse(key);
             return GetField(path);
         }
@@ -398,14 +393,15 @@ namespace Hocon
             var keys = other.Keys.ToArray();
             foreach (var key in keys)
             {
+                var quotedKey = $"\"{key}\"";
                 if (!ContainsKey(key))
                 {
-                    base[key] = other[key];
+                    base[key] = other[quotedKey];
                     continue;
                 }
 
-                var thisItem = this[key];
-                var otherItem = other[key].Value;
+                var thisItem = this[quotedKey];
+                var otherItem = other[quotedKey].Value;
                 if (thisItem.Type == HoconType.Object && otherItem.Type == HoconType.Object)
                     thisItem.GetObject().Merge(otherItem.GetObject());
                 else
