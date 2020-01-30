@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Hocon.Extensions
+namespace Hocon
 {
     public static class ArrayGetterExtensions
     {

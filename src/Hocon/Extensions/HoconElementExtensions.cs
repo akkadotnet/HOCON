@@ -4,7 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Hocon.Extensions
+namespace Hocon
 {
     /// <summary>
     ///     HoconElementExtensions

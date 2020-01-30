@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29424.173
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.960
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon", "src\Hocon\Hocon.csproj", "{E945AABA-2779-41E8-9B43-8898FFD64F22}"
 EndProject
@@ -29,11 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Extensions.Configurat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Extensions.Configuration.Tests", "src\Hocon.Extensions.Configuration.Tests\Hocon.Extensions.Configuration.Tests.csproj", "{F7862234-3330-43DE-86BB-D6E67F2146BC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Immutable", "src\Hocon.Immutable\Hocon.Immutable.csproj", "{FB439177-CA10-4BA8-993D-A51D1BEE2A0E}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Immutable.Tests", "src\Hocon.Immutable.Tests\Hocon.Immutable.Tests.csproj", "{FEEC6F6B-2511-4BEC-9568-4E6AE6C1D275}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerializationDebug", "src\examples\SerializationDebug\SerializationDebug.csproj", "{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerializationDebug", "src\examples\SerializationDebug\SerializationDebug.csproj", "{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,14 +85,6 @@ Global
 		{F7862234-3330-43DE-86BB-D6E67F2146BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7862234-3330-43DE-86BB-D6E67F2146BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7862234-3330-43DE-86BB-D6E67F2146BC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FB439177-CA10-4BA8-993D-A51D1BEE2A0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FB439177-CA10-4BA8-993D-A51D1BEE2A0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FB439177-CA10-4BA8-993D-A51D1BEE2A0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FB439177-CA10-4BA8-993D-A51D1BEE2A0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FEEC6F6B-2511-4BEC-9568-4E6AE6C1D275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FEEC6F6B-2511-4BEC-9568-4E6AE6C1D275}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FEEC6F6B-2511-4BEC-9568-4E6AE6C1D275}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FEEC6F6B-2511-4BEC-9568-4E6AE6C1D275}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU

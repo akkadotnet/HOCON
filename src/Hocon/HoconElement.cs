@@ -11,8 +11,10 @@ namespace Hocon
 {
     public abstract class HoconElement
     {
-        [Obsolete("There is no need to use Value property with Hocon.Immutable, please remove it.")]
+        [Obsolete("There is no need to use Value property anymore, please remove it.")]
         public HoconElement Value => this;
+
+        public string Raw => ToString(1, 0);
 
         public HoconElement this[int index]
         {

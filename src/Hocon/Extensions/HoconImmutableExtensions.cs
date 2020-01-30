@@ -6,7 +6,7 @@
 
 using Hocon.Builder;
 
-namespace Hocon.Extensions
+namespace Hocon
 {
     public static class HoconImmutableExtensions
     {

@@ -48,6 +48,8 @@ namespace Hocon
             }
         }
 
+        public IDictionary<string, HoconElement> Unwrapped => this.ToDictionary(t => t.Key, t => t.Value);
+
         public HoconElement this[HoconPath path] => GetValue(path);
 
         public new HoconElement this[string path] => GetValue(path);

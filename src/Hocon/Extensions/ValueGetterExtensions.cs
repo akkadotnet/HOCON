@@ -8,10 +8,18 @@ using System;
 using System.Linq;
 using System.Numerics;
 
-namespace Hocon.Extensions
+namespace Hocon
 {
     public static class ValueGetterExtensions
     {
+        public static HoconObject GetObject(this HoconElement element)
+        {
+            if(!(element is HoconObject obj))
+                throw new HoconException(
+                    $"GetObject() can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
+            return obj;
+        }
+
         public static string GetString(this HoconElement element)
         {
             if (!(element is HoconLiteral lit))
@@ -29,11 +37,11 @@ namespace Hocon.Extensions
         }
 
         /// <summary>
-        ///     Retrieves the boolean value from this <see cref="HoconImmutableElement" />.
+        ///     Retrieves the boolean value from this <see cref="HoconElement" />.
         /// </summary>
-        /// <returns>The boolean value represented by this <see cref="HoconImmutableElement" />.</returns>
+        /// <returns>The boolean value represented by this <see cref="HoconElement" />.</returns>
         /// <exception cref="System.NotSupportedException">
-        ///     This exception occurs when the <see cref="HoconImmutableElement" /> is not a <see cref="HoconImmutableLiteral" />
+        ///     This exception occurs when the <see cref="HoconElement" /> is not a <see cref="HoconLiteral" />
         ///     and it doesn't
         ///     conform to the standard boolean values: "on", "off", "yes", "no", "true", or "false"
         /// </exception>

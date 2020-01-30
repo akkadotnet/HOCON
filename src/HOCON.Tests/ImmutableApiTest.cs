@@ -8,10 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Hocon.Extensions;
 using Xunit;
 
-namespace Hocon.Immutable.Tests
+namespace Hocon.Tests
 {
     public class ImmutableApiTest
     {
