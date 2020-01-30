@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Hocon.Extensions;
 
 namespace Hocon.Tests
 {
@@ -124,6 +125,16 @@ namespace Hocon.Tests
         public void CanCreateObjectArray(string hocon)
         {
             var config = Parser.Parse(hocon);
+
+            Assert.Equal(1, config["a"][0]["a"]);
+            Assert.Equal(2, config["a"][0]["b"]);
+
+            Assert.Equal(3, config["a"][1]["c"]);
+            Assert.Equal(4, config["a"][1]["d"]);
+
+            Assert.Equal(5, config["a"][2]["e"]);
+            Assert.Equal(6, config["a"][2]["f"]);
+            /*
             var value = config.GetValue("a")[0].GetArray();
 
             var obj = value[0].GetObject();
@@ -137,6 +148,7 @@ namespace Hocon.Tests
             obj = value[2].GetObject();
             Assert.Equal(5, obj["e"].Value.GetInt());
             Assert.Equal(6, obj["f"].Value.GetInt());
+            */
         }
 
         // Undefined behavior in spec.

@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="HoconArray.cs" company="Akka.NET Project">
+// <copyright file="InternalHoconArray.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -21,19 +21,19 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public sealed class HoconArray : List<HoconValue>, IHoconElement
+    public sealed class InternalHoconArray : List<InternalHoconValue>, IInternalHoconElement
     {
         private HoconType _arrayType = HoconType.Empty;
 
-        public HoconArray(IHoconElement parent)
+        public InternalHoconArray(IInternalHoconElement parent)
         {
             Parent = parent;
         }
 
-        public IHoconElement Parent { get; }
+        public IInternalHoconElement Parent { get; }
         public HoconType Type => HoconType.Array;
 
-        public HoconObject GetObject()
+        public InternalHoconObject GetObject()
         {
             throw new HoconException("Can not convert Hocon array into an object.");
         }
@@ -52,7 +52,7 @@ namespace Hocon
             => throw new HoconException("Can not convert Hocon array into a string.");
 
         /// <inheritdoc />
-        public List<HoconValue> GetArray()
+        public List<InternalHoconValue> GetArray()
         {
             return this;
         }
@@ -62,21 +62,21 @@ namespace Hocon
             return $"[{string.Join(", ", this)}]";
         }
 
-        public IHoconElement Clone(IHoconElement newParent)
+        public IInternalHoconElement Clone(IInternalHoconElement newParent)
         {
-            var newArray = new HoconArray(newParent);
-            foreach (var value in this) newArray.Add(value.Clone(newArray) as HoconValue);
+            var newArray = new InternalHoconArray(newParent);
+            foreach (var value in this) newArray.Add(value.Clone(newArray) as InternalHoconValue);
             return newArray;
         }
 
-        public bool Equals(IHoconElement other)
+        public bool Equals(IInternalHoconElement other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return other is HoconArray array && Equals(array);
+            return other is InternalHoconArray array && Equals(array);
         }
 
-        public new void Add(HoconValue value)
+        public new void Add(InternalHoconValue value)
         {
             if (value.Type != HoconType.Empty)
             {
@@ -90,9 +90,9 @@ namespace Hocon
             base.Add(value);
         }
 
-        internal void ResolveValue(HoconSubstitution sub)
+        internal void ResolveValue(InternalHoconSubstitution sub)
         {
-            var subValue = (HoconValue) sub.Parent;
+            var subValue = (InternalHoconValue) sub.Parent;
             if (sub.Type == HoconType.Empty)
             {
                 subValue.Remove(sub);
@@ -115,7 +115,7 @@ namespace Hocon
             return ToString(0, 2);
         }
 
-        private bool Equals(HoconArray other)
+        private bool Equals(InternalHoconArray other)
         {
             if (Count != other.Count) return false;
             for (var i = 0; i < Count; ++i)
@@ -128,7 +128,7 @@ namespace Hocon
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj is IHoconElement element && Equals(element);
+            return obj is IInternalHoconElement element && Equals(element);
         }
 
         public override int GetHashCode()
@@ -142,12 +142,12 @@ namespace Hocon
             }
         }
 
-        public static bool operator ==(HoconArray left, HoconArray right)
+        public static bool operator ==(InternalHoconArray left, InternalHoconArray right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(HoconArray left, HoconArray right)
+        public static bool operator !=(InternalHoconArray left, InternalHoconArray right)
         {
             return !Equals(left, right);
         }

@@ -69,25 +69,25 @@ namespace Hocon
         public const string Digits = "1234567890";
         public const string Hexadecimal = "1234567890abcdefABCDEF";
 
-        public static bool IsSubstitution(this IHoconElement value)
+        public static bool IsSubstitution(this IInternalHoconElement value)
         {
             switch (value)
             {
-                case HoconValue v:
+                case InternalHoconValue v:
                     return v.Any(n => n.IsSubstitution());
-                case HoconField f:
+                case InternalHoconField f:
                     return f.Value.Any(n => n.IsSubstitution());
-                case HoconObject o:
+                case InternalHoconObject o:
                     foreach (var f in o.Values)
                         if (f.Value.Any(n => n.IsSubstitution()))
                             return true;
                     return false;
-                case HoconArray a:
+                case InternalHoconArray a:
                     foreach (var v in a)
                         if (v.Any(n => n.IsSubstitution()))
                             return true;
                     return false;
-                case HoconSubstitution _:
+                case InternalHoconSubstitution _:
                     return true;
                 default:
                     return false;

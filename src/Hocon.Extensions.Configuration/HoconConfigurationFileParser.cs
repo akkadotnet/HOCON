@@ -29,7 +29,7 @@ namespace Hocon.Extensions.Configuration
             {
                 var content = textStream.ReadToEnd();
                 var hoconConfig = Parser.Parse(content);
-                VisitHoconObject(hoconConfig.Value.GetObject());
+                VisitHoconObject(hoconConfig);
             }
 
             return _data;
@@ -45,32 +45,30 @@ namespace Hocon.Extensions.Configuration
             }
         }
 
-        private void VisitHoconField(HoconField property)
+        private void VisitHoconField(HoconElement property)
         {
-            VisitObject(property.Value);
+            VisitObject(property);
         }
 
-        private void VisitObject(HoconValue value)
+        private void VisitObject(HoconElement value)
         {
-            switch (value.Type)
+            switch (value)
             {
-                case HoconType.Object:
-                    VisitHoconObject(value.GetObject());
+                case HoconObject o:
+                    VisitHoconObject(o);
                     break;
 
-                case HoconType.Array:
-                    VisitArray(value.GetArray());
+                case HoconArray a:
+                    VisitArray(a);
                     break;
 
-                case HoconType.Boolean:
-                case HoconType.Number:
-                case HoconType.String:
-                    VisitPrimitive(value);
+                case HoconLiteral l:
+                    VisitPrimitive(l);
                     break;
             }
         }
 
-        private void VisitArray(List<HoconValue> array)
+        private void VisitArray(HoconArray array)
         {
             for (int index = 0; index < array.Count; index++)
             {
@@ -80,7 +78,7 @@ namespace Hocon.Extensions.Configuration
             }
         }
 
-        private void VisitPrimitive(IHoconElement data)
+        private void VisitPrimitive(HoconLiteral data)
         {
             var key = _currentPath;
 

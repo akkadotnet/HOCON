@@ -14,6 +14,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Xunit;
+using Hocon.Extensions;
+using Hocon.Builder;
 
 namespace Hocon.Configuration.Tests
 {
@@ -98,11 +100,12 @@ a {
             var root1 = Parser.Parse(hocon1);
             var root2 = Parser.Parse(hocon2);
 
-            var obj1 = root1.Value.GetObject();
-            var obj2 = root2.Value.GetObject();
-            obj1.Merge(obj2);
+            var merged = new HoconObjectBuilder()
+                .Merge(root1)
+                .Merge(root2)
+                .Build();
 
-            var config = new Config(root1);
+            var config = new Config(merged);
 
             Assert.Equal(123, config.GetInt("a.b"));
             Assert.Equal(999, config.GetInt("a.c"));
@@ -246,7 +249,7 @@ foo {
                     }
 	            }");
             
-            var merged = config1.WithFallback(config2).Root.GetObject(); // Perform values loading
+            var merged = config1.WithFallback(config2); // Perform values loading
             
             config1.GetInt("a.b.c").Should().Be(5);
             config1.GetInt("a.b.e").Should().Be(7);
@@ -580,7 +583,7 @@ foo {
         /// <summary>
         /// Source issue: https://github.com/akkadotnet/HOCON/issues/175
         /// </summary>
-        [Fact(Skip = "This is disabled due to temprorary fix for https://github.com/akkadotnet/HOCON/issues/206")]
+        [Fact]
         public void ShouldDeserializeFromJson()
         {
             var settings = new JsonSerializerSettings
@@ -595,8 +598,12 @@ foo {
                 TypeNameHandling = TypeNameHandling.All,
                 ContractResolver = new AkkaContractResolver()
             };
-            
-            var json = "{\"$id\":\"1\",\"$type\":\"Hocon.Config, Hocon.Configuration\",\"Root\":{\"$type\":\"Hocon.HoconEmptyValue, Hocon\",\"$values\":[]},\"Value\":{\"$type\":\"Hocon.HoconEmptyValue, Hocon\",\"$values\":[]},\"Substitutions\":{\"$type\":\"Hocon.HoconSubstitution[], Hocon\",\"$values\":[]},\"IsEmpty\":true}";
+
+            //var json = "{\"$id\":\"1\",\"$type\":\"Hocon.Config, Hocon.Configuration\",\"Root\":{\"$type\":\"Hocon.InternalHoconEmptyValue, Hocon\",\"$values\":[]},\"Value\":{\"$type\":\"Hocon.InternalHoconEmptyValue, Hocon\",\"$values\":[]},\"Substitutions\":{\"$type\":\"Hocon.InternalHoconSubstitution[], Hocon\",\"$values\":[]},\"IsEmpty\":true}";
+            //var restored = JsonConvert.DeserializeObject<Config>(json, setttings);
+
+            var config = Config.Empty;
+            var json = JsonConvert.SerializeObject(config);
             var restored = JsonConvert.DeserializeObject<Config>(json, settings);
             restored.IsEmpty.Should().BeTrue();
         }

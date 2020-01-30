@@ -6,6 +6,7 @@
 
 using System;
 using Xunit;
+using Hocon.Extensions;
 
 namespace Hocon.Tests
 {

@@ -29,7 +29,7 @@ namespace Hocon.Extensions
             return t1 == t2 || t1.IsLiteral() && t2.IsLiteral();
         }
 
-        public static bool IsMergeable(this IHoconElement e1, IHoconElement e2)
+        public static bool IsMergeable(this IInternalHoconElement e1, IInternalHoconElement e2)
         {
             return e1.Type.IsMergeable(e2.Type);
         }

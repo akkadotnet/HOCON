@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="HoconImmutableLiteral.cs" company="Akka.NET Project">
+// <copyright file="HoconLiteral.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -11,22 +11,28 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Hocon.Immutable
+namespace Hocon
 {
-    public sealed class HoconImmutableLiteral : HoconImmutableElement, IEquatable<HoconImmutableLiteral>
+    public sealed class HoconLiteral : HoconElement, IEquatable<HoconLiteral>
     {
-        public static readonly HoconImmutableLiteral Null = Create(null);
+        public static readonly HoconLiteral Null = Create(null);
 
-        private HoconImmutableLiteral(string value)
+        private HoconLiteral(string value)
         {
             Value = value;
         }
 
         public new string Value { get; }
 
-        internal static HoconImmutableLiteral Create(string value)
+        internal static HoconLiteral Create(string value)
         {
-            return new HoconImmutableLiteral(value);
+            return new HoconLiteral(value);
+        }
+
+        /// <inheritdoc />
+        public override string ToString(int indent, int indentSize)
+        {
+            return $"{new string(' ', indent * indentSize)}{Value}";
         }
 
         #region Interface implementations
@@ -36,7 +42,7 @@ namespace Hocon.Immutable
             return Value;
         }
 
-        public bool Equals(HoconImmutableLiteral other)
+        public bool Equals(HoconLiteral other)
         {
             if (other == null) return false;
             return ReferenceEquals(this, other) || string.Equals(Value, other.Value);
@@ -44,7 +50,7 @@ namespace Hocon.Immutable
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj) || obj is HoconImmutableLiteral other && Equals(other);
+            return ReferenceEquals(this, obj) || obj is HoconLiteral other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -56,22 +62,22 @@ namespace Hocon.Immutable
 
         #region Casting operators
 
-        public static implicit operator char(HoconImmutableLiteral lit)
+        public static implicit operator char(HoconLiteral lit)
         {
             return lit.Value?[0] ?? '\0';
         }
 
-        public static implicit operator char[](HoconImmutableLiteral lit)
+        public static implicit operator char[](HoconLiteral lit)
         {
             return lit.Value?.ToCharArray() ?? new char[] { };
         }
 
-        public static implicit operator string(HoconImmutableLiteral lit)
+        public static implicit operator string(HoconLiteral lit)
         {
             return lit.Value;
         }
 
-        public static implicit operator bool(HoconImmutableLiteral lit)
+        public static implicit operator bool(HoconLiteral lit)
         {
             switch (lit.Value)
             {
@@ -89,7 +95,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator sbyte(HoconImmutableLiteral lit)
+        public static implicit operator sbyte(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -122,7 +128,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator byte(HoconImmutableLiteral lit)
+        public static implicit operator byte(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -155,7 +161,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator short(HoconImmutableLiteral lit)
+        public static implicit operator short(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -188,7 +194,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator ushort(HoconImmutableLiteral lit)
+        public static implicit operator ushort(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -221,7 +227,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator int(HoconImmutableLiteral lit)
+        public static implicit operator int(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -254,7 +260,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator uint(HoconImmutableLiteral lit)
+        public static implicit operator uint(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -287,7 +293,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator long(HoconImmutableLiteral lit)
+        public static implicit operator long(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -320,7 +326,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator ulong(HoconImmutableLiteral lit)
+        public static implicit operator ulong(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -353,7 +359,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator BigInteger(HoconImmutableLiteral lit)
+        public static implicit operator BigInteger(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -386,7 +392,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator float(HoconImmutableLiteral lit)
+        public static implicit operator float(HoconLiteral lit)
         {
             var value = lit.Value;
             switch (value)
@@ -410,7 +416,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator double(HoconImmutableLiteral lit)
+        public static implicit operator double(HoconLiteral lit)
         {
             var value = lit.Value;
             switch (value)
@@ -434,7 +440,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator decimal(HoconImmutableLiteral lit)
+        public static implicit operator decimal(HoconLiteral lit)
         {
             var value = lit.Value;
             switch (value)
@@ -469,7 +475,7 @@ namespace Hocon.Immutable
             return value;
         }
 
-        public static implicit operator TimeSpan(HoconImmutableLiteral lit)
+        public static implicit operator TimeSpan(HoconLiteral lit)
         {
             var res = lit.Value;
 

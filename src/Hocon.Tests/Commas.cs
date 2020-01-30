@@ -7,6 +7,7 @@
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Hocon.Extensions;
 
 namespace Hocon.Tests
 {

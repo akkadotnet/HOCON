@@ -20,20 +20,20 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="T:Hocon.HoconRoot" /> class.
         /// </summary>
-        public HoconRoot() : this(new HoconValue(null), Enumerable.Empty<HoconSubstitution>())
+        public HoconRoot() : this(new InternalHoconValue(null), Enumerable.Empty<InternalHoconSubstitution>())
         {
         }
 
         /// <inheritdoc cref="HoconRoot()" />
         /// <param name="value">The value to associate with this element.</param>
-        public HoconRoot(HoconValue value) : this(value, Enumerable.Empty<HoconSubstitution>())
+        public HoconRoot(InternalHoconValue value) : this(value, Enumerable.Empty<InternalHoconSubstitution>())
         {
         }
 
         /// <inheritdoc cref="HoconRoot()" />
         /// <param name="value">The value to associate with this element.</param>
         /// <param name="substitutions">An enumeration of substitutions to associate with this element.</param>
-        public HoconRoot(HoconValue value, IEnumerable<HoconSubstitution> substitutions)
+        public HoconRoot(InternalHoconValue value, IEnumerable<InternalHoconSubstitution> substitutions)
         {
             Value = value;
             Substitutions = substitutions;
@@ -42,19 +42,19 @@ namespace Hocon
         /// <summary>
         ///     Retrieves the value associated with this element.
         /// </summary>
-        public HoconValue Value { get; protected set; }
+        public InternalHoconValue Value { get; protected set; }
 
         /// <summary>
         ///     Retrieves an enumeration of substitutions associated with this element.
         /// </summary>
-        public IEnumerable<HoconSubstitution> Substitutions { get; }
+        public IEnumerable<InternalHoconSubstitution> Substitutions { get; }
 
         /// <summary>
         ///     Determines if this root node contains any values
         /// </summary>
-        public virtual bool IsEmpty => Value == null || Value.Type == HoconType.Empty;
+        // public virtual bool IsEmpty => Value == null || Value.Type == HoconType.Empty;
 
-        protected virtual HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
+        protected virtual InternalHoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
             if (Value.Type != HoconType.Object)
                 throw new HoconException("Hocon is not an object.");
@@ -89,7 +89,7 @@ namespace Hocon
         /// <returns><c>true</c> if a value was found, <c>false</c> otherwise.</returns>
         public virtual bool HasPath(HoconPath path)
         {
-            HoconValue node;
+            InternalHoconValue node;
             try
             {
                 node = GetNode(path);
@@ -113,9 +113,9 @@ namespace Hocon
             Flatten(Value);
         }
 
-        private static void Flatten(IHoconElement node)
+        private static void Flatten(IInternalHoconElement node)
         {
-            if (!(node is HoconValue v))
+            if (!(node is InternalHoconValue v))
                 return;
 
             switch (v.Type)
@@ -131,7 +131,7 @@ namespace Hocon
                 case HoconType.Array:
                     var a = v.GetArray();
                     v.Clear();
-                    var newArray = new HoconArray(v);
+                    var newArray = new InternalHoconArray(v);
                     foreach (var item in a)
                     {
                         Flatten(item);
@@ -165,7 +165,7 @@ namespace Hocon
         ///     Retrieves an enumerable key value pair representation of the current configuration.
         /// </summary>
         /// <returns>The current configuration represented as an enumerable key value pair.</returns>
-        public virtual IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
+        public virtual IEnumerable<KeyValuePair<string, InternalHoconField>> AsEnumerable()
         {
             return Value.GetObject();
         }
@@ -400,13 +400,13 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The double value defined in the specified path.</returns>
-        public virtual HoconObject GetObject(string path, HoconObject @default = null)
+        public virtual InternalHoconObject GetObject(string path, InternalHoconObject @default = null)
         {
             return WrapWithValueException(path, () => GetObject(HoconPath.Parse(path), @default));
         }
 
         /// <inheritdoc cref="GetObject(string,HoconObject)" />
-        public virtual HoconObject GetObject(HoconPath path, HoconObject @default = null)
+        public virtual InternalHoconObject GetObject(HoconPath path, InternalHoconObject @default = null)
         {
             return WrapWithValueException(path.ToString(), () =>
             {
@@ -692,7 +692,7 @@ namespace Hocon
         /// <param name="path">The path that contains the objects to retrieve.</param>
         /// <returns>The list of objects defined in the specified path.</returns>
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
-        public virtual IList<HoconObject> GetObjectList(string path)
+        public virtual IList<InternalHoconObject> GetObjectList(string path)
         {
             return WrapWithValueException(path,
                 () => GetObjectList(HoconPath.Parse(path)) ??
@@ -705,13 +705,13 @@ namespace Hocon
         /// <param name="path">The path that contains the objects to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The list of objects defined in the specified path.</returns>
-        public virtual IList<HoconObject> GetObjectList(string path, IList<HoconObject> @default)
+        public virtual IList<InternalHoconObject> GetObjectList(string path, IList<InternalHoconObject> @default)
         {
             return WrapWithValueException(path, () => GetObjectList(HoconPath.Parse(path), @default));
         }
 
         /// <inheritdoc cref="GetObjectList(string)" />
-        public virtual IList<HoconObject> GetObjectList(HoconPath path, IList<HoconObject> @default = null)
+        public virtual IList<InternalHoconObject> GetObjectList(HoconPath path, IList<InternalHoconObject> @default = null)
         {
             return WrapWithValueException(path.ToString(), () =>
             {
@@ -721,17 +721,17 @@ namespace Hocon
         }
 
         /// <summary>
-        ///     Retrieves a <see cref="HoconValue" /> from a specific path.
+        ///     Retrieves a <see cref="InternalHoconValue" /> from a specific path.
         /// </summary>
         /// <param name="path">The path that contains the value to retrieve.</param>
-        /// <returns>The <see cref="HoconValue" /> found at the location if one exists, otherwise <c>null</c>.</returns>
-        public virtual HoconValue GetValue(string path)
+        /// <returns>The <see cref="InternalHoconValue" /> found at the location if one exists, otherwise <c>null</c>.</returns>
+        public virtual InternalHoconValue GetValue(string path)
         {
             return WrapWithValueException(path, () => GetValue(HoconPath.Parse(path)));
         }
 
         /// <inheritdoc cref="GetValue(string)" />
-        public virtual HoconValue GetValue(HoconPath path)
+        public virtual InternalHoconValue GetValue(HoconPath path)
         {
             return WrapWithValueException(path.ToString(), () =>
             {

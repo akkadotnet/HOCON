@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="HoconSubstitution.cs" company="Akka.NET Project">
+// <copyright file="InternalHoconSubstitution.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -23,25 +23,25 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public sealed class HoconSubstitution : IHoconElement, IHoconLineInfo
+    public sealed class InternalHoconSubstitution : IInternalHoconElement, IHoconLineInfo
     {
-        private HoconValue _resolvedValue;
+        private InternalHoconValue _resolvedValue;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconSubstitution" /> class.
         /// </summary>
-        /// <param name="parent">The <see cref="HoconValue" /> parent of this substitution.</param>
+        /// <param name="parent">The <see cref="InternalHoconValue" /> parent of this substitution.</param>
         /// <param name="path">The <see cref="HoconPath" /> that this substitution is pointing to.</param>
         /// <param name="required">Marks wether this substitution uses the ${? notation or not.</param>
         /// ///
         /// <param name="lineInfo">The <see cref="IHoconLineInfo" /> of this substitution, used for exception generation purposes.</param>
-        internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
+        internal InternalHoconSubstitution(IInternalHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
         {
             if (parent == null)
-                throw new ArgumentNullException(nameof(parent), "HoconSubstitution parent can not be null.");
+                throw new ArgumentNullException(nameof(parent), "InternalHoconSubstitution parent can not be null.");
 
-            if (!(parent is HoconValue))
-                throw new HoconException("HoconSubstitution parent must be HoconValue.");
+            if (!(parent is InternalHoconValue))
+                throw new HoconException("InternalHoconSubstitution parent must be HoconValue.");
 
             Parent = parent;
             LinePosition = lineInfo.LinePosition;
@@ -49,21 +49,21 @@ namespace Hocon
             Required = required;
             Path = path;
             
-            _parentsToResolveFor.Add(Parent as HoconValue);
+            _parentsToResolveFor.Add(Parent as InternalHoconValue);
         }
 
         public bool Required { get; }
 
         internal bool Removed { get; set; }
         
-        internal HoconField ParentField
+        internal InternalHoconField ParentField
         {
             get
             {
                 var p = Parent;
-                while (p != null && !(p is HoconField))
+                while (p != null && !(p is InternalHoconField))
                     p = p.Parent;
-                return p as HoconField;
+                return p as InternalHoconField;
             }
         }
 
@@ -75,7 +75,7 @@ namespace Hocon
         /// <summary>
         ///     The evaluated value from the Path property
         /// </summary>
-        public HoconValue ResolvedValue
+        public InternalHoconValue ResolvedValue
         {
             get => _resolvedValue;
             internal set
@@ -88,9 +88,9 @@ namespace Hocon
         /// <summary>
         ///     The Hocon node that owned this substitution node
         /// </summary>
-        public IHoconElement Parent { get; }
+        public IInternalHoconElement Parent { get; }
         
-        private readonly List<HoconValue> _parentsToResolveFor = new List<HoconValue>();
+        private readonly List<InternalHoconValue> _parentsToResolveFor = new List<InternalHoconValue>();
 
         public HoconType Type => ResolvedValue?.Type ?? HoconType.Empty;
 
@@ -103,13 +103,13 @@ namespace Hocon
         public string Raw => ResolvedValue?.Raw;
 
         /// <inheritdoc />
-        public List<HoconValue> GetArray()
+        public List<InternalHoconValue> GetArray()
         {
             return ResolvedValue?.GetArray();
         }
 
         /// <inheritdoc />
-        public HoconObject GetObject()
+        public InternalHoconObject GetObject()
         {
             return ResolvedValue?.GetObject();
         }
@@ -130,26 +130,26 @@ namespace Hocon
         /// parent here, and all parents will be notified about subsitution resolution via <see cref="ResolvedValue"/>
         /// setter.
         /// </remarks>
-        public IHoconElement Clone(IHoconElement newParent)
+        public IInternalHoconElement Clone(IInternalHoconElement newParent)
         {
             if (newParent == null)
-                throw new ArgumentNullException(nameof(newParent), "HoconSubstitution parent can not be null.");
+                throw new ArgumentNullException(nameof(newParent), "InternalHoconSubstitution parent can not be null.");
 
-            if (!(newParent is HoconValue))
-                throw new HoconException("HoconSubstitution parent must be HoconValue.");
+            if (!(newParent is InternalHoconValue))
+                throw new HoconException("InternalHoconSubstitution parent must be HoconValue.");
             
-            _parentsToResolveFor.Add((HoconValue) newParent);
+            _parentsToResolveFor.Add((InternalHoconValue) newParent);
             
             // No copy required, substitutions are never changing state (except setting resolved value)
             return this; 
         }
 
-        public bool Equals(IHoconElement other)
+        public bool Equals(IInternalHoconElement other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            if (other is HoconSubstitution sub)
+            if (other is InternalHoconSubstitution sub)
                 return Path == sub.Path;
 
             return !(_resolvedValue is null) && _resolvedValue.Equals(other);
@@ -170,7 +170,7 @@ namespace Hocon
 
         public override bool Equals(object obj)
         {
-            return obj is IHoconElement element && Equals(element);
+            return obj is IInternalHoconElement element && Equals(element);
         }
 
         public override int GetHashCode()
@@ -178,12 +178,12 @@ namespace Hocon
             return Path.GetHashCode();
         }
 
-        public static bool operator ==(HoconSubstitution left, HoconSubstitution right)
+        public static bool operator ==(InternalHoconSubstitution left, InternalHoconSubstitution right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(HoconSubstitution left, HoconSubstitution right)
+        public static bool operator !=(InternalHoconSubstitution left, InternalHoconSubstitution right)
         {
             return !Equals(left, right);
         }

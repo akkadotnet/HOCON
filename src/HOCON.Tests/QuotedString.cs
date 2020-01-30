@@ -26,7 +26,7 @@ namespace Hocon.Tests
             ";
 
             var parsed = Parser.Parse(hocon);
-            var unwrapped = parsed.GetObject("adapters").ToDictionary(x => x.Key, v => v.Value.GetString());
+            var unwrapped = parsed["adapters"];
 
             // check to make sure these strings aren't quoted
             unwrapped["gremlin"].Should().Be("Akka.Remote.Transport.FailureInjectorProvider,Akka.Remote");

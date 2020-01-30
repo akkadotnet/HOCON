@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="HoconImmutableObject.cs" company="Akka.NET Project">
+// <copyright file="HoconObject.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -9,27 +9,51 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Numerics;
 
-namespace Hocon.Immutable
+namespace Hocon
 {
-    public sealed class HoconImmutableObject :
-        HoconImmutableElement,
-        IReadOnlyDictionary<string, HoconImmutableElement>
+    public class HoconObject :
+        HoconElement,
+        IReadOnlyDictionary<string, HoconElement>
     {
-        private readonly ImmutableSortedDictionary<string, HoconImmutableElement> _fields;
+        private readonly ImmutableSortedDictionary<string, HoconElement> _fields;
 
-        private HoconImmutableObject(IDictionary<string, HoconImmutableElement> fields)
+        protected HoconObject()
+        { }
+
+        protected HoconObject(IReadOnlyDictionary<string, HoconElement> fields)
         {
             _fields = fields.ToImmutableSortedDictionary();
         }
 
-        public HoconImmutableElement this[HoconPath path] => GetValue(path);
+        protected HoconObject(IDictionary<string, HoconElement> fields)
+        {
+            _fields = fields.ToImmutableSortedDictionary();
+        }
 
-        public new HoconImmutableElement this[string path] => GetValue(path);
+        protected HoconObject(HoconElement source)
+        {
+            switch (source)
+            {
+                case null:
+                    throw new HoconException("Config can not be null.");
+                case HoconLiteral _:
+                case HoconArray _:
+                    throw new HoconException("Config can only be built based on HoconObject");
+                case HoconObject o:
+                    _fields = o.ToImmutableSortedDictionary();
+                    break;
+            }
+        }
+
+        public HoconElement this[HoconPath path] => GetValue(path);
+
+        public new HoconElement this[string path] => GetValue(path);
 
         public IEnumerable<string> Keys => _fields.Keys;
-        public IEnumerable<HoconImmutableElement> Values => _fields.Values;
+        public IEnumerable<HoconElement> Values => _fields.Values;
         public int Count => _fields.Count;
 
         public bool HasPath(string path)
@@ -42,9 +66,9 @@ namespace Hocon.Immutable
             return TryGetValue(path, out _);
         }
 
-        public HoconImmutableArray ToArray()
+        public HoconArray ToArray()
         {
-            var sortedDict = new SortedDictionary<int, HoconImmutableElement>();
+            var sortedDict = new SortedDictionary<int, HoconElement>();
             Type type = null;
             foreach (var kvp in _fields)
             {
@@ -61,22 +85,47 @@ namespace Hocon.Immutable
                 throw new HoconException(
                     "Object is empty, does not contain any numerically indexed fields, or contains only non-positive integer indices");
 
-            return HoconImmutableArray.Create(sortedDict.Values);
+            return HoconArray.Create(sortedDict.Values);
         }
 
-        internal static HoconImmutableObject Create(IDictionary<string, HoconImmutableElement> fields)
+        internal static HoconObject Create(IDictionary<string, HoconElement> fields)
         {
-            return new HoconImmutableObject(fields);
+            return new HoconObject(fields);
+        }
+
+        internal static HoconObject Create(IReadOnlyDictionary<string, HoconElement> fields)
+        {
+            return new HoconObject(fields);
+        }
+
+        /// <summary>
+        ///     Converts the current configuration to a pretty printed string.
+        /// </summary>
+        /// <param name="indentSize">The number of spaces used for each indent.</param>
+        /// <returns>A string containing the current configuration.</returns>
+        public string PrettyPrint(int indentSize)
+        {
+            return ToString(1, indentSize);
+        }
+
+        /// <inheritdoc />
+        public override string ToString(int indent, int indentSize)
+        {
+            var i = new string(' ', indent * indentSize);
+            var sb = new StringBuilder();
+            foreach (var field in this)
+                sb.Append($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
+            return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
         }
 
         #region Interface implementation
 
-        public HoconImmutableElement GetValue(string path)
+        public HoconElement GetValue(string path)
         {
             return GetValue(HoconPath.Parse(path));
         }
 
-        public HoconImmutableElement GetValue(HoconPath path)
+        public HoconElement GetValue(HoconPath path)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -97,7 +146,7 @@ namespace Hocon.Immutable
                 if (pathIndex >= path.Count - 1)
                     return field;
 
-                if (!(field is HoconImmutableObject obj))
+                if (!(field is HoconObject obj))
                     throw new HoconException(
                         $"Invalid path, trying to access a key on a non object field. Path: `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
 
@@ -111,13 +160,13 @@ namespace Hocon.Immutable
             return _fields.ContainsKey(key);
         }
 
-        public bool TryGetValue(string key, out HoconImmutableElement result)
+        public bool TryGetValue(string key, out HoconElement result)
         {
             result = null;
             return !string.IsNullOrWhiteSpace(key) && TryGetValue(HoconPath.Parse(key), out result);
         }
 
-        public bool TryGetValue(HoconPath path, out HoconImmutableElement result)
+        public bool TryGetValue(HoconPath path, out HoconElement result)
         {
             result = null;
             if (path == null || path.Count == 0)
@@ -138,7 +187,7 @@ namespace Hocon.Immutable
                     return true;
                 }
 
-                if (!(field is HoconImmutableObject obj))
+                if (!(field is HoconObject obj))
                     return false;
 
                 currentObject = obj;
@@ -146,11 +195,11 @@ namespace Hocon.Immutable
             }
         }
 
-        public IEnumerator<KeyValuePair<string, HoconImmutableElement>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, HoconElement>> GetEnumerator()
         {
             return !_fields.IsEmpty
                 ? _fields.GetEnumerator()
-                : Enumerable.Empty<KeyValuePair<string, HoconImmutableElement>>().GetEnumerator();
+                : Enumerable.Empty<KeyValuePair<string, HoconElement>>().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -162,82 +211,82 @@ namespace Hocon.Immutable
 
         #region Casting operators
 
-        public static implicit operator bool[](HoconImmutableObject obj)
+        public static implicit operator bool[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator sbyte[](HoconImmutableObject obj)
+        public static implicit operator sbyte[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator byte[](HoconImmutableObject obj)
+        public static implicit operator byte[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator short[](HoconImmutableObject obj)
+        public static implicit operator short[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator ushort[](HoconImmutableObject obj)
+        public static implicit operator ushort[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator int[](HoconImmutableObject obj)
+        public static implicit operator int[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator uint[](HoconImmutableObject obj)
+        public static implicit operator uint[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator long[](HoconImmutableObject obj)
+        public static implicit operator long[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator ulong[](HoconImmutableObject obj)
+        public static implicit operator ulong[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator BigInteger[](HoconImmutableObject obj)
+        public static implicit operator BigInteger[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator float[](HoconImmutableObject obj)
+        public static implicit operator float[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator double[](HoconImmutableObject obj)
+        public static implicit operator double[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator decimal[](HoconImmutableObject obj)
+        public static implicit operator decimal[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator TimeSpan[](HoconImmutableObject obj)
+        public static implicit operator TimeSpan[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator string[](HoconImmutableObject obj)
+        public static implicit operator string[](HoconObject obj)
         {
             return obj.ToArray();
         }
 
-        public static implicit operator char[](HoconImmutableObject obj)
+        public static implicit operator char[](HoconObject obj)
         {
             return obj.ToArray();
         }

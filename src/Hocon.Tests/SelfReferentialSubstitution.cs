@@ -7,6 +7,7 @@
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Hocon.Extensions;
 
 namespace Hocon.Tests
 {
@@ -163,7 +164,7 @@ bar : ${yet-another-to-ignore}
 bar : [42]
 ";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
             Assert.Equal(42, config.GetInt("foo"));
@@ -182,7 +183,7 @@ foo : { a : { c : 1 } }
 foo : ${foo.a}
 foo : { a : 2 }";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
@@ -206,7 +207,7 @@ bar.b = 3
 foo : { c : ${bar.b}, d : 2 }
 foo.d = 4";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
@@ -223,7 +224,7 @@ foo.d = 4";
         {
             var hocon = "foo : ${?foo}";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
             // should not create a field
@@ -245,14 +246,14 @@ a += ${b}
 b = [ 4, 5 ]
 ";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
             var array = config.GetValue("a").GetArray();
-            Assert.Equal(1, array[0].GetInt());
-            Assert.Equal(2, array[1].GetInt());
-            Assert.Equal(3, array[2].GetInt());
-            Assert.True(new[] {4, 5}.SequenceEqual(array[3].GetIntList()));
+            Assert.Equal(1, array[0]);
+            Assert.Equal(2, array[1]);
+            Assert.Equal(3, array[2]);
+            Assert.True(new[] {4, 5}.SequenceEqual(array[3].ToIntArray()));
         }
 
         /*
@@ -264,7 +265,7 @@ b = [ 4, 5 ]
         {
             var hocon = "a = ${?a}foo";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 
@@ -286,7 +287,7 @@ bar : { foo : 42,
       }
 bar : { foo : 43 }";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = Parser.Parse(hocon));
             Assert.Null(ex);
 

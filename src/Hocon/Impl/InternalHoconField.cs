@@ -1,5 +1,5 @@
 ﻿// -----------------------------------------------------------------------
-// <copyright file="HoconField.cs" company="Akka.NET Project">
+// <copyright file="InternalHoconField.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -20,11 +20,11 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public sealed class HoconField : IHoconElement
+    public sealed class InternalHoconField : IInternalHoconElement
     {
-        private readonly List<HoconValue> _internalValues = new List<HoconValue>();
+        private readonly List<InternalHoconValue> _internalValues = new List<InternalHoconValue>();
 
-        public HoconField(string key, HoconObject parent)
+        public InternalHoconField(string key, InternalHoconObject parent)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
@@ -41,7 +41,7 @@ namespace Hocon
         /// </summary>
         internal bool HasOldValues => _internalValues.Count > 1;
 
-        public HoconValue Value
+        public InternalHoconValue Value
         {
             get
             {
@@ -53,14 +53,14 @@ namespace Hocon
                 if (lastValue.Type != HoconType.Object)
                     return lastValue;
 
-                var filteredValues = new List<HoconValue>();
+                var filteredValues = new List<InternalHoconValue>();
                 foreach (var value in _internalValues)
                     if (value.Type != HoconType.Object && value.Type != HoconType.Empty)
                         filteredValues.Clear();
                     else
                         filteredValues.Add(value);
 
-                var returnValue = new HoconValue(this);
+                var returnValue = new InternalHoconValue(this);
                 foreach (var value in filteredValues)
                     returnValue.AddRange(value);
                 return returnValue;
@@ -68,7 +68,7 @@ namespace Hocon
         }
 
         /// <inheritdoc />
-        public IHoconElement Parent { get; }
+        public IInternalHoconElement Parent { get; }
 
         /// <inheritdoc />
         public HoconType Type => Value == null ? HoconType.Empty : Value.Type;
@@ -77,7 +77,7 @@ namespace Hocon
         public string Raw => Value.Raw;
 
         /// <inheritdoc />
-        public HoconObject GetObject()
+        public InternalHoconObject GetObject()
         {
             return Value.GetObject();
         }
@@ -88,15 +88,15 @@ namespace Hocon
             return Value.GetString();
         }
 
-        public List<HoconValue> GetArray()
+        public List<InternalHoconValue> GetArray()
         {
             return Value.GetArray();
         }
 
-        public IHoconElement Clone(IHoconElement newParent)
+        public IInternalHoconElement Clone(IInternalHoconElement newParent)
         {
-            var newField = new HoconField(Key, (HoconObject) newParent);
-            foreach (var internalValue in _internalValues) newField._internalValues.Add(internalValue.Clone(newField) as HoconValue);
+            var newField = new InternalHoconField(Key, (InternalHoconObject) newParent);
+            foreach (var internalValue in _internalValues) newField._internalValues.Add(internalValue.Clone(newField) as InternalHoconValue);
             return newField;
         }
 
@@ -105,24 +105,24 @@ namespace Hocon
             return Value.ToString(indent, indentSize);
         }
 
-        public bool Equals(IHoconElement other)
+        public bool Equals(IInternalHoconElement other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return other is HoconField field && Path.Equals(field.Path) && Value.Equals(other);
+            return other is InternalHoconField field && Path.Equals(field.Path) && Value.Equals(other);
         }
 
         internal void EnsureFieldIsObject()
         {
             if (Type == HoconType.Object) return;
 
-            var v = new HoconValue(this);
-            var o = new HoconObject(v);
+            var v = new InternalHoconValue(this);
+            var o = new InternalHoconObject(v);
             v.Add(o);
             _internalValues.Add(v);
         }
 
-        internal void SetValue(HoconValue value)
+        internal void SetValue(InternalHoconValue value)
         {
             if (value == null)
                 return;
@@ -144,9 +144,9 @@ namespace Hocon
                 _internalValues.RemoveAt(_internalValues.Count - 1);
         }
 
-        internal HoconValue OlderValueThan(IHoconElement marker)
+        internal InternalHoconValue OlderValueThan(IInternalHoconElement marker)
         {
-            var filteredObjectValue = new List<HoconValue>();
+            var filteredObjectValue = new List<InternalHoconValue>();
             var index = 0;
             while (index < _internalValues.Count)
             {
@@ -172,17 +172,17 @@ namespace Hocon
             if (filteredObjectValue.Count == 0)
                 return index == 0 ? null : _internalValues[index - 1];
 
-            var result = new HoconValue(this);
+            var result = new InternalHoconValue(this);
             foreach (var value in filteredObjectValue) result.AddRange(value);
 
             return result;
         }
 
-        internal void ResolveValue(HoconValue value)
+        internal void ResolveValue(InternalHoconValue value)
         {
             if (value.Type != HoconType.Empty)
                 return;
-            ((HoconObject) Parent).ResolveValue(this);
+            ((InternalHoconObject) Parent).ResolveValue(this);
         }
 
         public override string ToString()
@@ -192,7 +192,7 @@ namespace Hocon
 
         public override bool Equals(object obj)
         {
-            return obj is IHoconElement element && Equals(element);
+            return obj is IInternalHoconElement element && Equals(element);
         }
 
         public override int GetHashCode()
@@ -203,12 +203,12 @@ namespace Hocon
             }
         }
 
-        public static bool operator ==(HoconField left, HoconField right)
+        public static bool operator ==(InternalHoconField left, InternalHoconField right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(HoconField left, HoconField right)
+        public static bool operator !=(InternalHoconField left, InternalHoconField right)
         {
             return !Equals(left, right);
         }

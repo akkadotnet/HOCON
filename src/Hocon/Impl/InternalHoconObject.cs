@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------
-// <copyright file="HoconObject.cs" company="Akka.NET Project">
+// <copyright file="InternalHoconObject.cs" company="Akka.NET Project">
 //      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
 // </copyright>
 // -----------------------------------------------------------------------
@@ -29,23 +29,23 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : Dictionary<string, HoconField>, IHoconElement
+    public class InternalHoconObject : Dictionary<string, InternalHoconField>, IInternalHoconElement
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconObject" /> class.
         /// </summary>
-        public HoconObject(IHoconElement parent)
+        public InternalHoconObject(IInternalHoconElement parent)
         {
-            if (!(parent is HoconValue))
-                throw new HoconException("HoconObject parent can only be a HoconValue.");
+            if (!(parent is InternalHoconValue))
+                throw new HoconException("InternalHoconObject parent can only be a HoconValue.");
 
             Parent = parent;
         }
 
-        public new HoconField this[string key]
+        public new InternalHoconField this[string key]
             => GetField(key);
 
-        public HoconField this[HoconPath path]
+        public InternalHoconField this[HoconPath path]
             => GetField(path);
 
         public HoconPath Path
@@ -55,7 +55,7 @@ namespace Hocon
                 var parent = Parent;
                 while (parent != null)
                 {
-                    if (parent is HoconField field) return field.Path;
+                    if (parent is InternalHoconField field) return field.Path;
 
                     parent = parent.Parent;
                 }
@@ -72,7 +72,7 @@ namespace Hocon
             => this.ToDictionary(k => k.Key, v
                 => v.Value.Type == HoconType.Object ? (object) v.Value.GetObject().Unwrapped : v.Value);
 
-        public IHoconElement Parent { get; }
+        public IInternalHoconElement Parent { get; }
 
         /// <inheritdoc />
         /// <returns><see cref="HoconType.Object" />.</returns>
@@ -82,7 +82,7 @@ namespace Hocon
         /// <summary>
         ///     Retrieves a list of elements associated with this element.
         /// </summary>
-        public HoconObject GetObject()
+        public InternalHoconObject GetObject()
         {
             return this;
         }
@@ -104,9 +104,9 @@ namespace Hocon
         ///     Converts a numerically indexed object into an array where its elements are sorted
         ///     based on the numerically sorted order of the key.
         /// </summary>
-        public List<HoconValue> GetArray()
+        public List<InternalHoconValue> GetArray()
         {
-            var sortedDict = new SortedDictionary<int, HoconValue>();
+            var sortedDict = new SortedDictionary<int, InternalHoconValue>();
             var type = HoconType.Empty;
             foreach (var field in Values)
             {
@@ -139,14 +139,14 @@ namespace Hocon
         }
 
         /// <inheritdoc />
-        public IHoconElement Clone(IHoconElement newParent)
+        public IInternalHoconElement Clone(IInternalHoconElement newParent)
         {
-            var clone = new HoconObject(newParent);
-            foreach (var kvp in this) clone.SetField(kvp.Key, kvp.Value.Clone(clone) as HoconField);
+            var clone = new InternalHoconObject(newParent);
+            foreach (var kvp in this) clone.SetField(kvp.Key, kvp.Value.Clone(clone) as InternalHoconField);
             return clone;
         }
 
-        public bool Equals(IHoconElement other)
+        public bool Equals(IInternalHoconElement other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
@@ -163,7 +163,7 @@ namespace Hocon
         /// </returns>
         /// <exception cref="ArgumentNullException">key is null</exception>
         /// <exception cref="KeyNotFoundException">The key does not exist in the <see cref="HoconObject" /></exception>
-        public HoconField GetField(string key)
+        public InternalHoconField GetField(string key)
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
@@ -184,7 +184,7 @@ namespace Hocon
         /// <returns>
         ///     <c>true</c> if the <see cref="HoconObject" /> contains a field with the the specified key; otherwise, <c>false</c>.
         /// </returns>
-        public bool TryGetField(string key, out HoconField result)
+        public bool TryGetField(string key, out InternalHoconField result)
         {
             result = null;
             if (string.IsNullOrWhiteSpace(key))
@@ -194,7 +194,7 @@ namespace Hocon
             return TryGetField(path, out result);
         }
 
-        public HoconField GetField(HoconPath path)
+        public InternalHoconField GetField(HoconPath path)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -225,12 +225,12 @@ namespace Hocon
             }
         }
 
-        internal virtual void SetField(string key, HoconField value)
+        internal virtual void SetField(string key, InternalHoconField value)
         {
             base[key] = value;
         }
 
-        public bool TryGetField(HoconPath path, out HoconField result)
+        public bool TryGetField(HoconPath path, out InternalHoconField result)
         {
             result = null;
             if (path == null || path.Count == 0)
@@ -272,7 +272,7 @@ namespace Hocon
         /// <exception cref="HoconException">
         ///     The <see cref="HoconField.Type" /> is not of type <see cref="HoconType.Object" />
         /// </exception>
-        public HoconObject GetObject(string key)
+        public InternalHoconObject GetObject(string key)
         {
             return GetField(key).GetObject();
         }
@@ -291,7 +291,7 @@ namespace Hocon
         ///     <c>true</c> if the <see cref="HoconObject" /> contains a <see cref="HoconField" /> field with the the specified key
         ///     and the <see cref="HoconField.Type" /> is of type <see cref="HoconType.Object" />; otherwise, <c>false</c>.
         /// </returns>
-        public bool TryGetObject(string key, out HoconObject result)
+        public bool TryGetObject(string key, out InternalHoconObject result)
         {
             result = null;
             if (!TryGetField(key, out var field))
@@ -302,35 +302,35 @@ namespace Hocon
         }
 
         /// <summary>
-        ///     Retrieves the backing <see cref="HoconValue" /> value of the <see cref="HoconField" /> associated with
+        ///     Retrieves the backing <see cref="InternalHoconValue" /> value of the <see cref="HoconField" /> associated with
         ///     the supplied <see cref="HoconPath" /> path, relative to this object.
         /// </summary>
         /// <param name="path">
         ///     The relative <see cref="HoconPath" /> path associated with
-        ///     the <see cref="HoconField" /> of the <see cref="HoconValue" /> value to retrieve.
+        ///     the <see cref="HoconField" /> of the <see cref="InternalHoconValue" /> value to retrieve.
         /// </param>
         /// <returns>
-        ///     The <see cref="HoconValue" /> value backing the <see cref="HoconField" /> field associated
+        ///     The <see cref="InternalHoconValue" /> value backing the <see cref="HoconField" /> field associated
         ///     with the supplied key.
         /// </returns>
         /// <exception cref="ArgumentNullException">path is null</exception>
         /// <exception cref="ArgumentException">path is empty</exception>
         /// <exception cref="KeyNotFoundException">The key does not exist in the <see cref="HoconObject" /></exception>
-        public HoconValue GetValue(HoconPath path)
+        public InternalHoconValue GetValue(HoconPath path)
         {
             return GetField(path).Value;
         }
 
         /// <summary>
-        ///     Retrieves the backing <see cref="HoconValue" /> value of the <see cref="HoconField" /> associated with
+        ///     Retrieves the backing <see cref="InternalHoconValue" /> value of the <see cref="HoconField" /> associated with
         ///     the supplied <see cref="HoconPath" /> path, relative to this object.
         /// </summary>
         /// <param name="path">
         ///     The relative <see cref="HoconPath" /> path associated with
-        ///     the <see cref="HoconField" /> of the <see cref="HoconValue" /> value to retrieve.
+        ///     the <see cref="HoconField" /> of the <see cref="InternalHoconValue" /> value to retrieve.
         /// </param>
         /// <param name="result">
-        ///     When this method returns, contains the backing <see cref="HoconValue" />
+        ///     When this method returns, contains the backing <see cref="InternalHoconValue" />
         ///     of the <see cref="HoconField" /> associated with the specified <see cref="HoconPath" /> path,
         ///     if the path is resolveable; otherwise, null. This parameter is passed uninitialized.
         /// </param>
@@ -338,7 +338,7 @@ namespace Hocon
         ///     <c>true</c> if the <see cref="HoconObject" /> children contains a <see cref="HoconField" /> field resolveable
         ///     with the the specified relative <see cref="HoconPath" /> path; otherwise, <c>false</c>.
         /// </returns>
-        public bool TryGetValue(HoconPath path, out HoconValue result)
+        public bool TryGetValue(HoconPath path, out InternalHoconValue result)
         {
             result = null;
             if (!TryGetField(path, out var field))
@@ -354,17 +354,17 @@ namespace Hocon
         /// </summary>
         /// <param name="key">The path associated with the value to retrieve.</param>
         /// <returns>The value associated with the supplied key.</returns>
-        internal virtual HoconField GetOrCreateKey(string key)
+        internal virtual InternalHoconField GetOrCreateKey(string key)
         {
             if (TryGetValue(key, out var child))
                 return child;
 
-            child = new HoconField(key, this);
+            child = new InternalHoconField(key, this);
             Add(key, child);
             return child;
         }
 
-        internal virtual HoconField TraversePath(HoconPath relativePath)
+        internal virtual InternalHoconField TraversePath(HoconPath relativePath)
         {
             var currentObject = this;
             var index = 0;
@@ -388,7 +388,7 @@ namespace Hocon
             return ToString(0, 2);
         }
 
-        public virtual void Merge(HoconObject other)
+        public virtual void Merge(InternalHoconObject other)
         {
             var keys = other.Keys.ToArray();
             foreach (var key in keys)
@@ -409,7 +409,7 @@ namespace Hocon
             }
         }
 
-        internal void ResolveValue(HoconField child)
+        internal void ResolveValue(InternalHoconField child)
         {
             if (child.Type == HoconType.Empty)
             {
@@ -422,7 +422,7 @@ namespace Hocon
 
         public override bool Equals(object obj)
         {
-            return obj is IHoconElement element && Equals(element);
+            return obj is IInternalHoconElement element && Equals(element);
         }
 
         public override int GetHashCode()
@@ -437,12 +437,12 @@ namespace Hocon
             return result;
         }
 
-        public static bool operator ==(HoconObject left, HoconObject right)
+        public static bool operator ==(InternalHoconObject left, InternalHoconObject right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(HoconObject left, HoconObject right)
+        public static bool operator !=(InternalHoconObject left, InternalHoconObject right)
         {
             return !Equals(left, right);
         }
