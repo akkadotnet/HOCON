@@ -36,7 +36,7 @@ namespace Hocon
         public override string ToString(int indent, int indentSize)
         {
             var i = new string(' ', indent * indentSize);
-            var sb = new StringBuilder($"{i}[{Environment.NewLine}");
+            var sb = new StringBuilder($"[{Environment.NewLine}");
             foreach (var element in this)
             {
                 sb.AppendLine(element.ToString(indent, indentSize + 1));

@@ -244,18 +244,18 @@ a {
             Assert.Equal(1, config.GetInt("a.aa"));
             Assert.Equal("2", config.GetString("a.bb"));
             Assert.Equal(3.3, config.GetDouble("a.cc"));
-            _output.WriteLine(config.PrettyPrint(2));
-            Assert.Equal(
-                string.Join(
+            var expected = string.Join(
                     Environment.NewLine,
                     "{",
                     "  a : {",
                     "    aa : 1,",
-                    "    bb : \"2\",",
+                    "    bb : 2,",
                     "    cc : 3.3",
                     "  }",
-                    "}"),
-                config.PrettyPrint(2));
+                    "}");
+            _output.WriteLine(expected);
+            _output.WriteLine(config.PrettyPrint(2));
+            Assert.Equal(expected, config.PrettyPrint(2));
         }
 
         [Fact]

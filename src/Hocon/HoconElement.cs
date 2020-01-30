@@ -14,7 +14,7 @@ namespace Hocon
         [Obsolete("There is no need to use Value property anymore, please remove it.")]
         public HoconElement Value => this;
 
-        public string Raw => ToString(1, 0);
+        public string Raw => ToString(0, 0);
 
         public HoconElement this[int index]
         {
@@ -184,6 +184,10 @@ namespace Hocon
         {
             if (element is HoconLiteral lit)
                 return lit.Value;
+
+            // TODO: WE'RE BREAKING HOCON SPEC TO FIT HOCON SPEC TO AKKA.NET
+            if(element is HoconArray _)
+                return null;
 
             throw new HoconException(
                 $"Can only convert {nameof(HoconLiteral)} type to string, found {element.GetType()} instead.");

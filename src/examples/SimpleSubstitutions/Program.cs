@@ -6,7 +6,6 @@
 
 using System;
 using Hocon;
-using Hocon.Extensions;
 
 namespace SimpleSubstitutions
 {

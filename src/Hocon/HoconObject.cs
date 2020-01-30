@@ -95,10 +95,12 @@ namespace Hocon
             return new HoconObject(fields);
         }
 
+        /*
         internal static HoconObject Create(IReadOnlyDictionary<string, HoconElement> fields)
         {
             return new HoconObject(fields);
         }
+        */
 
         /// <summary>
         ///     Converts the current configuration to a pretty printed string.
@@ -117,7 +119,9 @@ namespace Hocon
             var sb = new StringBuilder();
             foreach (var field in this)
                 sb.Append($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
-            return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
+            var fields = sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
+            return $"{{{Environment.NewLine}{fields}{Environment.NewLine}{new string(' ', (indent - 1) * indentSize)}}}";
+            //return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
         }
 
         #region Interface implementation

@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
 namespace Hocon
 {
@@ -196,7 +197,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static HoconElement GetValue(this HoconElement element, HoconPath path)
@@ -204,7 +213,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static string GetString(this HoconElement element, string path)
@@ -212,7 +229,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static string GetString(this HoconElement element, HoconPath path)
@@ -220,7 +245,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static char GetChar(this HoconElement element, string path)
@@ -228,7 +261,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static char GetChar(this HoconElement element, HoconPath path)
@@ -236,7 +277,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static bool GetBoolean(this HoconElement element, string path)
@@ -244,7 +293,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static bool GetBoolean(this HoconElement element, HoconPath path)
@@ -252,7 +309,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static decimal GetDecimal(this HoconElement element, string path)
@@ -260,7 +325,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static decimal GetDecimal(this HoconElement element, HoconPath path)
@@ -268,7 +341,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static float GetFloat(this HoconElement element, string path)
@@ -276,7 +357,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static float GetFloat(this HoconElement element, HoconPath path)
@@ -284,7 +373,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static double GetDouble(this HoconElement element, string path)
@@ -292,7 +389,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static double GetDouble(this HoconElement element, HoconPath path)
@@ -300,7 +405,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static BigInteger GetBigInteger(this HoconElement element, string path)
@@ -308,7 +421,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static BigInteger GetBigInteger(this HoconElement element, HoconPath path)
@@ -316,7 +437,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static ulong GetULong(this HoconElement element, string path)
@@ -324,7 +453,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static ulong GetULong(this HoconElement element, HoconPath path)
@@ -332,7 +469,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static long GetLong(this HoconElement element, string path)
@@ -340,7 +485,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static long GetLong(this HoconElement element, HoconPath path)
@@ -348,7 +501,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static uint GetUInt(this HoconElement element, string path)
@@ -356,7 +517,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static uint GetUInt(this HoconElement element, HoconPath path)
@@ -364,7 +533,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static int GetInt(this HoconElement element, string path)
@@ -372,7 +549,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static int GetInt(this HoconElement element, HoconPath path)
@@ -380,7 +565,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static ushort GetUShort(this HoconElement element, string path)
@@ -388,7 +581,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static ushort GetUShort(this HoconElement element, HoconPath path)
@@ -396,7 +597,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static short GetShort(this HoconElement element, string path)
@@ -404,7 +613,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static short GetShort(this HoconElement element, HoconPath path)
@@ -412,7 +629,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static sbyte GetSByte(this HoconElement element, string path)
@@ -420,7 +645,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static sbyte GetSByte(this HoconElement element, HoconPath path)
@@ -428,7 +661,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static byte GetByte(this HoconElement element, string path)
@@ -436,7 +677,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static byte GetByte(this HoconElement element, HoconPath path)
@@ -444,7 +693,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static TimeSpan GetTimeSpan(this HoconElement element, string path)
@@ -452,7 +709,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static TimeSpan GetTimeSpan(this HoconElement element, HoconPath path)
@@ -460,7 +725,15 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return obj[path];
+            }
+            catch (HoconException ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
         }
 
         public static long? GetByteSize(this HoconElement element, string path)
@@ -468,7 +741,16 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return ParseByteSize(obj[path]);
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+
         }
 
         public static long? GetByteSize(this HoconElement element, HoconPath path)
@@ -476,10 +758,42 @@ namespace Hocon
             if (!(element is HoconObject obj))
                 throw new HoconException(
                     $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+
+            try
+            {
+                return ParseByteSize(obj[path]);
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
+        }
+
+        private static long? ParseByteSize(string res)
+        {
+            if (string.IsNullOrEmpty(res))
+                return null;
+            res = res.Trim();
+            var index = res.LastIndexOfAny(Digits);
+            if (index == -1 || index + 1 >= res.Length)
+                return long.Parse(res);
+
+            var value = res.Substring(0, index + 1);
+            var unit = res.Substring(index + 1).Trim();
+
+            foreach (var byteSize in ByteSizes)
+                foreach (var suffix in byteSize.Suffixes)
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                        return (long)(byteSize.Factor * double.Parse(value));
+
+            throw new FormatException($"{unit} is not a valid byte size suffix");
         }
 
         #region Helpers
+
+        private static readonly Regex TimeSpanRegex = new Regex(
+            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$",
+            RegexOptions.Compiled);
 
         private struct ByteSize
         {

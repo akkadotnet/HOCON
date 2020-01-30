@@ -32,7 +32,7 @@ namespace Hocon
         /// <inheritdoc />
         public override string ToString(int indent, int indentSize)
         {
-            return $"{new string(' ', indent * indentSize)}{Value}";
+            return Value.Equals("null")?null:Value;
         }
 
         #region Interface implementations

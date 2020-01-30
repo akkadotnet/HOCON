@@ -75,11 +75,23 @@ namespace Hocon.Builder
         {
             foreach (var element in value)
             {
-                if (!(element is InternalHoconLiteral lit))
-                    throw new HoconException(
-                        $"Can only add Hocon class of type {nameof(InternalHoconLiteral)} and its derived classes into a literal builder.");
+                switch(element)
+                {
+                    case InternalHoconObject _:
+                    case InternalHoconArray _:
+                        throw new HoconException(
+                            $"Can only add Hocon class of type {nameof(InternalHoconLiteral)} and its derived classes into a literal builder.");
+                }
 
-                _builder.Append(lit.Value);
+                switch(element)
+                {
+                    case InternalHoconSubstitution sub:
+                        _builder.Append(sub.ResolvedValue.GetString());
+                        break;
+                    case InternalHoconLiteral lit:
+                        _builder.Append(lit.GetString());
+                        break;
+                }
             }
 
             return this;

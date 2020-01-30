@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -50,7 +51,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToByteArray();
+            try
+            {
+                return obj[path].ToByteArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<byte> GetByteList(this HoconElement element, string path, IList<byte> @default)
@@ -76,7 +84,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToSByteArray();
+            try
+            {
+                return obj[path].ToSByteArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<sbyte> GetSByteList(this HoconElement element, string path, IList<sbyte> @default)
@@ -106,7 +121,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToIntArray();
+            try
+            {
+                return obj[path].ToIntArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<int> GetIntList(this HoconElement element, string path, IList<int> @default)
@@ -132,7 +154,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToUIntArray();
+            try
+            {
+                return obj[path].ToUIntArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<uint> GetUIntList(this HoconElement element, string path, IList<uint> @default)
@@ -161,7 +190,15 @@ namespace Hocon
             if (!obj.HasPath(path))
                 return @default;
 
-            return obj[path].ToShortArray();
+            try
+            {
+                return obj[path].ToShortArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+
         }
 
         public static ushort[] ToUShortArray(this HoconElement element)
@@ -175,7 +212,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToUShortArray();
+            try
+            {
+                return obj[path].ToUShortArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<ushort> GetUShortList(this HoconElement element, string path, IList<ushort> @default)
@@ -205,7 +249,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToLongArray();
+            try
+            {
+                return obj[path].ToLongArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<long> GetLongList(this HoconElement element, string path, IList<long> @default)
@@ -231,7 +282,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToULongArray();
+            try
+            {
+                return obj[path].ToULongArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<ulong> GetULongList(this HoconElement element, string path, IList<ulong> @default)
@@ -261,7 +319,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToBooleanArray();
+            try
+            {
+                return obj[path].ToBooleanArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<bool> GetBooleanList(this HoconElement element, string path, IList<bool> @default)
@@ -291,7 +356,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToFloatArray();
+            try
+            {
+                return obj[path].ToFloatArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<float> GetFloatList(this HoconElement element, string path, IList<float> @default)
@@ -321,7 +393,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToDoubleArray();
+            try
+            {
+                return obj[path].ToDoubleArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<double> GetDoubleList(this HoconElement element, string path, IList<double> @default)
@@ -351,7 +430,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToDecimalArray();
+            try
+            {
+                return obj[path].ToDecimalArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<decimal> GetDecimalList(this HoconElement element, string path, IList<decimal> @default)
@@ -367,9 +453,9 @@ namespace Hocon
         }
 
         /// <summary>
-        ///     Retrieves a list of string values from this <see cref="HoconImmutableElement" />.
+        ///     Retrieves a list of string values from this <see cref="HoconElement" />.
         /// </summary>
-        /// <returns>A list of string values represented by this <see cref="HoconImmutableElement" />.</returns>
+        /// <returns>A list of string values represented by this <see cref="HoconElement" />.</returns>
         public static string[] ToStringArray(this HoconElement element)
         {
             return element;
@@ -381,7 +467,18 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToStringArray();
+            try
+            {
+                return obj[path].ToStringArray();
+            }
+            catch(KeyNotFoundException _)
+            {
+                return new List<string>();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<string> GetStringList(this HoconElement element, string path, IList<string> @default)
@@ -407,7 +504,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToCharArray();
+            try
+            {
+                return obj[path].ToCharArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<char> GetCharList(this HoconElement element, string path, IList<char> @default)
@@ -423,9 +527,9 @@ namespace Hocon
         }
 
         /// <summary>
-        ///     Retrieves a list of objects from this <see cref="HoconImmutableElement" />.
+        ///     Retrieves a list of objects from this <see cref="HoconElement" />.
         /// </summary>
-        /// <returns>A list of objects represented by this <see cref="HoconImmutableElement" />.</returns>
+        /// <returns>A list of objects represented by this <see cref="HoconElement" />.</returns>
         public static HoconObject[] ToObjectArray(this HoconElement element)
         {
             if (element is HoconObject obj)
@@ -444,7 +548,14 @@ namespace Hocon
                 throw new HoconException(
                     $"Path list getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
 
-            return obj[path].ToObjectArray();
+            try
+            {
+                return obj[path].ToObjectArray();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
         public static IList<HoconObject> GetObjectList(this HoconElement element, string path, IList<HoconObject> @default)
