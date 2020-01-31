@@ -49,11 +49,6 @@ namespace Hocon
         /// </summary>
         public IEnumerable<HoconSubstitution> Substitutions { get; }
 
-        /// <summary>
-        ///     Determines if this root node contains any values
-        /// </summary>
-        public virtual bool IsEmpty => Value == null || Value.Type == HoconType.Empty;
-
         protected virtual HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
             if (Value.Type != HoconType.Object)

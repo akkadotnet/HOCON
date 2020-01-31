@@ -25,7 +25,7 @@ namespace Hocon
         /// <summary>
         ///     Generates an empty configuration.
         /// </summary>
-        public static Config Empty => Config.EmptyConfig.Instance;
+        public static Config Empty => Config.Empty;
 
         /// <summary>
         ///     Generates a configuration defined in the supplied
