@@ -20,41 +20,32 @@ namespace Hocon
     [Serializable]
     public class Config : HoconRoot, ISerializable
     {
-        /// <summary>
-        /// INTERNAL API
-        ///
-        /// Special case for empty configurations. Immutable and can't be added as a fallback.
-        /// </summary>
-        internal sealed class EmptyConfig : Config
-        {
-            public static EmptyConfig Instance = new EmptyConfig();
-
-            private EmptyConfig() : base(new HoconRoot(new HoconEmptyValue(null)))
-            {
-            }
-
-            protected override Config Copy(Config fallback = null)
-            {
-                return Instance;
-            }
-
-            public override Config WithFallback(Config fallback)
-            {
-                return fallback;
-            }
-        }
+        private static readonly HoconValue _emptyValue;
 
         public const string SerializedPropertyName = "_dump";
         
+        static Config()
+        {
+            _emptyValue = new HoconValue(null);
+            _emptyValue.Add(new HoconObject(_emptyValue));
+        }
+
         [Obsolete("For json serialization/deserialization only", true)]
         private Config()
         {
         }
-        
+
         /// <inheritdoc />
         /// <summary>
         ///     Initializes a new instance of the <see cref="Config" /> class.
         /// </summary>
+        private Config(HoconValue value)
+        {
+            Value = value;
+            Root = GetRootValue();
+        }
+
+        /// <inheritdoc cref="Config(HoconValue)" />
         private Config(HoconValue value, Config fallback)
         {
             Fallback = fallback;
@@ -63,7 +54,8 @@ namespace Hocon
             Root = GetRootValue();
         }
 
-        /// <inheritdoc cref="Config(HoconValue, Config)" />
+
+        /// <inheritdoc cref="Config(HoconValue)" />
         /// <param name="root">The root node to base this configuration.</param>
         /// <exception cref="T:System.ArgumentNullException">"The root value cannot be null."</exception>
         public Config(HoconRoot root) : base(root?.Value, root?.Substitutions ?? Enumerable.Empty<HoconSubstitution>())
@@ -71,7 +63,7 @@ namespace Hocon
             Root = GetRootValue();
         }
 
-        /// <inheritdoc cref="Config(HoconValue, Config)" />
+        /// <inheritdoc cref="Config(HoconValue)" />
         /// <param name="source">The configuration to use as the primary source.</param>
         /// <param name="fallback">The configuration to use as a secondary source.</param>
         /// <exception cref="ArgumentNullException">The source configuration cannot be null.</exception>
@@ -89,7 +81,7 @@ namespace Hocon
         /// <remarks>
         ///     Added for brevity and API backwards-compatibility with Akka.Hocon.
         /// </remarks>
-        public static Config Empty => ConfigurationFactory.Empty;
+        public static Config Empty => CreateEmpty();
 
         /// <summary>
         ///     The configuration used as a secondary source.
@@ -100,6 +92,11 @@ namespace Hocon
         ///     The root node of this configuration section
         /// </summary>
         public virtual HoconValue Root { get; }
+
+        /// <summary>
+        ///     Determines if this root node contains any values
+        /// </summary>
+        public virtual bool IsEmpty => Value == _emptyValue;
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -166,7 +163,7 @@ namespace Hocon
             if (fallback == this)
                 throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
 
-            if (fallback == Config.Empty)
+            if (fallback.IsEmpty)
                 return this; // no-op
             
             // If Fallback is not set - we will set it in new copy
@@ -219,7 +216,14 @@ namespace Hocon
                 used.Add(kvp.Key);
             }
         }
-        
+
+        private static Config CreateEmpty()
+        {
+            var value = new HoconValue(null);
+            value.Add(new HoconObject(value));
+            return new Config(value);
+        }
+
         /// <summary>
         /// Performs aggregation of Value and all Fallbacks into single <see cref="HoconValue"/> object
         /// </summary>
