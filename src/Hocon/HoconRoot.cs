@@ -20,8 +20,12 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="T:Hocon.HoconRoot" /> class.
         /// </summary>
-        public HoconRoot() : this(new HoconValue(null), Enumerable.Empty<HoconSubstitution>())
+        public HoconRoot()
         {
+            Value = new HoconValue(null);
+            var obj = new HoconObject(Value);
+            Value.Add(obj);
+            Substitutions = Enumerable.Empty<HoconSubstitution>();
         }
 
         /// <inheritdoc cref="HoconRoot()" />
@@ -47,7 +51,7 @@ namespace Hocon
         /// <summary>
         ///     Retrieves an enumeration of substitutions associated with this element.
         /// </summary>
-        public IEnumerable<HoconSubstitution> Substitutions { get; }
+        public IEnumerable<HoconSubstitution> Substitutions { get; private set; }
 
         protected virtual HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
@@ -103,13 +107,18 @@ namespace Hocon
         ///     NOTE: You might not be able to reproduce a clean reproduction of the original configuration file after this
         ///     normalization.
         /// </summary>
-        public void Normalize()
+        public HoconRoot Normalize()
         {
             Flatten(Value);
+            Substitutions = Enumerable.Empty<HoconSubstitution>();
+            return this;
         }
 
         private static void Flatten(IHoconElement node)
         {
+            if (node is HoconSubstitution sub)
+                node = sub.ResolvedValue;
+
             if (!(node is HoconValue v))
                 return;
 
@@ -117,6 +126,13 @@ namespace Hocon
             {
                 case HoconType.Object:
                     var o = v.GetObject();
+                    if(o is HoconMergedObject mo)
+                    {
+                        o = new HoconObject(v);
+                        foreach(var obj in mo.Objects)
+                            o.Merge(obj);
+                    }
+
                     v.Clear();
                     v.Add(o);
                     foreach (var item in o.Values)
@@ -136,9 +152,7 @@ namespace Hocon
                     v.Add(newArray);
                     break;
 
-                case HoconType.Boolean:
-                case HoconType.Number:
-                case HoconType.String:
+                default:
                     if (v.Count == 1)
                         return;
 

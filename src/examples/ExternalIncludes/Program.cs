@@ -48,7 +48,7 @@ root {
                 }
             }
 
-            var config = Parser.Parse(hocon, ConfigResolver);
+            var config = HoconParser.Parse(hocon, ConfigResolver);
 
             var val1 = config.GetInt("root.some-property.foo");
             var val2 = config.GetInt("root.some-property.bar");
@@ -60,7 +60,7 @@ root {
             Console.WriteLine("root.some-property.baz: " + val3);
 
             var hocon2 = @"include classpath(""ExternalIncludes.reference.conf"")";
-            config = Parser.Parse(hocon2, ConfigResolver);
+            config = HoconParser.Parse(hocon2, ConfigResolver);
 
             Console.WriteLine();
             Console.WriteLine("Hocon loaded from resource path:");

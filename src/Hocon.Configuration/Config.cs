@@ -20,14 +20,14 @@ namespace Hocon
     [Serializable]
     public class Config : HoconRoot, ISerializable
     {
-        private static readonly HoconValue _emptyValue;
+        private static readonly HoconValue EmptyValue;
 
         public const string SerializedPropertyName = "_dump";
         
         static Config()
         {
-            _emptyValue = new HoconValue(null);
-            _emptyValue.Add(new HoconObject(_emptyValue));
+            EmptyValue = new HoconValue(null);
+            EmptyValue.Add(new HoconObject(EmptyValue));
         }
 
         [Obsolete("For json serialization/deserialization only", true)]
@@ -54,11 +54,10 @@ namespace Hocon
             Root = GetRootValue();
         }
 
-
         /// <inheritdoc cref="Config(HoconValue)" />
         /// <param name="root">The root node to base this configuration.</param>
         /// <exception cref="T:System.ArgumentNullException">"The root value cannot be null."</exception>
-        public Config(HoconRoot root) : base(root?.Value, root?.Substitutions ?? Enumerable.Empty<HoconSubstitution>())
+        public Config(HoconRoot root) : base(root?.Value)
         {
             Root = GetRootValue();
         }
@@ -67,8 +66,7 @@ namespace Hocon
         /// <param name="source">The configuration to use as the primary source.</param>
         /// <param name="fallback">The configuration to use as a secondary source.</param>
         /// <exception cref="ArgumentNullException">The source configuration cannot be null.</exception>
-        public Config(HoconRoot source, Config fallback) : base(source?.Value,
-            source?.Substitutions ?? Enumerable.Empty<HoconSubstitution>())
+        public Config(HoconRoot source, Config fallback) : base(source?.Value)
         {
             Fallback = fallback;
             
@@ -96,7 +94,7 @@ namespace Hocon
         /// <summary>
         ///     Determines if this root node contains any values
         /// </summary>
-        public virtual bool IsEmpty => Value == _emptyValue;
+        public virtual bool IsEmpty => Value == EmptyValue && Fallback == null;
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -160,12 +158,15 @@ namespace Hocon
         /// <exception cref="ArgumentException">Config can not have itself as fallback.</exception>
         public virtual Config WithFallback(Config fallback)
         {
+            if (fallback.IsNullOrEmpty())
+                return this; // no-op
+
             if (fallback == this)
                 throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
 
-            if (fallback.IsEmpty)
-                return this; // no-op
-            
+            if (IsEmpty)
+                return fallback;
+
             // If Fallback is not set - we will set it in new copy
             // If Fallback was set - just use it, but with adding new fallback values
             return Copy(Fallback.SafeWithFallback(fallback));
@@ -274,9 +275,9 @@ namespace Hocon
         /// <returns>The current configuration or the fallback configuration if the current one is null.</returns>
         public static Config SafeWithFallback(this Config config, Config fallback)
         {
-            return config == null
+            return config.IsNullOrEmpty()
                 ? fallback
-                : ReferenceEquals(config, fallback)
+                : config == fallback
                     ? config
                     : config.WithFallback(fallback);
         }
@@ -285,7 +286,7 @@ namespace Hocon
         ///     Determines if the supplied configuration has any usable content period.
         /// </summary>
         /// <param name="config">The configuration used as the source.</param>
-        /// <returns><c>true></c> if the <see cref="Config" /> is null or <see cref="HoconRoot.IsEmpty" />; otherwise <c>false</c>.</returns>
+        /// <returns><c>true></c> if the <see cref="Config" /> is null or <see cref="Config.IsEmpty" />; otherwise <c>false</c>.</returns>
         public static bool IsNullOrEmpty(this Config config)
         {
             return config == null || config.IsEmpty;

@@ -95,8 +95,8 @@ a {
 }
 ";
 
-            var root1 = Parser.Parse(hocon1);
-            var root2 = Parser.Parse(hocon2);
+            var root1 = HoconParser.Parse(hocon1);
+            var root2 = HoconParser.Parse(hocon2);
 
             var obj1 = root1.Value.GetObject();
             var obj2 = root2.Value.GetObject();

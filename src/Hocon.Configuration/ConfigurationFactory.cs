@@ -36,7 +36,7 @@ namespace Hocon
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
         public static Config ParseString(string hocon, HoconIncludeCallbackAsync includeCallback)
         {
-            HoconRoot res = Parser.Parse(hocon, includeCallback);
+            HoconRoot res = HoconParser.Parse(hocon, includeCallback);
             return new Config(res);
         }
 

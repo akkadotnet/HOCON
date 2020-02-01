@@ -299,7 +299,20 @@ namespace Hocon
 
         protected bool Equals(HoconValue other)
         {
-            return Type == other.Type && GetString() == other.GetString();
+            if (Type != other.Type)
+                return false;
+
+            switch (Type)
+            {
+                case HoconType.Empty:
+                    return true;
+                case HoconType.Object:
+                    return GetObject().Equals(other.GetObject());
+                case HoconType.Array:
+                    return GetArray().Equals(other.GetArray());
+                default:
+                    return GetString() == other.GetString();
+            }
         }
 
         public override bool Equals(object obj)

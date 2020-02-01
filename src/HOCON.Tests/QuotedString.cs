@@ -25,7 +25,7 @@ namespace Hocon.Tests
                 }
             ";
 
-            var parsed = Parser.Parse(hocon);
+            var parsed = HoconParser.Parse(hocon);
             var unwrapped = parsed.GetObject("adapters").ToDictionary(x => x.Key, v => v.Value.GetString());
 
             // check to make sure these strings aren't quoted
