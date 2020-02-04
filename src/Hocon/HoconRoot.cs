@@ -14,7 +14,7 @@ namespace Hocon
     ///     This class represents the root element in a HOCON (Human-Optimized Config Object Notation)
     ///     configuration string.
     /// </summary>
-    public class HoconRoot
+    public class HoconRoot:IEquatable<HoconRoot>
     {
         /// <inheritdoc />
         /// <summary>
@@ -39,14 +39,18 @@ namespace Hocon
         /// <param name="substitutions">An enumeration of substitutions to associate with this element.</param>
         public HoconRoot(HoconValue value, IEnumerable<HoconSubstitution> substitutions)
         {
-            Value = value;
+            _internalValue = value;
             Substitutions = substitutions;
         }
 
+        protected HoconValue _internalValue;
         /// <summary>
         ///     Retrieves the value associated with this element.
         /// </summary>
-        public HoconValue Value { get; protected set; }
+        public virtual HoconValue Value {
+            get => _internalValue;
+            protected set => _internalValue = value;
+        }
 
         /// <summary>
         ///     Retrieves an enumeration of substitutions associated with this element.
@@ -211,6 +215,18 @@ namespace Hocon
             {
                 throw new HoconValueException(ex.Message, path, ex);
             }
+        }
+
+        public bool Equals(HoconRoot other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj is HoconRoot root && Equals(root);
         }
 
         #region Value getter methods

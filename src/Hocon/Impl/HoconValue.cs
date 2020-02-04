@@ -140,32 +140,6 @@ namespace Hocon
             return clone;
         }
 
-        // HoconValue is an aggregate of same typed objects, so there are possibilities 
-        // where it can match with any other same typed objects (ie. a HoconLiteral can 
-        // have the same value as a HoconValue).
-        public virtual bool Equals(IHoconElement other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            if (Type != other.Type) return false;
-
-            switch (Type)
-            {
-                case HoconType.Empty:
-                    return other.Type == HoconType.Empty;
-                case HoconType.Array:
-                    return GetArray().SequenceEqual(other.GetArray());
-                case HoconType.Boolean:
-                case HoconType.String:
-                case HoconType.Number:
-                    return string.Equals(GetString(), other.GetString());
-                case HoconType.Object:
-                    return GetObject().AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
-                default:
-                    throw new HoconException($"Unknown enumeration value: {Type}");
-            }
-        }
-
         public new void Clear()
         {
             Type = HoconType.Empty;
@@ -297,21 +271,29 @@ namespace Hocon
             return ToString(1, 2);
         }
 
-        protected bool Equals(HoconValue other)
+        // HoconValue is an aggregate of same typed objects, so there are possibilities 
+        // where it can match with any other same typed objects (ie. a HoconLiteral can 
+        // have the same value as a HoconValue).
+        public virtual bool Equals(IHoconElement other)
         {
-            if (Type != other.Type)
-                return false;
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Type != other.Type) return false;
 
             switch (Type)
             {
                 case HoconType.Empty:
-                    return true;
-                case HoconType.Object:
-                    return GetObject().Equals(other.GetObject());
+                    return other.Type == HoconType.Empty;
                 case HoconType.Array:
-                    return GetArray().Equals(other.GetArray());
+                    return GetArray().SequenceEqual(other.GetArray());
+                case HoconType.Boolean:
+                case HoconType.String:
+                case HoconType.Number:
+                    return string.Equals(GetString(), other.GetString());
+                case HoconType.Object:
+                    return GetObject() == other.GetObject();
                 default:
-                    return GetString() == other.GetString();
+                    throw new HoconException($"Unknown enumeration value: {Type}");
             }
         }
 

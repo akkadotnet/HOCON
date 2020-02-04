@@ -387,43 +387,75 @@ A {
             emptyConfig.GetByteList(missingKey, new List<byte>()).Should().Equal(new List<byte>());
             emptyConfig.Invoking(c => c.GetByteList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetDecimalList(missingKey, new List<decimal>()).Should().Equal(new List<decimal>());
             emptyConfig.Invoking(c => c.GetDecimalList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetDoubleList(missingKey, new List<double>()).Should().Equal(new List<double>());
             emptyConfig.Invoking(c => c.GetDoubleList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetFloatList(missingKey, new List<float>()).Should().Equal(new List<float>());
             emptyConfig.Invoking(c => c.GetFloatList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetIntList(missingKey, new List<int>()).Should().Equal(new List<int>());
             emptyConfig.Invoking(c => c.GetIntList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetLongList(missingKey, new List<long>()).Should().Equal(new List<long>());
             emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetObjectList(missingKey, new List<HoconObject>()).Should().Equal(new List<HoconObject>());
             emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<HoconParserException>();
-            ;
 
             emptyConfig.GetStringList(missingKey, new List<string>()).Should().Equal(new List<string>());
             
             emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().NotThrow("String list is an exception of the rule")
                 .And.Subject().Should().BeEquivalentTo(new List<string>());
-            ;
+        }
+
+        [Fact]
+        public void ValueEqualityShouldWork()
+        {
+            var hoconStr =
+                @"{
+    a: string value
+    b: [1, 2, 3]
+    c: 12
+    d: {
+        x: string value
+        y: [1, 2, 3]
+        z: 12
+    }
+}";
+            var hocon1 = HoconParser.Parse(hoconStr);
+            var hocon2 = HoconParser.Parse(hoconStr);
+
+            Assert.Equal(hocon1, hocon2);
+            Assert.Equal(hocon1.Value, hocon2.Value);
+
+            Assert.Equal(hocon1.GetValue("a"), hocon2.GetValue("a"));
+            Assert.Equal(hocon1.GetValue("b"), hocon2.GetValue("b"));
+            Assert.Equal(hocon1.GetValue("c"), hocon2.GetValue("c"));
+            Assert.Equal(hocon1.GetValue("d"), hocon2.GetValue("d"));
+
+            Assert.Equal(hocon1.GetValue("a"), hocon1.GetValue("d.x"));
+            Assert.Equal(hocon1.GetValue("b"), hocon1.GetValue("d.y"));
+            Assert.Equal(hocon1.GetValue("c"), hocon1.GetValue("d.z"));
+
+            Assert.Equal(hocon1.GetValue("a"), hocon2.GetValue("d.x"));
+            Assert.Equal(hocon1.GetValue("b"), hocon2.GetValue("d.y"));
+            Assert.Equal(hocon1.GetValue("c"), hocon2.GetValue("d.z"));
+
+            Assert.Equal(hocon1.GetString("a"), hocon2.GetString("a"));
+            Assert.Equal(hocon1.GetString("a"), hocon1.GetString("d.x"));
+
+            Assert.Equal(hocon1.GetValue("b").GetArray(), hocon2.GetValue("b").GetArray());
+            Assert.Equal(hocon1.GetValue("b").GetArray(), hocon1.GetValue("d.y").GetArray());
         }
 
         [Fact]

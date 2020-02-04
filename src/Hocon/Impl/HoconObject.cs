@@ -146,14 +146,6 @@ namespace Hocon
             return clone;
         }
 
-        public bool Equals(IHoconElement other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            if (other.Type != HoconType.Object) return false;
-            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
-        }
-
         /// <summary>
         ///     Retrieves the <see cref="HoconField" /> field associated with the supplied <see cref="string" /> key.
         /// </summary>
@@ -418,6 +410,14 @@ namespace Hocon
                 else
                     Remove(child.Key);
             }
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (other.Type != HoconType.Object) return false;
+            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
         }
 
         public override bool Equals(object obj)

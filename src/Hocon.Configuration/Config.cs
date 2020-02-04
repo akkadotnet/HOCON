@@ -23,7 +23,7 @@ namespace Hocon
         private static readonly HoconValue EmptyValue;
 
         public const string SerializedPropertyName = "_dump";
-        
+
         static Config()
         {
             EmptyValue = new HoconValue(null);
@@ -39,27 +39,24 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="Config" /> class.
         /// </summary>
-        private Config(HoconValue value)
+        private Config(HoconValue value) : base(value)
         {
-            Value = value;
-            Root = GetRootValue();
+            //Root = GetRootValue();
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
-        private Config(HoconValue value, Config fallback)
+        private Config(HoconValue value, Config fallback) : base(value)
         {
             Fallback = fallback;
-            Value = value;
-            
-            Root = GetRootValue();
+            //Root = GetRootValue();
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="root">The root node to base this configuration.</param>
+        /// <param name="source">The root node to base this configuration.</param>
         /// <exception cref="T:System.ArgumentNullException">"The root value cannot be null."</exception>
-        public Config(HoconRoot root) : base(root?.Value)
+        public Config(HoconRoot source) : base(source?.Value)
         {
-            Root = GetRootValue();
+            //Root = GetRootValue();
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
@@ -69,8 +66,7 @@ namespace Hocon
         public Config(HoconRoot source, Config fallback) : base(source?.Value)
         {
             Fallback = fallback;
-            
-            Root = GetRootValue();
+            //Root = GetRootValue();
         }
 
         /// <summary>
@@ -84,17 +80,42 @@ namespace Hocon
         /// <summary>
         ///     The configuration used as a secondary source.
         /// </summary>
-        public Config Fallback { get; }
+        // public Config Fallback { get; }
 
         /// <summary>
         ///     The root node of this configuration section
         /// </summary>
-        public virtual HoconValue Root { get; }
+        // public virtual HoconValue Root { get; }
 
         /// <summary>
         ///     Determines if this root node contains any values
         /// </summary>
-        public virtual bool IsEmpty => Value == EmptyValue && Fallback == null;
+        public virtual bool IsEmpty => base.Value == EmptyValue && Fallback == null;
+
+        public override HoconValue Value
+        {
+            get
+            {
+                var value = new HoconValue(null);
+                var obj = Value.Clone(value).GetObject();
+                var fallback = Fallback;
+                while (fallback != null)
+                {
+                    obj.Merge(fallback.Value.GetObject());
+                    fallback = fallback.Fallback;
+                }
+
+                return value;
+            }
+
+            protected set => throw new InvalidOperationException("Config value can not be set");
+        }
+
+        public HoconValue RootValue
+        {
+            get => base.Value;
+            protected set => base.Value = value;
+        }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -104,33 +125,35 @@ namespace Hocon
         {
             if (!useFallbackValues)
                 return base.ToString();
-            
-            return Root.ToString();
+
+            return Value.ToString();
         }
+
 
         /// <summary>
         ///     Generates a deep clone of the current configuration.
         /// </summary>
         /// <returns>A deep clone of the current configuration</returns>
-        protected virtual Config Copy(Config fallback = null)
+        private Config Copy(Config fallback = null)
         {
             //deep clone
-            return new Config((HoconValue) Value.Clone(null), fallback?.Copy() ?? Fallback?.Copy());
+            return fallback == null ? 
+                new Config((HoconValue) Value.Clone(null), Fallback?.Copy()) : 
+                new Config((HoconValue) Value.Clone(null), fallback.Copy());
         }
 
         protected override HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
-            try
-            {
-                return Root.GetObject().GetValue(path);
-            }
-            catch
-            {
-                if (throwIfNotFound)
-                    throw;
+            var currentObject = Value.GetObject();
+            var fallback = Fallback;
 
-                return null;
+            while(fallback != null)
+            {
+                if (currentObject.TryGetValue(path, out var returnValue))
+                    return returnValue;
+                fallback = fallback.Fallback;
             }
+            return null;
         }
 
         /// <summary>
@@ -147,7 +170,7 @@ namespace Hocon
         public virtual Config GetConfig(HoconPath path)
         {
             var value = GetNode(path);
-            return value == null ? null : new Config(new HoconRoot(value));
+            return value == null ? Empty : new Config(new HoconRoot(value));
         }
 
         /// <summary>
@@ -161,11 +184,17 @@ namespace Hocon
             if (fallback.IsNullOrEmpty())
                 return this; // no-op
 
-            if (fallback == this)
+            if (ReferenceEquals(fallback.Value, Value))
                 throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
+
+            if (fallback.Value == Value)
+                return this;
 
             if (IsEmpty)
                 return fallback;
+
+            if (Fallback != null && Fallback.Value == fallback.Value)
+                return this;
 
             // If Fallback is not set - we will set it in new copy
             // If Fallback was set - just use it, but with adding new fallback values
@@ -207,14 +236,9 @@ namespace Hocon
         /// <inheritdoc />
         public override IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
         {
-            var used = new HashSet<string>();
-            foreach (var kvp in Root.GetObject())
+            foreach (var kvp in Value.GetObject())
             {
-                if (used.Contains(kvp.Key))
-                    continue;
-
                 yield return kvp;
-                used.Add(kvp.Key);
             }
         }
 
@@ -223,24 +247,6 @@ namespace Hocon
             var value = new HoconValue(null);
             value.Add(new HoconObject(value));
             return new Config(value);
-        }
-
-        /// <summary>
-        /// Performs aggregation of Value and all Fallbacks into single <see cref="HoconValue"/> object
-        /// </summary>
-        private HoconValue GetRootValue()
-        {
-            var elements = new List<IHoconElement>();
-
-            for (var config = this; config != null; config = config.Fallback?.Copy())
-            {
-                elements.AddRange(config.Value);
-            }
-
-            var aggregated = new HoconValue(null);
-            aggregated.AddRange(elements.AsEnumerable().Reverse());
-
-            return aggregated;
         }
 
         /// <inheritdoc />
@@ -256,8 +262,6 @@ namespace Hocon
             
             Value = config.Value;
             Fallback = config.Fallback;
-
-            Root = GetRootValue();
         }
     }
 
