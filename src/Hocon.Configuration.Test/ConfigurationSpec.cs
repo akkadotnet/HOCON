@@ -568,13 +568,35 @@ foo {
             var c = a.WithFallback(b);
             
             c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
-            c.ToString(false).Should().NotContain("other-key", "Fallback values are ignored by default");
+            c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
             c.ToString(true).Should().Contain("other-key", "Fallback values should be displayed when requested");
             
             c.GetString("akka.some-key").Should().Be("value", "Original value should remain");
-            c.ToString(false).Should().Contain("some-key", "Original values are shown by default");
+            c.ToString().Should().Contain("some-key", "Original values are shown by default");
             c.ToString(true).Should().Contain("some-key", "Original values should be displayed always");
 
+        }
+
+        [Fact]
+        public void WithFallback_ShouldNotChangeOriginalConfig()
+        {
+            var a = ConfigurationFactory.ParseString(@" akka : {
+                some-key : value
+            }");
+            var b = ConfigurationFactory.ParseString(@"akka : {
+                other-key : 42
+            }");
+
+            var oldA = a;
+            var oldAContent = new Config(a);
+
+            a.WithFallback(b);
+            a.WithFallback(b);
+
+            a.Fallbacks.Count.Should().Be(0);
+            a.GetString("akka.other-key").Should().BeNull();
+            ReferenceEquals(oldA, a).Should().BeTrue();
+            oldAContent.Should().Equals(a);
         }
 
         /// <summary>

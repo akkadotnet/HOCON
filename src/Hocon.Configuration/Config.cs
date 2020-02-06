@@ -176,7 +176,10 @@ namespace Hocon
                 return fallback;
 
             var result = new Config(Value);
-            result._fallbacks.AddRange(_fallbacks);
+            foreach(var value in _fallbacks)
+            {
+                result._fallbacks.Add((HoconValue)value.Clone(null));
+            }
             result.MergeConfig(fallback);
 
             _mergedValueCache = null;
@@ -186,7 +189,7 @@ namespace Hocon
         private void MergeConfig(Config other)
         {
             InsertFallbackValue(other.Value);
-            foreach (var fallbackValue in other._fallbacks)
+            foreach (var fallbackValue in other.Fallbacks)
             {
                 InsertFallbackValue(fallbackValue);
             }
