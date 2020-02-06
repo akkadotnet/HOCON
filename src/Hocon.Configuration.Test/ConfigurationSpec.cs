@@ -246,7 +246,7 @@ foo {
                     }
 	            }");
             
-            var merged = config1.WithFallback(config2).Root.GetObject(); // Perform values loading
+            var merged = config1.WithFallback(config2).Value.GetObject(); // Perform values loading
             
             config1.GetInt("a.b.c").Should().Be(5);
             config1.GetInt("a.b.e").Should().Be(7);
@@ -456,7 +456,7 @@ foo {
 
             // normal fallback
             var f1 = c1.WithFallback(c2).WithFallback(Config.Empty);
-            c1.Fallback.Should().BeNull(); // original copy should not have been modified.
+            c1.Fallbacks.Count.Should().Be(0); // original copy should not have been modified.
 
             // someone adds the same fallback again with realizing it
             f1.WithFallback(Config.Empty).GetString("bar.biz").Should().Be("fuber"); // shouldn't throw
@@ -480,7 +480,7 @@ foo {
                 }
             ");
 
-            var megred = config2.WithFallback(config1).Root;
+            var megred = config2.WithFallback(config1).Value;
             // Is throwing at "/weird/*" key parsing
             megred.Invoking(r => r.GetObject()).Should().NotThrow();
         }
@@ -501,7 +501,7 @@ foo {
                 }"
             );
 
-            var megred = config2.WithFallback(config1).Root;
+            var megred = config2.WithFallback(config1).Value;
             // Is throwing at "System.Byte[]" key parsing
             megred.Invoking(r => r.GetObject()).Should().NotThrow();
         }
@@ -526,7 +526,7 @@ foo {
             var configWithFallback = config1.WithFallback(config2);
             
             var config = configWithFallback.GetConfig("akka.actor.deployment");
-            var rootObj = config.Root.GetObject();
+            var rootObj = config.Value.GetObject();
             rootObj.Unwrapped.Should().ContainKeys("/worker1", "/worker2");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
@@ -568,11 +568,11 @@ foo {
             var c = a.WithFallback(b);
             
             c.GetInt("akka.other-key").Should().Be(42, "Fallback value should exist as data");
-            c.ToString().Should().NotContain("other-key", "Fallback values are ignored by default");
+            c.ToString(false).Should().NotContain("other-key", "Fallback values are ignored by default");
             c.ToString(true).Should().Contain("other-key", "Fallback values should be displayed when requested");
             
             c.GetString("akka.some-key").Should().Be("value", "Original value should remain");
-            c.ToString().Should().Contain("some-key", "Original values are shown by default");
+            c.ToString(false).Should().Contain("some-key", "Original values are shown by default");
             c.ToString(true).Should().Contain("some-key", "Original values should be displayed always");
 
         }

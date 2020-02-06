@@ -401,6 +401,35 @@ namespace Hocon
             }
         }
 
+        public void FallbackMerge(HoconObject other)
+        {
+            foreach(var kvp in other)
+            {
+                var path = kvp.Value.Path;
+                if (!TryGetValue(path, out _))
+                {
+                    var currentObject = this;
+                    HoconField newField = null;
+                    foreach (var key in path)
+                    {
+                        newField = currentObject.GetOrCreateKey(key);
+                        if (newField.Type == HoconType.Empty)
+                        {
+                            var emptyValue = new HoconValue(newField);
+                            emptyValue.Add(new HoconObject(emptyValue));
+                            newField.SetValue(emptyValue);
+                        }
+                        currentObject = newField.GetObject();
+                    }
+                    newField.SetValue(kvp.Value.Value);
+                } else
+                {
+                    if(kvp.Value.Type == HoconType.Object)
+                        FallbackMerge(kvp.Value.GetObject());
+                }
+            }
+        }
+
         internal void ResolveValue(HoconField child)
         {
             if (child.Type == HoconType.Empty)

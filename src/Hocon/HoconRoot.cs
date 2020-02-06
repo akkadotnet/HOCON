@@ -20,11 +20,8 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="T:Hocon.HoconRoot" /> class.
         /// </summary>
-        public HoconRoot()
+        protected HoconRoot()
         {
-            Value = new HoconValue(null);
-            var obj = new HoconObject(Value);
-            Value.Add(obj);
             Substitutions = Enumerable.Empty<HoconSubstitution>();
         }
 
@@ -205,7 +202,7 @@ namespace Hocon
         /// <summary>
         ///     Wraps any exception into <see cref="HoconValueException" /> with failure path specified
         /// </summary>
-        private T WrapWithValueException<T>(string path, Func<T> func)
+        protected T WrapWithValueException<T>(string path, Func<T> func)
         {
             try
             {

@@ -48,7 +48,7 @@ namespace Hocon
             if (string.IsNullOrWhiteSpace(text))
                 throw new HoconParserException(
                     $"Parameter {nameof(text)} is null or empty.\n" +
-                    "If you want to create an empty Hocon HoconRoot, use \"{}\" or just use \"new HoconRoot();\" instead.");
+                    "If you want to create an empty Hocon HoconRoot, use \"{}\" instead.");
 
             if (includeCallback != null)
                 _includeCallback = includeCallback;
