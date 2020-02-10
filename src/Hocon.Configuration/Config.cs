@@ -18,7 +18,7 @@ namespace Hocon
     ///     configuration string.
     /// </summary>
     [Serializable]
-    public class Config : HoconRoot, ISerializable
+    public class Config : HoconRoot, ISerializable, IEquatable<Config>
     {
         private static readonly HoconValue EmptyValue;
 
@@ -265,6 +265,22 @@ namespace Hocon
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue(SerializedPropertyName, ToString(useFallbackValues: true), typeof(string));
+        }
+
+        public bool Equals(Config other)
+        {
+            if (IsEmpty && other.IsEmpty) return true;
+            if (Value == other.Value) return true;
+            return false;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj is Config cfg)
+                return Equals(obj);
+            return false;
         }
 
         [Obsolete("Used for serialization only", true)]
