@@ -128,6 +128,31 @@ namespace Hocon
             return sortedDict.Values.ToList();
         }
 
+        public bool TryGetArray(out List<HoconValue> result)
+        {
+            result = new List<HoconValue>();
+
+            var sortedDict = new SortedDictionary<int, HoconValue>();
+            var type = HoconType.Empty;
+            foreach (var field in Values)
+            {
+                if (field.Value == null || !int.TryParse(field.Key, out var index) || index < 0)
+                    continue;
+                if (type == HoconType.Empty)
+                    type = field.Type;
+                else if (type != field.Type)
+                    return false;
+
+                sortedDict[index] = field.Value;
+            }
+
+            if (sortedDict.Count == 0)
+                return false;
+
+            result = sortedDict.Values.ToList();
+            return true;
+        }
+
         /// <inheritdoc />
         public string ToString(int indent, int indentSize)
         {

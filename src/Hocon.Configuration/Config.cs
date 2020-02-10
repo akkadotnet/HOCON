@@ -31,7 +31,7 @@ namespace Hocon
         }
 
         [Obsolete("For json serialization/deserialization only", true)]
-        private Config()
+        protected Config()
         {
         }
 
@@ -39,13 +39,13 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="Config" /> class.
         /// </summary>
-        private Config(HoconValue value)
+        protected Config(HoconValue value)
         {
             Value = (HoconValue)value.Clone(null);
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
-        private Config(HoconValue value, Config fallback) : this(value)
+        protected Config(HoconValue value, Config fallback) : this(value)
         {
             MergeConfig(fallback);
         }
@@ -82,7 +82,7 @@ namespace Hocon
         /// </remarks>
         public static Config Empty => CreateEmpty();
 
-        private List<HoconValue> _fallbacks { get; } = new List<HoconValue>();
+        protected List<HoconValue> _fallbacks { get; } = new List<HoconValue>();
         public virtual IReadOnlyList<HoconValue> Fallbacks => _fallbacks.ToList().AsReadOnly();
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace Hocon
         /// </summary>
         public virtual bool IsEmpty => Value == EmptyValue && _fallbacks.Count == 0;
 
-        private HoconValue _mergedValueCache = null;
+        protected HoconValue _mergedValueCache = null;
         public HoconValue Root
         {
             get
@@ -122,7 +122,28 @@ namespace Hocon
             return Root.ToString();
         }
 
-        protected override HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
+        protected override bool TryGetNode(HoconPath path, out HoconValue result)
+        {
+            result = null;
+            var currentObject = Value.GetObject();
+            if (currentObject == null)
+                return false;
+            if (currentObject.TryGetValue(path, out result))
+                return true;
+
+            foreach (var value in _fallbacks)
+            {
+                currentObject = value.GetObject();
+                if (currentObject == null)
+                    return false;
+                if (currentObject.TryGetValue(path, out result))
+                    return true;
+            }
+
+            return false;
+        }
+
+        protected override HoconValue GetNode(HoconPath path)
         {
             var currentObject = Value.GetObject();
             if (currentObject.TryGetValue(path, out var returnValue))
@@ -135,7 +156,7 @@ namespace Hocon
                     return returnValue;
             }
 
-            return null;
+            throw new HoconException($"Could not find accessible field at path {path} in all fallbacks.");
         }
 
         /// <summary>
@@ -267,7 +288,7 @@ namespace Hocon
             info.AddValue(SerializedPropertyName, ToString(useFallbackValues: true), typeof(string));
         }
 
-        public bool Equals(Config other)
+        public virtual bool Equals(Config other)
         {
             if (IsEmpty && other.IsEmpty) return true;
             if (Value == other.Value) return true;
@@ -279,7 +300,7 @@ namespace Hocon
             if (obj == null) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj is Config cfg)
-                return Equals(obj);
+                return Equals(cfg);
             return false;
         }
 
@@ -290,7 +311,7 @@ namespace Hocon
             
             Value = config.Value;
             _fallbacks.AddRange(config._fallbacks);
-       }
+        }
     }
 
     /// <summary>

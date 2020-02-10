@@ -594,7 +594,7 @@ foo {
             a.WithFallback(b);
 
             a.Fallbacks.Count.Should().Be(0);
-            a.GetString("akka.other-key").Should().BeNull();
+            a.GetString("akka.other-key", null).Should().BeNull();
             ReferenceEquals(oldA, a).Should().BeTrue();
             oldAContent.Should().Equals(a);
         }
