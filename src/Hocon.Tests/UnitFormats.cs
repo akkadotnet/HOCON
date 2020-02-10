@@ -130,7 +130,7 @@ namespace Hocon.Tests
         public void Byte_sizes_are_understood(string value, long? expected)
         {
             var hocon = $"byte-size = {value}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             var actual = config.GetByteSize("byte-size");
             if (expected.HasValue)
                 Assert.True(expected.Equals(actual), $"'{value}' is {expected} bytes");
@@ -145,7 +145,7 @@ namespace Hocon.Tests
             var value = "123 microseconds";
             var hocon = $"timespan = {value}";
 
-            var res = Parser.Parse(hocon).GetTimeSpan("timespan");
+            var res = HoconParser.Parse(hocon).GetTimeSpan("timespan");
             Assert.True(expected.Equals(res), $"'{value}' is {expected}");
         }
 
@@ -157,7 +157,7 @@ namespace Hocon.Tests
             var value = "1234 ns";
             var hocon = $"timespan = {value}";
 
-            var res = Parser.Parse(hocon).GetTimeSpan("timespan");
+            var res = HoconParser.Parse(hocon).GetTimeSpan("timespan");
             Assert.True(expected.Equals(res), $"'{value}' should rounds to 12 ticks");
         }
     }

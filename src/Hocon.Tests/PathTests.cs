@@ -78,7 +78,7 @@ akka {
     }
   }
 }";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             var path = HoconPath.Parse(
                 "akka.persistence.journal.sql-server.event-adapter-bindings.\"Demo.IMyEvent, MyDemoAssembly\"");
             Assert.Equal("Demo.IMyEvent, MyDemoAssembly", path.Last());

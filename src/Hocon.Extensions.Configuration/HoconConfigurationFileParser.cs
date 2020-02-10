@@ -28,7 +28,7 @@ namespace Hocon.Extensions.Configuration
             using (var textStream = new StreamReader(input))
             {
                 var content = textStream.ReadToEnd();
-                var hoconConfig = Parser.Parse(content);
+                var hoconConfig = HoconParser.Parse(content);
                 VisitHoconObject(hoconConfig.Value.GetObject());
             }
 

@@ -46,7 +46,7 @@ root {
 }
 root_2 = 1234
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
@@ -56,13 +56,13 @@ root_2 = 1234
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
-                new[] {1, 2, 3, 4}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+                new[] {1, 2, 3, 4}.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.True(
                 new[] {1, 2, 3, 4}.SequenceEqual(
-                    Parser.Parse(hocon).GetIntList("root.array-newline-element")));
+                    HoconParser.Parse(hocon).GetIntList("root.array-newline-element")));
             Assert.True(
                 new[] {"1 2 3 4"}.SequenceEqual(
-                    Parser.Parse(hocon).GetStringList("root.array-single-element")));
+                    HoconParser.Parse(hocon).GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -94,7 +94,7 @@ root_2 = 1234
   }
   root_2 : 1234
 }";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
@@ -104,13 +104,13 @@ root_2 = 1234
             Assert.Equal("bar", config.GetString("root.unquoted-string"));
             Assert.Equal("foo bar", config.GetString("root.concat-string"));
             Assert.True(
-                new[] {1, 2, 3, 4}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+                new[] {1, 2, 3, 4}.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.True(
                 new[] {1, 2, 3, 4}.SequenceEqual(
-                    Parser.Parse(hocon).GetIntList("root.array-newline-element")));
+                    HoconParser.Parse(hocon).GetIntList("root.array-newline-element")));
             Assert.True(
                 new[] {"1 2 3 4"}.SequenceEqual(
-                    Parser.Parse(hocon).GetStringList("root.array-single-element")));
+                    HoconParser.Parse(hocon).GetStringList("root.array-single-element")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -136,14 +136,14 @@ root_2 = 1234
   },
   ""root_2"" : 1234
 }";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
             Assert.True(config.GetBoolean("root.object.hasContent"));
             Assert.Null(config.GetString("root.null"));
             Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] {1, 2, 3}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+            Assert.True(new[] {1, 2, 3}.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -163,14 +163,14 @@ root_2 = 1234
   ""bool"" : true
 },
 ""root_2"" : 1234";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
             Assert.True(config.GetBoolean("root.object.hasContent"));
             Assert.Null(config.GetString("root.null"));
             Assert.Equal("foo", config.GetString("root.string"));
-            Assert.True(new[] {1, 2, 3}.SequenceEqual(Parser.Parse(hocon).GetIntList("root.array")));
+            Assert.True(new[] {1, 2, 3}.SequenceEqual(HoconParser.Parse(hocon).GetIntList("root.array")));
             Assert.Equal("1234", config.GetString("root_2"));
         }
 
@@ -181,12 +181,12 @@ root_2 = 1234
         [Fact]
         public void EmptyFilesShouldThrows()
         {
-            var ex = Record.Exception(() => Parser.Parse(""));
+            var ex = Record.Exception(() => HoconParser.Parse(""));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
 
-            ex = Record.Exception(() => Parser.Parse(null));
+            ex = Record.Exception(() => HoconParser.Parse(null));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -199,12 +199,12 @@ root_2 = 1234
         [Fact]
         public void FileWithLiteralOnlyShouldThrows()
         {
-            var ex = Record.Exception(() => Parser.Parse("literal"));
+            var ex = Record.Exception(() => HoconParser.Parse("literal"));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
 
-            ex = Record.Exception(() => Parser.Parse("${?path}"));
+            ex = Record.Exception(() => HoconParser.Parse("${?path}"));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -215,7 +215,7 @@ root_2 = 1234
         {
             var hocon = "root { string : \"hello\" }}";
 
-            var ex = Record.Exception(() => Parser.Parse(hocon));
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -232,7 +232,7 @@ root_2 = 1234
         {
             var hocon = "{ root { string : \"hello\" }";
 
-            var ex = Record.Exception(() => Parser.Parse(hocon));
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -243,7 +243,7 @@ root_2 = 1234
         {
             var hocon = " root { bar { string : \"hello\" } ";
 
-            var ex = Record.Exception(() => Parser.Parse(hocon));
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");
@@ -254,7 +254,7 @@ root_2 = 1234
         {
             var hocon = " root { string : \"hello\" ";
 
-            var ex = Record.Exception(() => Parser.Parse(hocon));
+            var ex = Record.Exception(() => HoconParser.Parse(hocon));
             Assert.NotNull(ex);
             Assert.IsType<HoconParserException>(ex);
             _output.WriteLine($"Exception message: {ex.Message}");

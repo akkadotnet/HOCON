@@ -14,14 +14,15 @@ namespace Hocon
     ///     This class represents the root element in a HOCON (Human-Optimized Config Object Notation)
     ///     configuration string.
     /// </summary>
-    public class HoconRoot
+    public class HoconRoot:IEquatable<HoconRoot>
     {
         /// <inheritdoc />
         /// <summary>
         ///     Initializes a new instance of the <see cref="T:Hocon.HoconRoot" /> class.
         /// </summary>
-        public HoconRoot() : this(new HoconValue(null), Enumerable.Empty<HoconSubstitution>())
+        protected HoconRoot()
         {
+            Substitutions = Enumerable.Empty<HoconSubstitution>();
         }
 
         /// <inheritdoc cref="HoconRoot()" />
@@ -35,19 +36,23 @@ namespace Hocon
         /// <param name="substitutions">An enumeration of substitutions to associate with this element.</param>
         public HoconRoot(HoconValue value, IEnumerable<HoconSubstitution> substitutions)
         {
-            Value = value;
+            _internalValue = value;
             Substitutions = substitutions;
         }
 
+        protected HoconValue _internalValue;
         /// <summary>
         ///     Retrieves the value associated with this element.
         /// </summary>
-        public HoconValue Value { get; protected set; }
+        public virtual HoconValue Value {
+            get => _internalValue;
+            protected set => _internalValue = value;
+        }
 
         /// <summary>
         ///     Retrieves an enumeration of substitutions associated with this element.
         /// </summary>
-        public IEnumerable<HoconSubstitution> Substitutions { get; }
+        public IEnumerable<HoconSubstitution> Substitutions { get; private set; }
 
         protected virtual HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
         {
@@ -103,13 +108,18 @@ namespace Hocon
         ///     NOTE: You might not be able to reproduce a clean reproduction of the original configuration file after this
         ///     normalization.
         /// </summary>
-        public void Normalize()
+        public HoconRoot Normalize()
         {
             Flatten(Value);
+            Substitutions = Enumerable.Empty<HoconSubstitution>();
+            return this;
         }
 
         private static void Flatten(IHoconElement node)
         {
+            if (node is HoconSubstitution sub)
+                node = sub.ResolvedValue;
+
             if (!(node is HoconValue v))
                 return;
 
@@ -117,6 +127,13 @@ namespace Hocon
             {
                 case HoconType.Object:
                     var o = v.GetObject();
+                    if(o is HoconMergedObject mo)
+                    {
+                        o = new HoconObject(v);
+                        foreach(var obj in mo.Objects)
+                            o.Merge(obj);
+                    }
+
                     v.Clear();
                     v.Add(o);
                     foreach (var item in o.Values)
@@ -136,9 +153,7 @@ namespace Hocon
                     v.Add(newArray);
                     break;
 
-                case HoconType.Boolean:
-                case HoconType.Number:
-                case HoconType.String:
+                default:
                     if (v.Count == 1)
                         return;
 
@@ -187,7 +202,7 @@ namespace Hocon
         /// <summary>
         ///     Wraps any exception into <see cref="HoconValueException" /> with failure path specified
         /// </summary>
-        private T WrapWithValueException<T>(string path, Func<T> func)
+        protected T WrapWithValueException<T>(string path, Func<T> func)
         {
             try
             {
@@ -197,6 +212,18 @@ namespace Hocon
             {
                 throw new HoconValueException(ex.Message, path, ex);
             }
+        }
+
+        public bool Equals(HoconRoot other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj is HoconRoot root && Equals(root);
         }
 
         #region Value getter methods

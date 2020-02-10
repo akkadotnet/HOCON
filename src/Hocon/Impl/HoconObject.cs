@@ -146,14 +146,6 @@ namespace Hocon
             return clone;
         }
 
-        public bool Equals(IHoconElement other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            if (other.Type != HoconType.Object) return false;
-            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
-        }
-
         /// <summary>
         ///     Retrieves the <see cref="HoconField" /> field associated with the supplied <see cref="string" /> key.
         /// </summary>
@@ -409,6 +401,35 @@ namespace Hocon
             }
         }
 
+        public void FallbackMerge(HoconObject other)
+        {
+            foreach(var kvp in other)
+            {
+                var path = kvp.Value.Path;
+                if (!TryGetValue(path, out _))
+                {
+                    var currentObject = this;
+                    HoconField newField = null;
+                    foreach (var key in path)
+                    {
+                        newField = currentObject.GetOrCreateKey(key);
+                        if (newField.Type == HoconType.Empty)
+                        {
+                            var emptyValue = new HoconValue(newField);
+                            emptyValue.Add(new HoconObject(emptyValue));
+                            newField.SetValue(emptyValue);
+                        }
+                        currentObject = newField.GetObject();
+                    }
+                    newField.SetValue(kvp.Value.Value);
+                } else
+                {
+                    if(kvp.Value.Type == HoconType.Object)
+                        FallbackMerge(kvp.Value.GetObject());
+                }
+            }
+        }
+
         internal void ResolveValue(HoconField child)
         {
             if (child.Type == HoconType.Empty)
@@ -418,6 +439,14 @@ namespace Hocon
                 else
                     Remove(child.Key);
             }
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (other.Type != HoconType.Object) return false;
+            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
         }
 
         public override bool Equals(object obj)

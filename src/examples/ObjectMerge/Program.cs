@@ -22,7 +22,7 @@ root {
   }
 }
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             var val1 = config.GetString("root.some-object.property1");
             var val2 = config.GetString("root.some-object.property2");
             var val3 = config.GetString("root.some-object.property3");
