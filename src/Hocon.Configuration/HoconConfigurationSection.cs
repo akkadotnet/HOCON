@@ -33,7 +33,14 @@ namespace Hocon
         ///     Retrieves a <see cref="Config" /> from the contents of the
         ///     custom akka node within a configuration file.
         /// </summary>
-        public Config Config => _config ?? (_config = ConfigurationFactory.ParseString(Hocon.Content));
+        public Config Config {
+            get
+            {
+                if (_config == null && !string.IsNullOrWhiteSpace(Hocon.Content))
+                    _config = ConfigurationFactory.ParseString(Hocon.Content);
+                return _config;
+            }
+        }
 
         /// <summary>
         ///     Retrieves the HOCON (Human-Optimized Config Object Notation)

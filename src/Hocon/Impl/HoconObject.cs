@@ -31,6 +31,15 @@ namespace Hocon
     /// </summary>
     public class HoconObject : Dictionary<string, HoconField>, IHoconElement
     {
+        private static readonly HoconObject _empty;
+        public static HoconObject Empty => _empty;
+
+        static HoconObject()
+        {
+            var value = new HoconValue(null);
+            _empty = new HoconObject(value);
+        }
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconObject" /> class.
         /// </summary>
@@ -63,6 +72,8 @@ namespace Hocon
                 return HoconPath.Empty;
             }
         }
+
+        public bool IsEmpty => Count == 0;
 
         /// <summary>
         ///     Retrieves the underlying map that contains the barebones

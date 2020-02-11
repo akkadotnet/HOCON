@@ -156,7 +156,7 @@ namespace Hocon
                     return returnValue;
             }
 
-            throw new HoconException($"Could not find accessible field at path {path} in all fallbacks.");
+            throw new HoconException($"Could not find accessible field at path `{path}` in all fallbacks.");
         }
 
         /// <summary>

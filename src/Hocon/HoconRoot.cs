@@ -252,13 +252,11 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <returns>The string value defined in the specified path.</returns>
-        [Obsolete("Check for default value")]
         public virtual string GetString(string path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetString());
         }
 
-        [Obsolete("Check for default value")]
         public virtual string GetString(HoconPath path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetString());
@@ -331,13 +329,32 @@ namespace Hocon
         /// <returns>The long value defined in the specified path, or null if path was not found.</returns>
         public virtual long? GetByteSize(string path)
         {
-            return GetByteSize(HoconPath.Parse(path));
+            return WrapWithValueException(path, () => GetNode(path).GetByteSize());
         }
 
         /// <inheritdoc cref="GetByteSize(string)" />
         public virtual long? GetByteSize(HoconPath path)
         {
-            return WrapWithValueException(path.ToString(), () => GetNode(path).GetByteSize());
+            return WrapWithValueException(path, () => GetNode(path).GetByteSize());
+        }
+
+        public virtual long? GetByteSize(string path, long? @default)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByteSize(out var longValue))
+                    return longValue;
+
+            return null;
+        }
+
+        /// <inheritdoc cref="GetByteSize(string)" />
+        public virtual long? GetByteSize(HoconPath path, long? @default)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByteSize(out var longValue))
+                    return longValue;
+
+            return null;
         }
 
         /// <summary>
@@ -345,13 +362,11 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <returns>The integer value defined in the specified path.</returns>
-        [Obsolete("Check for default value")]
         public virtual int GetInt(string path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetInt());
         }
 
-        [Obsolete("Check for default value")]
         public virtual int GetInt(HoconPath path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetInt());
@@ -522,13 +537,11 @@ namespace Hocon
             return @default;
         }
 
-        [Obsolete("Check for default value")]
         public virtual double GetDouble(string path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetDouble());
         }
 
-        [Obsolete("Check for default value")]
         public virtual double GetDouble(HoconPath path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetDouble());

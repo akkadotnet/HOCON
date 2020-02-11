@@ -421,7 +421,8 @@ namespace Hocon
                     result = true;
                     return true;
                 default:
-                    return false;
+                    result = false;
+                    return true;
             }
         }
 
@@ -1210,13 +1211,46 @@ namespace Hocon
             var unit = res.Substring(index + 1).Trim();
 
             foreach (var byteSize in ByteSizes)
-            foreach (var suffix in byteSize.Suffixes)
-                if (string.Equals(unit, suffix, StringComparison.Ordinal))
-                    return (long) (byteSize.Factor * double.Parse(value));
+                foreach (var suffix in byteSize.Suffixes)
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                        return (long)(byteSize.Factor * double.Parse(value));
 
             throw new FormatException($"{unit} is not a valid byte size suffix");
         }
 
+        public bool TryGetByteSize(out long? result)
+        {
+            result = null;
+            if (!TryGetString(out var res))
+                return false;
+            if (string.IsNullOrEmpty(res))
+                return false;
+
+            res = res.Trim();
+            var index = res.LastIndexOfAny(Digits);
+            if (index == -1 || index + 1 >= res.Length)
+            {
+                if (!long.TryParse(res, out var longParse))
+                    return false;
+                result = longParse;
+                return true;
+            }
+
+            var value = res.Substring(0, index + 1);
+            var unit = res.Substring(index + 1).Trim();
+
+            if (!double.TryParse(value, out var doubleParse))
+                return false;
+
+            foreach (var byteSize in ByteSizes)
+                foreach (var suffix in byteSize.Suffixes)
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                    {
+                        result = (long)(byteSize.Factor * doubleParse);
+                        return true;
+                    }
+            return false;
+        }
         #endregion
     }
 }
