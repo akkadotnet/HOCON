@@ -45,6 +45,12 @@ namespace Hocon
         /// <inheritdoc />
         public virtual HoconObject GetObject()
         {
+            if (Type == HoconType.Empty)
+                return null;
+
+            if (Type != HoconType.Object)
+                throw new HoconException($"Could not convert HoconValue of type {Type} into {nameof(HoconType.Object)}");
+
             var objects = this
                 .Where(value => value.Type == HoconType.Object)
                 .Select(value => value.GetObject()).ToList();
@@ -60,13 +66,50 @@ namespace Hocon
             }
         }
 
+        public virtual bool TryGetObject(out HoconObject result)
+        {
+            result = null;
+            if (Type != HoconType.Object)
+                return false;
+
+            var objects = this
+                .Where(value => value.Type == HoconType.Object)
+                .Select(value => value.GetObject()).ToList();
+
+            switch (objects.Count)
+            {
+                case 0:
+                    break;
+                case 1:
+                    result = objects[0];
+                    break;
+                default:
+                    result = new HoconMergedObject(this, objects);
+                    break;
+            }
+            return true;
+        }
+
         /// <summary>
         ///     Retrieves the string value from this <see cref="T:Hocon.HoconValue" />.
         /// </summary>
         /// <returns>The string value represented by this <see cref="T:Hocon.HoconValue" />.</returns>
         public virtual string GetString()
         {
-            return !Type.IsLiteral() ? null : ConcatString();
+            return Type.IsLiteral() ? 
+                ConcatString() : 
+                throw new HoconException($"Could not convert '{Type}' to string.");
+        }
+
+        public virtual bool TryGetString(out string result)
+        {
+            result = null;
+            if (Type.IsLiteral())
+            {
+                result = ConcatString();
+                return true;
+            }
+            return false;
         }
 
         public virtual string Raw
@@ -87,14 +130,6 @@ namespace Hocon
                             result.AddRange(element.GetArray());
 
                     return result;
-                /*
-                IEnumerable<HoconValue> x = from value in this
-                    where value.Type == HoconType.Array
-                    from e in value.GetArray()
-                    select e;
-
-                return x.ToList();
-                */
 
                 case HoconType.Object:
                     return GetObject().GetArray();
@@ -109,6 +144,28 @@ namespace Hocon
 
                 default:
                     throw new Exception($"Unknown HoconType: {Type}");
+            }
+        }
+
+        public virtual bool TryGetArray(out List<HoconValue> result)
+        {
+            result = new List<HoconValue>();
+            switch (Type)
+            {
+                case HoconType.Array:
+                    foreach (var element in this)
+                        if (element.Type == HoconType.Array)
+                            result.AddRange(element.GetArray());
+
+                    return true;
+
+                case HoconType.Object:
+                    if (TryGetObject(out var obj))
+                        return obj.TryGetArray(out result);
+                    return false;
+
+                default:
+                    return false;
             }
         }
 
@@ -230,11 +287,10 @@ namespace Hocon
 
         internal void ResolveValue(HoconSubstitution child)
         {
-            if (child.Type == HoconType.Empty)
-            {
-                Remove(child);
-            }
-            else
+            var index = IndexOf(child);
+            Remove(child);
+
+            if (child.Type != HoconType.Empty)
             {
                 if (Type == HoconType.Empty)
                     Type = child.Type;
@@ -242,6 +298,27 @@ namespace Hocon
                     throw HoconParserException.Create(child, child.Path,
                         "Invalid substitution, substituted type be must be mergeable with its sibling type. " +
                         $"Sibling type:{Type}, substitution type:{child.Type}");
+
+                var clonedValue = (HoconValue)child.ResolvedValue.Clone(Parent);
+                switch (Type)
+                {
+                    case HoconType.Object:
+                        Insert(index, clonedValue.GetObject());
+                        break;
+                    case HoconType.Array:
+                        var hoconArray = new HoconArray(this);
+                        hoconArray.AddRange(clonedValue.GetArray());
+                        Insert(index, hoconArray);
+                        break;
+                    case HoconType.Boolean:
+                    case HoconType.Number:
+                    case HoconType.String:
+                        var elementList = new List<IHoconElement>();
+                        foreach(var element in clonedValue)
+                            elementList.Add(element);
+                        InsertRange(index, elementList);
+                        break;
+                }
             }
 
             switch (Parent)
@@ -350,6 +427,25 @@ namespace Hocon
             }
         }
 
+        public bool TryGetBoolean(out bool result)
+        {
+            result = default(bool);
+            if (!TryGetString(out var value))
+                return false;
+
+            switch (value)
+            {
+                case "on":
+                case "true":
+                case "yes":
+                    result = true;
+                    return true;
+                default:
+                    result = false;
+                    return true;
+            }
+        }
+
         /// <summary>
         ///     Retrieves the decimal value from this <see cref="HoconValue" />.
         /// </summary>
@@ -374,6 +470,24 @@ namespace Hocon
                     {
                         throw new HoconException($"Could not convert `{value}` to decimal.", e);
                     }
+            }
+        }
+
+        public bool TryGetDecimal(out decimal result)
+        {
+            result = default(decimal);
+            if (!TryGetString(out var value))
+                return false;
+
+            switch (value)
+            {
+                case "+Infinity":
+                case "Infinity":
+                case "-Infinity":
+                case "NaN":
+                    return false;
+                default:
+                    return decimal.TryParse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo, out result);
             }
         }
 
@@ -405,6 +519,28 @@ namespace Hocon
             }
         }
 
+        public bool TryGetFloat(out float result)
+        {
+            result = default(float);
+            if (!TryGetString(out var value))
+                return false;
+            switch (value)
+            {
+                case "+Infinity":
+                case "Infinity":
+                    result = float.PositiveInfinity;
+                    return true;
+                case "-Infinity":
+                    result = float.NegativeInfinity;
+                    return true;
+                case "NaN":
+                    result = float.NaN;
+                    return true;
+                default:
+                    return float.TryParse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo, out result);
+            }
+        }
+
         /// <summary>
         ///     Retrieves the double value from this <see cref="HoconValue" />.
         /// </summary>
@@ -430,6 +566,29 @@ namespace Hocon
                     {
                         throw new HoconException($"Could not convert `{value}` to double.", e);
                     }
+            }
+        }
+
+        public bool TryGetDouble(out double result)
+        {
+            result = default(double);
+            if (!TryGetString(out var value))
+                return false;
+
+            switch (value)
+            {
+                case "+Infinity":
+                case "Infinity":
+                    result = double.PositiveInfinity;
+                    return true;
+                case "-Infinity":
+                    result = double.NegativeInfinity;
+                    return true;
+                case "NaN":
+                    result = double.NaN;
+                    return true;
+                default:
+                    return double.TryParse(value, NumberStyles.Any, NumberFormatInfo.InvariantInfo, out result);
             }
         }
 
@@ -468,6 +627,37 @@ namespace Hocon
             {
                 throw new HoconException($"Could not convert `{GetString()}` to long.", e);
             }
+        }
+
+        public bool TryGetLong(out long result)
+        {
+            result = default(long);
+            if (!TryGetString(out var value))
+                return false;
+
+            if (value.StartsWith("0x"))
+                try
+                {
+                    result = Convert.ToInt64(value, 16);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            if (value.StartsWith("0"))
+                try
+                {
+                    result = Convert.ToInt64(value, 8);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            return long.TryParse(value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out result);
         }
 
         /// <summary>
@@ -510,6 +700,37 @@ namespace Hocon
             }
         }
 
+        public bool TryGetInt(out int result)
+        {
+            result = default(int);
+            if (!TryGetString(out var value))
+                return false;
+
+            if (value.StartsWith("0x"))
+                try
+                {
+                    result = Convert.ToInt32(value, 16);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            if (value.StartsWith("0"))
+                try
+                {
+                    result = Convert.ToInt32(value, 8);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            return int.TryParse(value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out result);
+        }
+
         /// <summary>
         ///     Retrieves the byte value from this <see cref="HoconValue" />.
         /// </summary>
@@ -547,6 +768,37 @@ namespace Hocon
             }
         }
 
+        public bool TryGetByte(out byte result)
+        {
+            result = default(byte);
+            if (!TryGetString(out var value))
+                return false;
+
+            if (value.StartsWith("0x"))
+                try
+                {
+                    result = Convert.ToByte(value, 16);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            if (value.StartsWith("0"))
+                try
+                {
+                    result = Convert.ToByte(value, 8);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+
+            return byte.TryParse(value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out result);
+        }
+
         /// <summary>
         ///     Retrieves a list of byte values from this <see cref="HoconValue" />.
         /// </summary>
@@ -554,6 +806,24 @@ namespace Hocon
         public IList<byte> GetByteList()
         {
             return GetArray().Select(v => v.GetByte()).ToList();
+        }
+
+        public bool TryGetByteList(out IList<byte> result)
+        {
+            result = default(List<byte>);
+            if(TryGetArray(out var arr))
+            {
+                var list = new List<byte>();
+                foreach(var val in arr)
+                {
+                    if (!val.TryGetByte(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -565,6 +835,24 @@ namespace Hocon
             return GetArray().Select(v => v.GetInt()).ToList();
         }
 
+        public bool TryGetIntList(out IList<int> result)
+        {
+            result = default(List<int>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<int>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetInt(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         ///     Retrieves a list of long values from this <see cref="HoconValue" />.
         /// </summary>
@@ -572,6 +860,24 @@ namespace Hocon
         public IList<long> GetLongList()
         {
             return GetArray().Select(v => v.GetLong()).ToList();
+        }
+
+        public bool TryGetLongList(out IList<long> result)
+        {
+            result = default(List<long>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<long>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetLong(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -583,6 +889,24 @@ namespace Hocon
             return GetArray().Select(v => v.GetBoolean()).ToList();
         }
 
+        public bool TryGetBooleanList(out IList<bool> result)
+        {
+            result = default(List<bool>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<bool>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetBoolean(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         ///     Retrieves a list of float values from this <see cref="HoconValue" />.
         /// </summary>
@@ -590,6 +914,24 @@ namespace Hocon
         public IList<float> GetFloatList()
         {
             return GetArray().Select(v => v.GetFloat()).ToList();
+        }
+
+        public bool TryGetFloatList(out IList<float> result)
+        {
+            result = default(List<float>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<float>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetFloat(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -601,6 +943,24 @@ namespace Hocon
             return GetArray().Select(v => v.GetDouble()).ToList();
         }
 
+        public bool TryGetDoubleList(out IList<double> result)
+        {
+            result = default(List<double>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<double>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetDouble(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         ///     Retrieves a list of decimal values from this <see cref="HoconValue" />.
         /// </summary>
@@ -608,6 +968,24 @@ namespace Hocon
         public IList<decimal> GetDecimalList()
         {
             return GetArray().Select(v => v.GetDecimal()).ToList();
+        }
+
+        public bool TryGetDecimalList(out IList<decimal> result)
+        {
+            result = default(List<decimal>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<decimal>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetDecimal(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -619,6 +997,24 @@ namespace Hocon
             return GetArray().Select(v => v.GetString()).ToList();
         }
 
+        public bool TryGetStringList(out IList<string> result)
+        {
+            result = default(List<string>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<string>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetString(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         ///     Retrieves a list of objects from this <see cref="HoconValue" />.
         /// </summary>
@@ -626,6 +1022,24 @@ namespace Hocon
         public IList<HoconObject> GetObjectList()
         {
             return GetArray().Select(v => v.GetObject()).ToList();
+        }
+
+        public bool TryGetObjectList(out IList<HoconObject> result)
+        {
+            result = default(List<HoconObject>);
+            if (TryGetArray(out var arr))
+            {
+                var list = new List<HoconObject>();
+                foreach (var val in arr)
+                {
+                    if (!val.TryGetObject(out var res))
+                        return false;
+                    list.Add(res);
+                }
+                result = list;
+                return true;
+            }
+            return false;
         }
 
         [Obsolete("Use GetTimeSpan instead")]
@@ -643,67 +1057,114 @@ namespace Hocon
         {
             string res = GetString();
 
-            var match = TimeSpanRegex.Match(res);
-            if (match.Success)
-            {
-                var u = match.Groups["unit"].Value;
-                var v = ParsePositiveValue(match.Groups["value"].Value);
-
-                switch (u)
-                {
-                    case "nanoseconds":
-                    case "nanosecond":
-                    case "nanos":
-                    case "nano":
-                    case "ns":
-                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
-                    case "microseconds":
-                    case "microsecond":
-                    case "micros":
-                    case "micro":
-                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
-                    case "milliseconds":
-                    case "millisecond":
-                    case "millis":
-                    case "milli":
-                    case "ms":
-                        return TimeSpan.FromMilliseconds(v);
-                    case "seconds":
-                    case "second":
-                    case "s":
-                        return TimeSpan.FromSeconds(v);
-                    case "minutes":
-                    case "minute":
-                    case "m":
-                        return TimeSpan.FromMinutes(v);
-                    case "hours":
-                    case "hour":
-                    case "h":
-                        return TimeSpan.FromHours(v);
-                    case "days":
-                    case "day":
-                    case "d":
-                        return TimeSpan.FromDays(v);
-                }
-            }
+            if (TryMatchTimeSpan(res, out var result))
+                return result;
 
             if (allowInfinite && res.Equals("infinite", StringComparison.OrdinalIgnoreCase)) //Not in Hocon spec
                 return Timeout.InfiniteTimeSpan;
 
-            return TimeSpan.FromMilliseconds(ParsePositiveValue(res));
-        }
-
-        private static double ParsePositiveValue(string v)
-        {
-            // This NumberStyles are used in double.TryParse(v, out var value) overload internally
-            if (!double.TryParse(v, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo,
-                out var value))
-                throw new FormatException($"Failed to parse TimeSpan value from '{v}'");
+            double value;
+            try
+            {
+                value = double.Parse(res, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Failed to parse TimeSpan value from '{res}'", e);
+            }
 
             if (value < 0)
-                throw new FormatException("Expected a positive value instead of " + value);
+                throw new HoconException("Expected a positive value instead of " + value);
 
-            return value;
+            return TimeSpan.FromMilliseconds(value);
+        }
+
+        public bool TryGetTimeSpan(out TimeSpan result, bool allowInfinite = true)
+        {
+            result = default(TimeSpan);
+            if (!TryGetString(out var res))
+                return false;
+
+            if (TryMatchTimeSpan(res, out result))
+                return true;
+
+            if (allowInfinite && res.Equals("infinite", StringComparison.OrdinalIgnoreCase)) //Not in Hocon spec
+            {
+                result = Timeout.InfiniteTimeSpan;
+                return true;
+            }
+
+            if (!double.TryParse(res, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo, out var doubleValue))
+                return false;
+
+            if (doubleValue < 0) return false;
+
+            result = TimeSpan.FromMilliseconds(doubleValue);
+            return true;
+        }
+
+        private bool TryMatchTimeSpan(string value, out TimeSpan result)
+        {
+            result = default(TimeSpan);
+
+            var match = TimeSpanRegex.Match(value);
+            if (!match.Success)
+                return false;
+
+            var u = match.Groups["unit"].Value;
+            if (!double.TryParse(
+                    match.Groups["value"].Value,
+                    NumberStyles.Float | NumberStyles.AllowThousands,
+                    NumberFormatInfo.InvariantInfo,
+                    out var v))
+                return false;
+
+            if (v < 0) return false;
+
+            switch (u)
+            {
+                case "nanoseconds":
+                case "nanosecond":
+                case "nanos":
+                case "nano":
+                case "ns":
+                    result = TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
+                    return true;
+                case "microseconds":
+                case "microsecond":
+                case "micros":
+                case "micro":
+                    result = TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
+                    return true;
+                case "milliseconds":
+                case "millisecond":
+                case "millis":
+                case "milli":
+                case "ms":
+                    result = TimeSpan.FromMilliseconds(v);
+                    return true;
+                case "seconds":
+                case "second":
+                case "s":
+                    result = TimeSpan.FromSeconds(v);
+                    return true;
+                case "minutes":
+                case "minute":
+                case "m":
+                    result = TimeSpan.FromMinutes(v);
+                    return true;
+                case "hours":
+                case "hour":
+                case "h":
+                    result = TimeSpan.FromHours(v);
+                    return true;
+                case "days":
+                case "day":
+                case "d":
+                    result = TimeSpan.FromDays(v);
+                    return true;
+            }
+            return false;
         }
 
         private struct ByteSize
@@ -770,13 +1231,46 @@ namespace Hocon
             var unit = res.Substring(index + 1).Trim();
 
             foreach (var byteSize in ByteSizes)
-            foreach (var suffix in byteSize.Suffixes)
-                if (string.Equals(unit, suffix, StringComparison.Ordinal))
-                    return (long) (byteSize.Factor * double.Parse(value));
+                foreach (var suffix in byteSize.Suffixes)
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                        return (long)(byteSize.Factor * double.Parse(value));
 
             throw new FormatException($"{unit} is not a valid byte size suffix");
         }
 
+        public bool TryGetByteSize(out long? result)
+        {
+            result = null;
+            if (!TryGetString(out var res))
+                return false;
+            if (string.IsNullOrEmpty(res))
+                return false;
+
+            res = res.Trim();
+            var index = res.LastIndexOfAny(Digits);
+            if (index == -1 || index + 1 >= res.Length)
+            {
+                if (!long.TryParse(res, out var longParse))
+                    return false;
+                result = longParse;
+                return true;
+            }
+
+            var value = res.Substring(0, index + 1);
+            var unit = res.Substring(index + 1).Trim();
+
+            if (!double.TryParse(value, out var doubleParse))
+                return false;
+
+            foreach (var byteSize in ByteSizes)
+                foreach (var suffix in byteSize.Suffixes)
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                    {
+                        result = (long)(byteSize.Factor * doubleParse);
+                        return true;
+                    }
+            return false;
+        }
         #endregion
     }
 }

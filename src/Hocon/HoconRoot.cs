@@ -54,22 +54,38 @@ namespace Hocon
         /// </summary>
         public IEnumerable<HoconSubstitution> Substitutions { get; private set; }
 
-        protected virtual HoconValue GetNode(HoconPath path, bool throwIfNotFound = false)
+        protected virtual bool TryGetNode(string path, out HoconValue result)
+        {
+            result = null;
+            if (!HoconPath.TryParse(path, out var hoconPath))
+                return false;
+            return TryGetNode(hoconPath, out result);
+        }
+
+        protected virtual bool TryGetNode(HoconPath path, out HoconValue result)
+        {
+            result = null;
+            if (Value.Type != HoconType.Object)
+                return false;
+
+            var obj = Value.GetObject();
+            if (obj == null)
+                return false;
+
+            return obj.TryGetValue(path, out result);
+        }
+
+        protected virtual HoconValue GetNode(string path)
+        {
+            return GetNode(HoconPath.Parse(path));
+        }
+
+        protected virtual HoconValue GetNode(HoconPath path)
         {
             if (Value.Type != HoconType.Object)
                 throw new HoconException("Hocon is not an object.");
 
-            try
-            {
-                return Value.GetObject().GetValue(path);
-            }
-            catch (KeyNotFoundException)
-            {
-                if (throwIfNotFound)
-                    throw;
-
-                return null;
-            }
+            return Value.GetObject().GetValue(path);
         }
 
         /// <summary>
@@ -89,17 +105,7 @@ namespace Hocon
         /// <returns><c>true</c> if a value was found, <c>false</c> otherwise.</returns>
         public virtual bool HasPath(HoconPath path)
         {
-            HoconValue node;
-            try
-            {
-                node = GetNode(path);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return node != null;
+            return TryGetNode(path, out var _);
         }
 
 
@@ -117,8 +123,6 @@ namespace Hocon
 
         private static void Flatten(IHoconElement node)
         {
-            if (node is HoconSubstitution sub)
-                node = sub.ResolvedValue;
 
             if (!(node is HoconValue v))
                 return;
@@ -214,6 +218,18 @@ namespace Hocon
             }
         }
 
+        protected T WrapWithValueException<T>(HoconPath path, Func<T> func)
+        {
+            try
+            {
+                return func();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path.ToString(), ex);
+            }
+        }
+
         public bool Equals(HoconRoot other)
         {
             return Value == other.Value;
@@ -228,25 +244,55 @@ namespace Hocon
 
         #region Value getter methods
 
+        #region Single value getters
+        /// <summary>
+        ///     Retrieves a string value from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the value to retrieve.</param>
+        /// <returns>The string value defined in the specified path.</returns>
+        public virtual string GetString(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetString());
+        }
+
+        public virtual string GetString(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetString());
+        }
+
         /// <summary>
         ///     Retrieves a string value from the specified path in the configuration.
         /// </summary>
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The string value defined in the specified path.</returns>
-        public virtual string GetString(string path, string @default = null)
+        public virtual string GetString(string path, string @default)
         {
-            return WrapWithValueException(path, () => GetString(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetString(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetString(string,string)" />
-        public virtual string GetString(HoconPath path, string @default = null)
+        public virtual string GetString(HoconPath path, string @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetString();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetString(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual bool GetBoolean(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetBoolean());
+        }
+
+        public virtual bool GetBoolean(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetBoolean());
         }
 
         /// <summary>
@@ -255,19 +301,23 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The boolean value defined in the specified path.</returns>
-        public virtual bool GetBoolean(string path, bool @default = false)
+        public virtual bool GetBoolean(string path, bool @default)
         {
-            return WrapWithValueException(path, () => GetBoolean(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetBoolean(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetBoolean(string,bool)" />
-        public virtual bool GetBoolean(HoconPath path, bool @default = false)
+        public virtual bool GetBoolean(HoconPath path, bool @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetBoolean();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetBoolean(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -277,17 +327,47 @@ namespace Hocon
         /// <returns>The long value defined in the specified path, or null if path was not found.</returns>
         public virtual long? GetByteSize(string path)
         {
-            return WrapWithValueException(path, () => GetByteSize(HoconPath.Parse(path)));
+            return WrapWithValueException(path, () => GetNode(path).GetByteSize());
         }
 
         /// <inheritdoc cref="GetByteSize(string)" />
         public virtual long? GetByteSize(HoconPath path)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value?.GetByteSize();
-            });
+            return WrapWithValueException(path, () => GetNode(path).GetByteSize());
+        }
+
+        public virtual long? GetByteSize(string path, long? @default)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByteSize(out var longValue))
+                    return longValue;
+
+            return null;
+        }
+
+        /// <inheritdoc cref="GetByteSize(string)" />
+        public virtual long? GetByteSize(HoconPath path, long? @default)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByteSize(out var longValue))
+                    return longValue;
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Retrieves an integer value from the specified path in the configuration.
+        /// </summary>
+        /// <param name="path">The path that contains the value to retrieve.</param>
+        /// <returns>The integer value defined in the specified path.</returns>
+        public virtual int GetInt(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetInt());
+        }
+
+        public virtual int GetInt(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetInt());
         }
 
         /// <summary>
@@ -296,19 +376,33 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The integer value defined in the specified path.</returns>
-        public virtual int GetInt(string path, int @default = 0)
+        public virtual int GetInt(string path, int @default)
         {
-            return WrapWithValueException(path, () => GetInt(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetInt(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetInt(string,int)" />
-        public virtual int GetInt(HoconPath path, int @default = 0)
+        public virtual int GetInt(HoconPath path, int @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetInt();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetInt(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual long GetLong(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(HoconPath.Parse(path)).GetLong());
+        }
+
+        public virtual long GetLong(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetLong());
         }
 
         /// <summary>
@@ -317,19 +411,33 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The long value defined in the specified path.</returns>
-        public virtual long GetLong(string path, long @default = 0)
+        public virtual long GetLong(string path, long @default)
         {
-            return WrapWithValueException(path, () => GetLong(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetLong(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetLong(string,long)" />
         public virtual long GetLong(HoconPath path, long @default = 0)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetLong();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetLong(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual byte GetByte(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetByte());
+        }
+
+        public virtual byte GetByte(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetByte());
         }
 
         /// <summary>
@@ -338,19 +446,33 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The byte value defined in the specified path.</returns>
-        public virtual byte GetByte(string path, byte @default = 0)
+        public virtual byte GetByte(string path, byte @default)
         {
-            return WrapWithValueException(path, () => GetByte(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByte(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetByte(string,byte)" />
         public virtual byte GetByte(HoconPath path, byte @default = 0)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetByte();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByte(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual float GetFloat(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetFloat());
+        }
+
+        public virtual float GetFloat(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetFloat());
         }
 
         /// <summary>
@@ -359,19 +481,33 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The float value defined in the specified path.</returns>
-        public virtual float GetFloat(string path, float @default = 0)
+        public virtual float GetFloat(string path, float @default)
         {
-            return WrapWithValueException(path, () => GetFloat(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetFloat(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetFloat(string,float)" />
         public virtual float GetFloat(HoconPath path, float @default = 0)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetFloat();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetFloat(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual decimal GetDecimal(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetDecimal());
+        }
+
+        public virtual decimal GetDecimal(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetDecimal());
         }
 
         /// <summary>
@@ -380,19 +516,33 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The decimal value defined in the specified path.</returns>
-        public virtual decimal GetDecimal(string path, decimal @default = 0)
+        public virtual decimal GetDecimal(string path, decimal @default)
         {
-            return WrapWithValueException(path, () => GetDecimal(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDecimal(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetDecimal(string,decimal)" />
-        public virtual decimal GetDecimal(HoconPath path, decimal @default = 0)
+        public virtual decimal GetDecimal(HoconPath path, decimal @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetDecimal();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDecimal(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual double GetDouble(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetDouble());
+        }
+
+        public virtual double GetDouble(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetDouble());
         }
 
         /// <summary>
@@ -401,19 +551,33 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The double value defined in the specified path.</returns>
-        public virtual double GetDouble(string path, double @default = 0)
+        public virtual double GetDouble(string path, double @default)
         {
-            return WrapWithValueException(path, () => GetDouble(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDouble(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetDouble(string,double)" />
-        public virtual double GetDouble(HoconPath path, double @default = 0)
+        public virtual double GetDouble(HoconPath path, double @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetDouble();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDouble(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        public virtual HoconObject GetObject(string path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetObject());
+        }
+
+        public virtual HoconObject GetObject(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetObject());
         }
 
         /// <summary>
@@ -422,21 +586,27 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The double value defined in the specified path.</returns>
-        public virtual HoconObject GetObject(string path, HoconObject @default = null)
+        public virtual HoconObject GetObject(string path, HoconObject @default)
         {
-            return WrapWithValueException(path, () => GetObject(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetObject(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetObject(string,HoconObject)" />
         public virtual HoconObject GetObject(HoconPath path, HoconObject @default = null)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetObject();
-            });
-        }
+            if (TryGetNode(path, out var value))
+                if (value.TryGetObject(out var result))
+                    return result;
 
+            return @default;
+        }
+        #endregion
+
+        #region Array value getters
         /// <summary>
         ///     Retrieves a list of boolean values from the specified path in the configuration.
         /// </summary>
@@ -445,30 +615,36 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<bool> GetBooleanList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetBooleanList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => { return GetNode(path).GetBooleanList(); });
         }
 
-        /// <summary>
-        ///     Retrieves a list of boolean values from the specified path in the configuration.
-        /// </summary>
-        /// <param name="path">The path that contains the values to retrieve.</param>
-        /// <param name="default">The default value to return if the value doesn't exist.</param>
-        /// <returns>The list of boolean values defined in the specified path.</returns>
-        public virtual IList<bool> GetBooleanList(string path, IList<bool> @default)
+        public virtual IList<bool> GetBooleanList(HoconPath path)
         {
-            return WrapWithValueException(path, () => GetBooleanList(HoconPath.Parse(path), @default));
+            return WrapWithValueException(path, () => { return GetNode(path).GetBooleanList(); });
         }
 
         /// <inheritdoc cref="GetBooleanList(string)" />
-        public virtual IList<bool> GetBooleanList(HoconPath path, IList<bool> @default = null)
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        public virtual IList<bool> GetBooleanList(string path, IList<bool> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetBooleanList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetBooleanList(out var result))
+                    return result;
+
+            return @default;
+        }
+
+        /// <inheritdoc cref="GetBooleanList(string)" />
+        /// <param name="path">The path that contains the values to retrieve.</param>
+        /// <param name="default">The default value to return if the value doesn't exist.</param>
+        public virtual IList<bool> GetBooleanList(HoconPath path, IList<bool> @default)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetBooleanList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -479,9 +655,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<decimal> GetDecimalList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetDecimalList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetDecimalList());
+        }
+
+        public virtual IList<decimal> GetDecimalList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetDecimalList());
         }
 
         /// <summary>
@@ -492,17 +671,21 @@ namespace Hocon
         /// <returns>The list of decimal values defined in the specified path.</returns>
         public virtual IList<decimal> GetDecimalList(string path, IList<decimal> @default)
         {
-            return WrapWithValueException(path, () => GetDecimalList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDecimalList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetDecimalList(string)" />
-        public virtual IList<decimal> GetDecimalList(HoconPath path, IList<decimal> @default = null)
+        public virtual IList<decimal> GetDecimalList(HoconPath path, IList<decimal> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetDecimalList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDecimalList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -513,9 +696,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<float> GetFloatList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetFloatList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetFloatList());
+        }
+
+        public virtual IList<float> GetFloatList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetFloatList());
         }
 
         /// <summary>
@@ -526,17 +712,21 @@ namespace Hocon
         /// <returns>The list of float values defined in the specified path.</returns>
         public virtual IList<float> GetFloatList(string path, IList<float> @default)
         {
-            return WrapWithValueException(path, () => GetFloatList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetFloatList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetFloatList(string)" />
-        public virtual IList<float> GetFloatList(HoconPath path, IList<float> @default = null)
+        public virtual IList<float> GetFloatList(HoconPath path, IList<float> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetFloatList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetFloatList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -547,9 +737,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<double> GetDoubleList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetDoubleList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetDoubleList());
+        }
+
+        public virtual IList<double> GetDoubleList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetDoubleList());
         }
 
         /// <summary>
@@ -560,17 +753,21 @@ namespace Hocon
         /// <returns>The list of double values defined in the specified path.</returns>
         public virtual IList<double> GetDoubleList(string path, IList<double> @default)
         {
-            return WrapWithValueException(path, () => GetDoubleList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDoubleList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetDoubleList(string)" />
-        public virtual IList<double> GetDoubleList(HoconPath path, IList<double> @default = null)
+        public virtual IList<double> GetDoubleList(HoconPath path, IList<double> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetDoubleList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetDoubleList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -581,9 +778,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<int> GetIntList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetIntList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetIntList());
+        }
+
+        public virtual IList<int> GetIntList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetIntList());
         }
 
         /// <summary>
@@ -594,17 +794,21 @@ namespace Hocon
         /// <returns>The list of int values defined in the specified path.</returns>
         public virtual IList<int> GetIntList(string path, IList<int> @default)
         {
-            return WrapWithValueException(path, () => GetIntList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetIntList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetIntList(string)" />
-        public virtual IList<int> GetIntList(HoconPath path, IList<int> @default = null)
+        public virtual IList<int> GetIntList(HoconPath path, IList<int> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetIntList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetIntList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -615,9 +819,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<long> GetLongList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetLongList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetLongList());
+        }
+
+        public virtual IList<long> GetLongList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetLongList());
         }
 
         /// <summary>
@@ -628,17 +835,21 @@ namespace Hocon
         /// <returns>The list of long values defined in the specified path.</returns>
         public virtual IList<long> GetLongList(string path, IList<long> @default)
         {
-            return WrapWithValueException(path, () => GetLongList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetLongList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetLongList(string)" />
-        public virtual IList<long> GetLongList(HoconPath path, IList<long> @default = null)
+        public virtual IList<long> GetLongList(HoconPath path, IList<long> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetLongList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetLongList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -649,9 +860,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<byte> GetByteList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetByteList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetByteList());
+        }
+
+        public virtual IList<byte> GetByteList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetByteList());
         }
 
         /// <summary>
@@ -662,17 +876,21 @@ namespace Hocon
         /// <returns>The list of byte values defined in the specified path.</returns>
         public virtual IList<byte> GetByteList(string path, IList<byte> @default)
         {
-            return WrapWithValueException(path, () => GetByteList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByteList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetByteList(string)" />
-        public virtual IList<byte> GetByteList(HoconPath path, IList<byte> @default = null)
+        public virtual IList<byte> GetByteList(HoconPath path, IList<byte> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetByteList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetByteList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -680,11 +898,14 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of string values defined in the specified path.</returns>
-        /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<string> GetStringList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetStringList(HoconPath.Parse(path)) ?? new List<string>());
+            return WrapWithValueException(path, () => GetNode(path).GetStringList() ?? new List<string>());
+        }
+
+        public virtual IList<string> GetStringList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetStringList() ?? new List<string>());
         }
 
         /// <summary>
@@ -695,17 +916,21 @@ namespace Hocon
         /// <returns>The list of string values defined in the specified path.</returns>
         public virtual IList<string> GetStringList(string path, IList<string> @default)
         {
-            return WrapWithValueException(path, () => GetStringList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetStringList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetStringList(string)" />
-        public virtual IList<string> GetStringList(HoconPath path, IList<string> @default = null)
+        public virtual IList<string> GetStringList(HoconPath path, IList<string> @default)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetStringList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetStringList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -716,9 +941,12 @@ namespace Hocon
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
         public virtual IList<HoconObject> GetObjectList(string path)
         {
-            return WrapWithValueException(path,
-                () => GetObjectList(HoconPath.Parse(path)) ??
-                      throw new HoconParserException($"Hocon path {path} does not exist."));
+            return WrapWithValueException(path, () => GetNode(path).GetObjectList());
+        }
+
+        public virtual IList<HoconObject> GetObjectList(HoconPath path)
+        {
+            return WrapWithValueException(path, () => GetNode(path).GetObjectList());
         }
 
         /// <summary>
@@ -729,17 +957,21 @@ namespace Hocon
         /// <returns>The list of objects defined in the specified path.</returns>
         public virtual IList<HoconObject> GetObjectList(string path, IList<HoconObject> @default)
         {
-            return WrapWithValueException(path, () => GetObjectList(HoconPath.Parse(path), @default));
+            if (TryGetNode(path, out var value))
+                if (value.TryGetObjectList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <inheritdoc cref="GetObjectList(string)" />
         public virtual IList<HoconObject> GetObjectList(HoconPath path, IList<HoconObject> @default = null)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default : value.GetObjectList();
-            });
+            if (TryGetNode(path, out var value))
+                if (value.TryGetObjectList(out var result))
+                    return result;
+
+            return @default;
         }
 
         /// <summary>
@@ -749,17 +981,23 @@ namespace Hocon
         /// <returns>The <see cref="HoconValue" /> found at the location if one exists, otherwise <c>null</c>.</returns>
         public virtual HoconValue GetValue(string path)
         {
-            return WrapWithValueException(path, () => GetValue(HoconPath.Parse(path)));
+            return WrapWithValueException(path, () => GetNode(path));
         }
 
         /// <inheritdoc cref="GetValue(string)" />
         public virtual HoconValue GetValue(HoconPath path)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value;
-            });
+            return WrapWithValueException(path, () => GetNode(path));
+        }
+
+        public virtual bool TryGetValue(string path, out HoconValue result)
+        {
+            return TryGetNode(path, out result);
+        }
+
+        public virtual bool TryGetValue(HoconPath path, out HoconValue result)
+        {
+            return TryGetNode(path, out result);
         }
 
         [Obsolete("Use GetTimeSpan instead")]
@@ -782,21 +1020,34 @@ namespace Hocon
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <param name="allowInfinite"><c>true</c> if infinite timespans are allowed; otherwise <c>false</c>.</param>
         /// <returns>The <see cref="TimeSpan" /> value defined in the specified path.</returns>
-        public virtual TimeSpan GetTimeSpan(string path, TimeSpan? @default = null, bool allowInfinite = true)
+        public virtual TimeSpan GetTimeSpan(string path, bool allowInfinite = true)
         {
-            return WrapWithValueException(path, () => GetTimeSpan(HoconPath.Parse(path), @default, allowInfinite));
+            return WrapWithValueException(path, () => GetNode(path).GetTimeSpan(allowInfinite));
         }
 
-        /// <inheritdoc cref="GetTimeSpan(string,System.Nullable{System.TimeSpan},bool)" />
-        public virtual TimeSpan GetTimeSpan(HoconPath path, TimeSpan? @default = null, bool allowInfinite = true)
+        public virtual TimeSpan GetTimeSpan(HoconPath path, bool allowInfinite = true)
         {
-            return WrapWithValueException(path.ToString(), () =>
-            {
-                var value = GetNode(path);
-                return value == null ? @default.GetValueOrDefault() : value.GetTimeSpan(allowInfinite);
-            });
+            return WrapWithValueException(path, () => GetNode(path).GetTimeSpan(allowInfinite));
         }
 
+        public virtual TimeSpan GetTimeSpan(string path, TimeSpan? @default, bool allowInfinite = true)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetTimeSpan(out var result, allowInfinite))
+                    return result;
+
+            return @default.GetValueOrDefault();
+        }
+
+        public virtual TimeSpan GetTimeSpan(HoconPath path, TimeSpan? @default, bool allowInfinite = true)
+        {
+            if (TryGetNode(path, out var value))
+                if (value.TryGetTimeSpan(out var result, allowInfinite))
+                    return result;
+
+            return @default.GetValueOrDefault();
+        }
+        #endregion
         #endregion
     }
 }

@@ -377,45 +377,49 @@ A {
             var emptyConfig = HoconParser.Parse("{}");
             var missingKey = "a";
 
-            emptyConfig.GetInt(missingKey).Should().Be(0);
-            emptyConfig.GetDouble(missingKey).Should().Be(0);
+            emptyConfig.GetInt(missingKey, 0).Should().Be(0);
+            emptyConfig.GetDouble(missingKey, 0).Should().Be(0);
 
             emptyConfig.GetBooleanList(missingKey, new List<bool>()).Should().Equal(new List<bool>());
             emptyConfig.Invoking(c => c.GetBooleanList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetByteList(missingKey, new List<byte>()).Should().Equal(new List<byte>());
             emptyConfig.Invoking(c => c.GetByteList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetDecimalList(missingKey, new List<decimal>()).Should().Equal(new List<decimal>());
             emptyConfig.Invoking(c => c.GetDecimalList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetDoubleList(missingKey, new List<double>()).Should().Equal(new List<double>());
             emptyConfig.Invoking(c => c.GetDoubleList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetFloatList(missingKey, new List<float>()).Should().Equal(new List<float>());
             emptyConfig.Invoking(c => c.GetFloatList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetIntList(missingKey, new List<int>()).Should().Equal(new List<int>());
             emptyConfig.Invoking(c => c.GetIntList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetLongList(missingKey, new List<long>()).Should().Equal(new List<long>());
             emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetObjectList(missingKey, new List<HoconObject>()).Should().Equal(new List<HoconObject>());
             emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconValueException>().Which
-                .InnerException.Should().BeOfType<HoconParserException>();
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
 
             emptyConfig.GetStringList(missingKey, new List<string>()).Should().Equal(new List<string>());
-            
+            emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().Throw<HoconValueException>().Which
+                .InnerException.Should().BeOfType<KeyNotFoundException>();
+
+            /*
             emptyConfig.Invoking(c => c.GetStringList(missingKey)).Should().NotThrow("String list is an exception of the rule")
                 .And.Subject().Should().BeEquivalentTo(new List<string>());
+            */
         }
 
         [Fact]
@@ -710,7 +714,7 @@ b {
         }
 
         [Fact]
-        public void GettingArrayFromLiteralsReturnsNull()
+        public void GettingArrayFromLiteralsShouldThrow()
         {
             var hocon = " literal : a b c";
             HoconParser.Parse(hocon).Invoking(c => c.GetStringList("literal")).Should()
@@ -718,10 +722,12 @@ b {
         }
 
         [Fact]
-        public void GettingStringFromArrayReturnsNull()
+        public void GettingStringFromArrayShouldThrow()
         {
             var hocon = " array : [1,2,3]";
-            Assert.Null(HoconParser.Parse(hocon).GetString("array"));
+            HoconParser.Parse(hocon).Invoking(c => c.GetStringList("literal")).Should()
+                .Throw<HoconException>("Anything converted to array should throw instead");
+            //Assert.Null(HoconParser.Parse(hocon).GetString("array"));
         }
 
         [Fact]

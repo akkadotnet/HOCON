@@ -31,6 +31,19 @@ namespace Hocon
     /// </summary>
     public class HoconObject : Dictionary<string, HoconField>, IHoconElement
     {
+        private static readonly HoconObject _empty;
+        public static HoconObject Empty => _empty;
+
+        static HoconObject()
+        {
+            var value = new HoconValue(null);
+            _empty = new HoconObject(value);
+        }
+
+        [Obsolete("Only used for serialization", true)]
+        private HoconObject()
+        { }
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconObject" /> class.
         /// </summary>
@@ -63,6 +76,8 @@ namespace Hocon
                 return HoconPath.Empty;
             }
         }
+
+        public bool IsEmpty => Count == 0;
 
         /// <summary>
         ///     Retrieves the underlying map that contains the barebones
@@ -126,6 +141,31 @@ namespace Hocon
                     "Object is empty, does not contain any numerically indexed fields, or contains only non-positive integer indices");
 
             return sortedDict.Values.ToList();
+        }
+
+        public bool TryGetArray(out List<HoconValue> result)
+        {
+            result = new List<HoconValue>();
+
+            var sortedDict = new SortedDictionary<int, HoconValue>();
+            var type = HoconType.Empty;
+            foreach (var field in Values)
+            {
+                if (field.Value == null || !int.TryParse(field.Key, out var index) || index < 0)
+                    continue;
+                if (type == HoconType.Empty)
+                    type = field.Type;
+                else if (type != field.Type)
+                    return false;
+
+                sortedDict[index] = field.Value;
+            }
+
+            if (sortedDict.Count == 0)
+                return false;
+
+            result = sortedDict.Values.ToList();
+            return true;
         }
 
         /// <inheritdoc />

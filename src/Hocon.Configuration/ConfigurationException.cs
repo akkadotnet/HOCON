@@ -14,6 +14,13 @@ namespace Hocon
     /// </summary>
     public class ConfigurationException : Exception
     {
+        public static ConfigurationException NullOrEmptyConfig<T>(string path = null)
+        {
+            if (!string.IsNullOrWhiteSpace(path))
+                return new ConfigurationException($"Failed to instantiate {typeof(T).Name}: Configuration does not contain `{path}` node");
+            return new ConfigurationException($"Failed to instantiate {typeof(T).Name}: Configuration is null or empty.");
+        }
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="ConfigurationException" /> class.
         /// </summary>
