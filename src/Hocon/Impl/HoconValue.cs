@@ -313,10 +313,10 @@ namespace Hocon
                     case HoconType.Boolean:
                     case HoconType.Number:
                     case HoconType.String:
-                        var literalList = new List<HoconLiteral>();
-                        foreach(var lit in clonedValue)
-                            literalList.Add((HoconLiteral)lit);
-                        InsertRange(index, literalList);
+                        var elementList = new List<IHoconElement>();
+                        foreach(var element in clonedValue)
+                            elementList.Add(element);
+                        InsertRange(index, elementList);
                         break;
                 }
             }
