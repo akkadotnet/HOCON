@@ -123,8 +123,6 @@ namespace Hocon
 
         private static void Flatten(IHoconElement node)
         {
-            if (node is HoconSubstitution sub)
-                node = sub.ResolvedValue;
 
             if (!(node is HoconValue v))
                 return;
@@ -900,13 +898,11 @@ namespace Hocon
         /// </summary>
         /// <param name="path">The path that contains the values to retrieve.</param>
         /// <returns>The list of string values defined in the specified path.</returns>
-        [Obsolete("Check for default value")]
         public virtual IList<string> GetStringList(string path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetStringList() ?? new List<string>());
         }
 
-        [Obsolete("Check for default value")]
         public virtual IList<string> GetStringList(HoconPath path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetStringList() ?? new List<string>());

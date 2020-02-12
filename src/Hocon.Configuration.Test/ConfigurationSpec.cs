@@ -599,6 +599,43 @@ foo {
             oldAContent.Should().Equals(a);
         }
 
+        [Fact]
+        public void WithFallback_ShouldMergeSubstitutionProperly()
+        {
+            var a = ConfigurationFactory.ParseString("{ executor : fork-join-executor }");
+            var subbed = ConfigurationFactory.ParseString(@"
+mystring = substring
+myapp{
+    my-fork-join-dispatcher {
+        type = ForkJoinDispatcher
+        dedicated-thread-pool.thread-count = 4
+        dedicated-thread-pool.substring = ${mystring}
+    }
+}
+akka.actor.deployment{
+    /pool1 {
+        router = random-pool
+        pool-dispatcher = ${myapp.my-fork-join-dispatcher}
+    }
+}");
+            var combined = a
+                .WithFallback(subbed.GetConfig("akka.actor.deployment./pool1.pool-dispatcher"));
+
+            var expectedConfig = ConfigurationFactory.ParseString(@"
+executor : fork-join-executor
+type = ForkJoinDispatcher
+dedicated-thread-pool.thread-count = 4
+dedicated-thread-pool.substring = substring
+");
+
+            var result = combined.Root.ToString(1, 2);
+            var expected = expectedConfig.Root.ToString(1, 2);
+
+            expected.Should().BeEquivalentTo(result);
+            combined.GetInt("dedicated-thread-pool.thread-count").Should().Be(4);
+            combined.GetString("dedicated-thread-pool.substring").Should().Be("substring");
+        }
+
         /// <summary>
         /// Source issue: https://github.com/akkadotnet/HOCON/issues/175
         /// </summary>

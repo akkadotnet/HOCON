@@ -287,11 +287,10 @@ namespace Hocon
 
         internal void ResolveValue(HoconSubstitution child)
         {
-            if (child.Type == HoconType.Empty)
-            {
-                Remove(child);
-            }
-            else
+            var index = IndexOf(child);
+            Remove(child);
+
+            if (child.Type != HoconType.Empty)
             {
                 if (Type == HoconType.Empty)
                     Type = child.Type;
@@ -299,6 +298,27 @@ namespace Hocon
                     throw HoconParserException.Create(child, child.Path,
                         "Invalid substitution, substituted type be must be mergeable with its sibling type. " +
                         $"Sibling type:{Type}, substitution type:{child.Type}");
+
+                var clonedValue = (HoconValue)child.ResolvedValue.Clone(Parent);
+                switch (Type)
+                {
+                    case HoconType.Object:
+                        Insert(index, clonedValue.GetObject());
+                        break;
+                    case HoconType.Array:
+                        var hoconArray = new HoconArray(this);
+                        hoconArray.AddRange(clonedValue.GetArray());
+                        Insert(index, hoconArray);
+                        break;
+                    case HoconType.Boolean:
+                    case HoconType.Number:
+                    case HoconType.String:
+                        var literalList = new List<HoconLiteral>();
+                        foreach(var lit in clonedValue)
+                            literalList.Add((HoconLiteral)lit);
+                        InsertRange(index, literalList);
+                        break;
+                }
             }
 
             switch (Parent)
