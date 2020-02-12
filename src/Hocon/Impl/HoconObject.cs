@@ -40,6 +40,10 @@ namespace Hocon
             _empty = new HoconObject(value);
         }
 
+        [Obsolete("Only used for serialization", true)]
+        private HoconObject()
+        { }
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconObject" /> class.
         /// </summary>
