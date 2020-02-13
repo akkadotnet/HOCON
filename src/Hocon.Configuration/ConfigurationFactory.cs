@@ -110,7 +110,12 @@ namespace Hocon
             try
             {
                 var def = Load("hocon"); // new default
-                if (def == null || def.IsEmpty) return Load("akka"); // old Akka.NET-specific default
+                if (!def.IsNullOrEmpty())
+                    return def;
+
+                def = Load("akka"); // old Akka.NET-specific default
+                if (!def.IsNullOrEmpty())
+                    return def;
             }
             catch
             {
