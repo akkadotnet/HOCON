@@ -18,28 +18,32 @@ namespace Hocon
         /// </summary>
         /// <param name="c">The top-level config.</param>
         /// <returns>A stringified list of fallbacks</returns>
-        public static string DumpConfig(this Config c)
+        public static string DumpConfig(this Config c, bool dumpAsFallbacks = true)
         {
             var sb = new StringBuilder();
+            if(!dumpAsFallbacks)
+            {
+                sb.AppendLine(c.Root.ToString(1, 2));
+                return sb.ToString();
+            }
+
             var hoconCount = 0;
 
-            void AppendHocon(Config config, int i)
+            void AppendHocon(HoconValue value, int i)
             {
                 sb.AppendFormat("HOCON{0}", i)
                     .AppendLine()
-                    .Append(config.PrettyPrint(2))
+                    .Append(value.ToString(1, 2))
                     .AppendLine();
             }
 
-            AppendHocon(c, hoconCount);
+            AppendHocon(c.Value, hoconCount);
 
-            var current = c;
-            while (current.Fallback != null)
+            foreach(var fallback in c.Fallbacks)
             {
                 // add a header here
                 sb.AppendLine().AppendLine("------------");
-                current = current.Fallback;
-                AppendHocon(current, ++hoconCount);
+                AppendHocon(fallback, ++hoconCount);
             }
 
             return sb.ToString();

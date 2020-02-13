@@ -21,7 +21,7 @@ namespace Hocon.Tests
         [InlineData("a:{-1:{foo:a}, -2:{bar:a}}")]
         public void WithEmptyOrNonPositiveIndicesShouldThrow(string hocon)
         {
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             var ex = Assert.Throws<HoconValueException>(() => { config.GetObjectList("a"); });
             ex.GetBaseException().Should().BeOfType<HoconException>();
             ex.FailPath.Should().Be("a");
@@ -36,7 +36,7 @@ namespace Hocon.Tests
         [InlineData("a:{0:a, -1:b, 1:c}")]
         public void ShouldIgnoreAnyKeysUnparseableToPositiveInt(string hocon)
         {
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.True(new[] {"a", "c"}.SequenceEqual(config.GetStringList("a")));
         }
 
@@ -51,7 +51,7 @@ namespace Hocon.Tests
         [InlineData("a:{22:c, 5:a, 12:b}")]
         public void ShouldSortBasedOnIndicesAndProduceNonSparseArray(string hocon)
         {
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.True(new[] {"a", "b", "c"}.SequenceEqual(config.GetStringList("a")));
         }
 
@@ -63,7 +63,7 @@ namespace Hocon.Tests
         public void CanConvertToBooleanList()
         {
             var hocon = @"a={0:true, 1:false, 2:true, 3:false}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.True(config.GetBoolean("a.0"));
             Assert.False(config.GetBoolean("a.1"));
@@ -76,7 +76,7 @@ namespace Hocon.Tests
         public void CanConvertToByteList()
         {
             var hocon = @"a={0:1, 1:2, 2:3, 3:4}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal((byte) 1, config.GetByte("a.0"));
             Assert.Equal((byte) 2, config.GetByte("a.1"));
@@ -89,7 +89,7 @@ namespace Hocon.Tests
         public void CanConvertToDecimalList()
         {
             var hocon = @"a={0:1.0, 1:2.0, 2:3.0, 3:4.0}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal(1.0M, config.GetDecimal("a.0"));
             Assert.Equal(2.0M, config.GetDecimal("a.1"));
@@ -102,7 +102,7 @@ namespace Hocon.Tests
         public void CanConvertToDoubleList()
         {
             var hocon = @"a={0:1.0, 1:2.0, 2:3.0, 3:4.0}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal(1.0, config.GetDouble("a.0"));
             Assert.Equal(2.0, config.GetDouble("a.1"));
@@ -115,7 +115,7 @@ namespace Hocon.Tests
         public void CanConvertToFloatList()
         {
             var hocon = @"a={0:1.0, 1:2.0, 2:3.0, 3:4.0}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal(1.0f, config.GetFloat("a.0"));
             Assert.Equal(2.0f, config.GetFloat("a.1"));
@@ -128,7 +128,7 @@ namespace Hocon.Tests
         public void CanConvertToIntList()
         {
             var hocon = @"a={0:1, 1:2, 2:3, 3:4}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal(1, config.GetInt("a.0"));
             Assert.Equal(2, config.GetInt("a.1"));
@@ -141,7 +141,7 @@ namespace Hocon.Tests
         public void CanConvertToLongList()
         {
             var hocon = @"a={0:1, 1:2, 2:3, 3:4}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal(1L, config.GetLong("a.0"));
             Assert.Equal(2L, config.GetLong("a.1"));
@@ -169,7 +169,7 @@ a: {
     b: jerry
   }, 
 }";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             var objectList = config.GetObjectList("a");
             Assert.Equal("bar", objectList[0]["a.foo"].GetString());
@@ -183,7 +183,7 @@ a: {
         public void CanConvertToStringList()
         {
             var hocon = @"a={0:a, 1:b, 2:c, 3:d}";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal("a", config.GetString("a.0"));
             Assert.Equal("b", config.GetString("a.1"));
@@ -205,7 +205,7 @@ a: {
   1: b 
   2: 1 
 }";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
 
             Assert.Throws<HoconValueException>(() => { config.GetObjectList("a"); });
             Assert.Throws<HoconValueException>(() => { config.GetStringList("a"); });

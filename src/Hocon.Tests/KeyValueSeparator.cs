@@ -42,7 +42,7 @@ root = {
 }
 root_2 : 1234
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("1.23", config.GetString("root.double"));
             Assert.True(config.GetBoolean("root.bool"));
@@ -72,7 +72,7 @@ root_2 {
   unquoted-string = bar
 }
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal("1", config.GetString("root.int"));
             Assert.Equal("bar", config.GetString("root_2.unquoted-string"));
         }

@@ -26,7 +26,7 @@ namespace Hocon.Configuration.Tests
             };
         }
 
-        [Theory(Skip = "Doesn't work right now")]
+        [Theory]
         [MemberData(nameof(HoconGenerator))]
         public void ShouldSerializeHocon(string hocon, string fallback1, string fallback2)
         {
@@ -42,8 +42,25 @@ namespace Hocon.Configuration.Tests
         private void VerifySerialization(Config config)
         {
             var serialized = JsonConvert.SerializeObject(config);
-            var deserialized = (Config)JsonConvert.DeserializeObject(serialized);
+            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
             config.DumpConfig().Should().Be(deserialized.DumpConfig());
+        }
+
+        [Fact]
+        public void CanSerializeEmptyConfig()
+        {
+            var config = Config.Empty;
+            var serialized = JsonConvert.SerializeObject(config);
+            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
+            deserialized.IsEmpty.Should().BeTrue();
+        }
+
+        [Fact]
+        public void ShouldResolveEmptyToEmpty()
+        {
+            ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
+            ConfigurationFactory.ParseString("{}").IsEmpty.Should().BeTrue();
+            Config.Empty.IsEmpty.Should().BeTrue();
         }
     }
 }

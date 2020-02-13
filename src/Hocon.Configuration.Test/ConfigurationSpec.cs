@@ -95,8 +95,8 @@ a {
 }
 ";
 
-            var root1 = Parser.Parse(hocon1);
-            var root2 = Parser.Parse(hocon2);
+            var root1 = HoconParser.Parse(hocon1);
+            var root2 = HoconParser.Parse(hocon2);
 
             var obj1 = root1.Value.GetObject();
             var obj2 = root2.Value.GetObject();
@@ -246,7 +246,7 @@ foo {
                     }
 	            }");
             
-            var merged = config1.WithFallback(config2).Root.GetObject(); // Perform values loading
+            var merged = config1.WithFallback(config2).Value.GetObject(); // Perform values loading
             
             config1.GetInt("a.b.c").Should().Be(5);
             config1.GetInt("a.b.e").Should().Be(7);
@@ -456,7 +456,7 @@ foo {
 
             // normal fallback
             var f1 = c1.WithFallback(c2).WithFallback(Config.Empty);
-            c1.Fallback.Should().BeNull(); // original copy should not have been modified.
+            c1.Fallbacks.Count.Should().Be(0); // original copy should not have been modified.
 
             // someone adds the same fallback again with realizing it
             f1.WithFallback(Config.Empty).GetString("bar.biz").Should().Be("fuber"); // shouldn't throw
@@ -480,7 +480,7 @@ foo {
                 }
             ");
 
-            var megred = config2.WithFallback(config1).Root;
+            var megred = config2.WithFallback(config1).Value;
             // Is throwing at "/weird/*" key parsing
             megred.Invoking(r => r.GetObject()).Should().NotThrow();
         }
@@ -501,7 +501,7 @@ foo {
                 }"
             );
 
-            var megred = config2.WithFallback(config1).Root;
+            var megred = config2.WithFallback(config1).Value;
             // Is throwing at "System.Byte[]" key parsing
             megred.Invoking(r => r.GetObject()).Should().NotThrow();
         }
@@ -526,7 +526,7 @@ foo {
             var configWithFallback = config1.WithFallback(config2);
             
             var config = configWithFallback.GetConfig("akka.actor.deployment");
-            var rootObj = config.Root.GetObject();
+            var rootObj = config.Value.GetObject();
             rootObj.Unwrapped.Should().ContainKeys("/worker1", "/worker2");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
@@ -575,6 +575,65 @@ foo {
             c.ToString().Should().Contain("some-key", "Original values are shown by default");
             c.ToString(true).Should().Contain("some-key", "Original values should be displayed always");
 
+        }
+
+        [Fact]
+        public void WithFallback_ShouldNotChangeOriginalConfig()
+        {
+            var a = ConfigurationFactory.ParseString(@" akka : {
+                some-key : value
+            }");
+            var b = ConfigurationFactory.ParseString(@"akka : {
+                other-key : 42
+            }");
+
+            var oldA = a;
+            var oldAContent = new Config(a);
+
+            a.WithFallback(b);
+            a.WithFallback(b);
+
+            a.Fallbacks.Count.Should().Be(0);
+            a.GetString("akka.other-key", null).Should().BeNull();
+            ReferenceEquals(oldA, a).Should().BeTrue();
+            oldAContent.Should().Equals(a);
+        }
+
+        [Fact]
+        public void WithFallback_ShouldMergeSubstitutionProperly()
+        {
+            var a = ConfigurationFactory.ParseString("{ executor : fork-join-executor }");
+            var subbed = ConfigurationFactory.ParseString(@"
+mystring = substring
+myapp{
+    my-fork-join-dispatcher {
+        type = ForkJoinDispatcher
+        dedicated-thread-pool.thread-count = 4
+        dedicated-thread-pool.substring = ${mystring}
+    }
+}
+akka.actor.deployment{
+    /pool1 {
+        router = random-pool
+        pool-dispatcher = ${myapp.my-fork-join-dispatcher}
+    }
+}");
+            var combined = a
+                .WithFallback(subbed.GetConfig("akka.actor.deployment./pool1.pool-dispatcher"));
+
+            var expectedConfig = ConfigurationFactory.ParseString(@"
+executor : fork-join-executor
+type = ForkJoinDispatcher
+dedicated-thread-pool.thread-count = 4
+dedicated-thread-pool.substring = substring
+");
+
+            var result = combined.Root.ToString(1, 2);
+            var expected = expectedConfig.Root.ToString(1, 2);
+
+            expected.Should().BeEquivalentTo(result);
+            combined.GetInt("dedicated-thread-pool.thread-count").Should().Be(4);
+            combined.GetString("dedicated-thread-pool.substring").Should().Be("substring");
         }
 
         /// <summary>

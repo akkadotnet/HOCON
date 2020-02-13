@@ -31,6 +31,19 @@ namespace Hocon
     /// </summary>
     public class HoconObject : Dictionary<string, HoconField>, IHoconElement
     {
+        private static readonly HoconObject _empty;
+        public static HoconObject Empty => _empty;
+
+        static HoconObject()
+        {
+            var value = new HoconValue(null);
+            _empty = new HoconObject(value);
+        }
+
+        [Obsolete("Only used for serialization", true)]
+        private HoconObject()
+        { }
+
         /// <summary>
         ///     Initializes a new instance of the <see cref="HoconObject" /> class.
         /// </summary>
@@ -63,6 +76,8 @@ namespace Hocon
                 return HoconPath.Empty;
             }
         }
+
+        public bool IsEmpty => Count == 0;
 
         /// <summary>
         ///     Retrieves the underlying map that contains the barebones
@@ -128,6 +143,31 @@ namespace Hocon
             return sortedDict.Values.ToList();
         }
 
+        public bool TryGetArray(out List<HoconValue> result)
+        {
+            result = new List<HoconValue>();
+
+            var sortedDict = new SortedDictionary<int, HoconValue>();
+            var type = HoconType.Empty;
+            foreach (var field in Values)
+            {
+                if (field.Value == null || !int.TryParse(field.Key, out var index) || index < 0)
+                    continue;
+                if (type == HoconType.Empty)
+                    type = field.Type;
+                else if (type != field.Type)
+                    return false;
+
+                sortedDict[index] = field.Value;
+            }
+
+            if (sortedDict.Count == 0)
+                return false;
+
+            result = sortedDict.Values.ToList();
+            return true;
+        }
+
         /// <inheritdoc />
         public string ToString(int indent, int indentSize)
         {
@@ -146,14 +186,6 @@ namespace Hocon
             return clone;
         }
 
-        public bool Equals(IHoconElement other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            if (other.Type != HoconType.Object) return false;
-            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
-        }
-
         /// <summary>
         ///     Retrieves the <see cref="HoconField" /> field associated with the supplied <see cref="string" /> key.
         /// </summary>
@@ -168,11 +200,6 @@ namespace Hocon
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
             
-            // Sometimes path may be a double-quoted string like "a.b.c" with quotes ommited,
-            // so check if there is such key first
-            if (TryGetValue(key, out var rootField))
-                return rootField;
-
             var path = HoconPath.Parse(key);
             return GetField(path);
         }
@@ -398,18 +425,48 @@ namespace Hocon
             var keys = other.Keys.ToArray();
             foreach (var key in keys)
             {
+                var quotedKey = $"\"{key}\"";
                 if (!ContainsKey(key))
                 {
-                    base[key] = other[key];
+                    base[key] = other[quotedKey];
                     continue;
                 }
 
-                var thisItem = this[key];
-                var otherItem = other[key].Value;
+                var thisItem = this[quotedKey];
+                var otherItem = other[quotedKey].Value;
                 if (thisItem.Type == HoconType.Object && otherItem.Type == HoconType.Object)
                     thisItem.GetObject().Merge(otherItem.GetObject());
                 else
                     thisItem.SetValue(otherItem);
+            }
+        }
+
+        public void FallbackMerge(HoconObject other)
+        {
+            foreach(var kvp in other)
+            {
+                var path = kvp.Value.Path;
+                if (!TryGetValue(path, out _))
+                {
+                    var currentObject = this;
+                    HoconField newField = null;
+                    foreach (var key in path)
+                    {
+                        newField = currentObject.GetOrCreateKey(key);
+                        if (newField.Type == HoconType.Empty)
+                        {
+                            var emptyValue = new HoconValue(newField);
+                            emptyValue.Add(new HoconObject(emptyValue));
+                            newField.SetValue(emptyValue);
+                        }
+                        currentObject = newField.GetObject();
+                    }
+                    newField.SetValue(kvp.Value.Value);
+                } else
+                {
+                    if(kvp.Value.Type == HoconType.Object)
+                        FallbackMerge(kvp.Value.GetObject());
+                }
             }
         }
 
@@ -422,6 +479,14 @@ namespace Hocon
                 else
                     Remove(child.Key);
             }
+        }
+
+        public bool Equals(IHoconElement other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (other.Type != HoconType.Object) return false;
+            return this.AsEnumerable().SequenceEqual(other.GetObject().AsEnumerable());
         }
 
         public override bool Equals(object obj)

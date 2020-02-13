@@ -35,7 +35,7 @@ foo : { a : 42 },
 foo : { b : 43 }
 ";
 
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(42, config.GetInt("foo.a"));
             Assert.Equal(43, config.GetInt("foo.b"));
         }
@@ -69,7 +69,7 @@ foo
 }
 ";
 
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(42, config.GetInt("foo.bar.a"));
             Assert.Equal(44, config.GetInt("foo.bar.b"));
             Assert.Equal(45, config.GetInt("foo.bar.c"));
@@ -88,7 +88,7 @@ foo : { a : 42 },
 foo : { a : 43 }
 ";
 
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(43, config.GetInt("foo.a"));
         }
 
@@ -112,7 +112,7 @@ b=${y}
 c=${x}
 c={ d : 600, e : ${a}, f : ${b} }";
 
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             _output.WriteLine(config.PrettyPrint(2));
             Assert.Equal(3, config.GetInt("a.c"));
             Assert.Equal(10, config.GetInt("a.q"));
@@ -137,7 +137,7 @@ c={ d : 600, e : ${a}, f : ${b} }";
 foo : literal
 foo : 42
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(42, config.GetInt("foo"));
         }
 
@@ -154,7 +154,7 @@ foo : 42
     foo : null,
     foo : { b : 43 }
 }";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.False(config.HasPath("foo.a"));
             Assert.Equal(43, config.GetInt("foo.b"));
         }
@@ -170,7 +170,7 @@ foo : 42
     foo { y = 2 }
     foo.z = 32
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             Assert.Equal(1, config.GetInt("foo.x"));
             Assert.Equal(2, config.GetInt("foo.y"));
             Assert.Equal(32, config.GetInt("foo.z"));
@@ -191,9 +191,9 @@ c: {
     a: [2, 5] [6] 
 }
 ";
-            var config = Parser.Parse(hocon);
+            var config = HoconParser.Parse(hocon);
             config.GetIntList("c.a").Should().Equal(6);
-            config = Parser.Parse(hocon2);
+            config = HoconParser.Parse(hocon2);
             config.GetIntList("c.a").Should().Equal(2, 5, 6);
         }
     }

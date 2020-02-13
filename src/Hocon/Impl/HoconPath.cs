@@ -159,6 +159,20 @@ namespace Hocon
             return new HoconPath(result);
         }
 
+        public static bool TryParse(string path, out HoconPath result)
+        {
+            result = null;
+            if (path == null)
+                return false;
+            try
+            {
+                result = FromTokens(new HoconTokenizer(path).Tokenize());
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
         public static HoconPath Parse(string path)
         {
             if (path == null)

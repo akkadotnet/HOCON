@@ -73,7 +73,9 @@ namespace Hocon
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return other is HoconArray array && Equals(array);
+            if (other.Type != HoconType.Array) return false;
+            if (other is HoconArray array) return Equals(array);
+            return this.SequenceEqual(other.GetArray());
         }
 
         public new void Add(HoconValue value)
