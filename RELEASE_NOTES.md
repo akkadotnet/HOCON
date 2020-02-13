@@ -1,7 +1,5 @@
-#### 1.3.4 January 27 2020 ####
-**Placeholder for nightlies**
+### 2.0.0 February 13 2020 ####
 
-### 2.0.1 February 13 2020 ####
 * [Add JSON serialization by implementing `ISerializable`.](https://github.com/akkadotnet/HOCON/pull/214)
 * [Resolve `Config` containing a single empty object as an empty `Config`.](https://github.com/akkadotnet/HOCON/pull/214)
 * [Refactor `Hocon.Parser` class to `Hocon.HoconParser` for clarity.](https://github.com/akkadotnet/HOCON/pull/215)
