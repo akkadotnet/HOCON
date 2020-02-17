@@ -125,38 +125,15 @@ namespace Hocon
         protected override bool TryGetNode(HoconPath path, out HoconValue result)
         {
             result = null;
-            var currentObject = Value.GetObject();
-            if (currentObject == null)
-                return false;
-            if (currentObject.TryGetValue(path, out result))
-                return true;
-
-            foreach (var value in _fallbacks)
-            {
-                currentObject = value.GetObject();
-                if (currentObject == null)
-                    return false;
-                if (currentObject.TryGetValue(path, out result))
+            if (Root.TryGetObject(out var obj))
+                if (obj.TryGetValue(path, out result))
                     return true;
-            }
-
             return false;
         }
 
         protected override HoconValue GetNode(HoconPath path)
         {
-            var currentObject = Value.GetObject();
-            if (currentObject.TryGetValue(path, out var returnValue))
-                return returnValue;
-
-            foreach(var value in _fallbacks)
-            {
-                currentObject = value.GetObject();
-                if (currentObject.TryGetValue(path, out returnValue))
-                    return returnValue;
-            }
-
-            throw new HoconException($"Could not find accessible field at path `{path}` in all fallbacks.");
+            return Root.GetObject().GetValue(path);
         }
 
         /// <summary>
