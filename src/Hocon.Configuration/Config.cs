@@ -22,7 +22,7 @@ namespace Hocon
     {
         private static readonly HoconValue EmptyValue;
 
-        public const string SerializedPropertyName = "_dump";
+        private const string SerializedPropertyName = "_data";
 
         static Config()
         {
@@ -51,12 +51,12 @@ namespace Hocon
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="source">The root node to base this configuration.</param>
+        /// <param name="root">The root node to base this configuration.</param>
         /// <exception cref="T:System.ArgumentNullException">"The root value cannot be null."</exception>
-        public Config(HoconRoot source)
+        public Config(HoconRoot root)
         {
-            Value = (HoconValue)source.Value.Clone(null);
-            if (!(source is Config cfg))
+            Value = (HoconValue)root.Value.Clone(null);
+            if (!(root is Config cfg))
                 return;
 
             foreach(var value in cfg._fallbacks)
@@ -66,16 +66,16 @@ namespace Hocon
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="source">The configuration to use as the primary source.</param>
+        /// <param name="root">The configuration to use as the primary source.</param>
         /// <param name="fallback">The configuration to use as a secondary source.</param>
         /// <exception cref="ArgumentNullException">The source configuration cannot be null.</exception>
-        public Config(HoconRoot source, Config fallback) : this(source)
+        public Config(HoconRoot root, Config fallback) : this(root)
         {
             MergeConfig(fallback);
         }
 
         /// <summary>
-        ///     Identical to <see cref="ConfigurationFactory.Empty" />.
+        ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
         /// </summary>
         /// <remarks>
         ///     Added for brevity and API backwards-compatibility with Akka.Hocon.
@@ -242,7 +242,7 @@ namespace Hocon
         /// <returns>The supplied configuration configured with the supplied fallback.</returns>
         public static Config operator +(Config config, string fallback)
         {
-            return config.WithFallback(ConfigurationFactory.ParseString(fallback));
+            return config.WithFallback(HoconConfigurationFactory.ParseString(fallback));
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace Hocon
         /// <returns>A configuration configured with the supplied fallback.</returns>
         public static Config operator +(string configHocon, Config fallbackConfig)
         {
-            return ConfigurationFactory.ParseString(configHocon).WithFallback(fallbackConfig);
+            return HoconConfigurationFactory.ParseString(configHocon).WithFallback(fallbackConfig);
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Hocon
         /// <returns>A configuration based on the supplied string.</returns>
         public static implicit operator Config(string str)
         {
-            return ConfigurationFactory.ParseString(str);
+            return HoconConfigurationFactory.ParseString(str);
         }
 
         /// <inheritdoc />
@@ -307,7 +307,7 @@ namespace Hocon
         [Obsolete("Used for serialization only", true)]
         public Config(SerializationInfo info, StreamingContext context):base(null)
         {
-            var config = ConfigurationFactory.ParseString(info.GetValue(SerializedPropertyName, typeof(string)) as string);
+            var config = HoconConfigurationFactory.ParseString(info.GetValue(SerializedPropertyName, typeof(string)) as string);
             
             Value = config.Value;
             _fallbacks.AddRange(config._fallbacks);
