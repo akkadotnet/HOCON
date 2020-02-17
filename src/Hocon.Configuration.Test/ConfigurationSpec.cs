@@ -34,7 +34,7 @@ namespace Hocon.Configuration.Tests
         [Fact]
         public void Config_should_be_serializable()
         {
-            var config = ConfigurationFactory.ParseString(@"
+            var config = HoconConfigurationFactory.ParseString(@"
                 foo{
                   bar.biz = 12
                   baz = ""quoted""
@@ -52,7 +52,7 @@ a {
    ""some quoted, key"": 123
 }
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconConfigurationFactory.ParseString(hocon);
             var config2 = config.GetConfig("a");
             var enumerable = config2.AsEnumerable();
 
@@ -65,8 +65,8 @@ a {
         [Fact]
         public void CanLoadDefaultConfig()
         {
-            var defaultConf = ConfigurationFactory.Default();
-            defaultConf.Should().NotBe(ConfigurationFactory.Empty);
+            var defaultConf = HoconConfigurationFactory.Default();
+            defaultConf.Should().NotBe(HoconConfigurationFactory.Empty);
             defaultConf.HasPath("root.simple-string").Should().BeTrue();
             defaultConf.GetString("root.simple-string").Should().Be("Hello HOCON2");
         }
@@ -121,7 +121,7 @@ a {
    ""some quoted, key"": 123
 }
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconConfigurationFactory.ParseString(hocon);
             Assert.Equal(123, config.GetInt("a.\"some quoted, key\""));
         }
 
@@ -146,7 +146,7 @@ akka.actor {
 
 }";
 
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconConfigurationFactory.ParseString(hocon);
 
             var serializersConfig = config.GetConfig("akka.actor.serializers").AsEnumerable().ToList();
             var serializerBindingConfig = config.GetConfig("akka.actor.serialization-bindings").AsEnumerable().ToList();
@@ -173,7 +173,7 @@ a {
      d = true
    }
 }";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconConfigurationFactory.ParseString(hocon);
             var subConfig = config.GetConfig("a");
             Assert.Equal(1, subConfig.GetInt("b.c"));
             Assert.True(subConfig.GetBoolean("b.d"));
@@ -192,7 +192,7 @@ c: {
     m: ${c.q} {a: [6]}
 }
 ";
-            var config = ConfigurationFactory.ParseString(hocon);
+            var config = HoconConfigurationFactory.ParseString(hocon);
             var unchanged = config.GetIntList("c.q.a");
             unchanged.Should().Equal(2, 5);
             var changed = config.GetIntList("c.m.a");
@@ -218,8 +218,8 @@ foo {
    }
 }";
 
-            var config1 = ConfigurationFactory.ParseString(hocon1);
-            var config2 = ConfigurationFactory.ParseString(hocon2);
+            var config1 = HoconConfigurationFactory.ParseString(hocon1);
+            var config2 = HoconConfigurationFactory.ParseString(hocon2);
 
             var config = config1.WithFallback(config2);
 
@@ -231,14 +231,14 @@ foo {
         [Fact]
         public void Fallback_should_not_be_modified()
         {
-            var config1 = ConfigurationFactory.ParseString(@"
+            var config1 = HoconConfigurationFactory.ParseString(@"
 	            a {
                     b {
                         c = 5
                         e = 7
                     }
 	            }");
-            var config2 = ConfigurationFactory.ParseString(@"
+            var config2 = HoconConfigurationFactory.ParseString(@"
 	            a {
                     b {
                         d = 3
@@ -272,8 +272,8 @@ foo {
    }
 }";
 
-            var config1 = ConfigurationFactory.ParseString(hocon1);
-            var config2 = ConfigurationFactory.ParseString(hocon2);
+            var config1 = HoconConfigurationFactory.ParseString(hocon1);
+            var config2 = HoconConfigurationFactory.ParseString(hocon2);
 
             var config = config1.WithFallback(config2).GetConfig("foo.bar");
 
@@ -302,8 +302,8 @@ foo {
 }
 dar = d";
 
-            var config1 = ConfigurationFactory.ParseString(hocon1);
-            var config2 = ConfigurationFactory.ParseString(hocon2);
+            var config1 = HoconConfigurationFactory.ParseString(hocon1);
+            var config2 = HoconConfigurationFactory.ParseString(hocon2);
 
             var config = config1.WithFallback(config2);
 
@@ -328,7 +328,7 @@ foo {
    car = ""bar""
 }
 dar = d";
-            var config2 = ConfigurationFactory.ParseString(hocon2);
+            var config2 = HoconConfigurationFactory.ParseString(hocon2);
 
             var config = config1.SafeWithFallback(config2);
 
@@ -370,10 +370,10 @@ foo {
    }
 }";
 
-            var config1 = ConfigurationFactory.ParseString(hocon1);
-            var config2 = ConfigurationFactory.ParseString(hocon2);
-            var config3 = ConfigurationFactory.ParseString(hocon3);
-            var config4 = ConfigurationFactory.ParseString(hocon4);
+            var config1 = HoconConfigurationFactory.ParseString(hocon1);
+            var config2 = HoconConfigurationFactory.ParseString(hocon2);
+            var config3 = HoconConfigurationFactory.ParseString(hocon3);
+            var config4 = HoconConfigurationFactory.ParseString(hocon4);
 
             var config = config1.WithFallback(config2).WithFallback(config3).WithFallback(config4);
 
@@ -415,10 +415,10 @@ foo {
    }
 }";
 
-            var config1 = ConfigurationFactory.ParseString(hocon1);
-            var config2 = ConfigurationFactory.ParseString(hocon2);
-            var config3 = ConfigurationFactory.ParseString(hocon3);
-            var config4 = ConfigurationFactory.ParseString(hocon4);
+            var config1 = HoconConfigurationFactory.ParseString(hocon1);
+            var config2 = HoconConfigurationFactory.ParseString(hocon2);
+            var config3 = HoconConfigurationFactory.ParseString(hocon3);
+            var config4 = HoconConfigurationFactory.ParseString(hocon4);
 
             var config = config1.WithFallback(config2.WithFallback(config3.WithFallback(config4)));
 
@@ -432,14 +432,14 @@ foo {
         [Fact]
         public void Config_Empty_is_Empty()
         {
-            ConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
+            HoconConfigurationFactory.Empty.IsEmpty.Should().BeTrue();
         }
 
         [Fact]
         public void HoconValue_GetObject_should_use_fallback_values()
         {
-            var config1 = ConfigurationFactory.ParseString("a = 5");
-            var config2 = ConfigurationFactory.ParseString("b = 3");
+            var config1 = HoconConfigurationFactory.ParseString("a = 5");
+            var config2 = HoconConfigurationFactory.ParseString("b = 3");
             var config = config1.WithFallback(config2);
             var rootObject = config.Root.GetObject();
             rootObject.ContainsKey("a").Should().BeTrue();
@@ -451,8 +451,8 @@ foo {
         [Fact]
         public void Config_will_not_throw_on_duplicate_fallbacks()
         {
-            var c1 = ConfigurationFactory.ParseString(@"foo.bar = baz");
-            var c2 = ConfigurationFactory.ParseString(@"bar.biz = fuber");
+            var c1 = HoconConfigurationFactory.ParseString(@"foo.bar = baz");
+            var c2 = HoconConfigurationFactory.ParseString(@"bar.biz = fuber");
 
             // normal fallback
             var f1 = c1.WithFallback(c2).WithFallback(Config.Empty);
@@ -468,10 +468,10 @@ foo {
         [Fact]
         public void Quoted_key_should_be_parsed()
         {
-            var config1 = ConfigurationFactory.ParseString(
+            var config1 = HoconConfigurationFactory.ParseString(
                 "akka.actor.deployment.default = { }"
              );
-            var config2 = ConfigurationFactory.ParseString(@"
+            var config2 = HoconConfigurationFactory.ParseString(@"
                 akka.actor.deployment {
                   ""/weird/*"" {
                     router = round-robin-pool
@@ -488,13 +488,13 @@ foo {
         [Fact]
         public void Quoted_key_with_dot_should_be_parsed()
         {
-            var config1 = ConfigurationFactory.ParseString(
+            var config1 = HoconConfigurationFactory.ParseString(
                 @"akka.actor.serialization-bindings = {
                     ""System.Byte[]"" : bytes,
                     ""System.Object"" : json
                 }"
             );
-            var config2 = ConfigurationFactory.ParseString(
+            var config2 = HoconConfigurationFactory.ParseString(
                 @"akka.actor.serialization-bindings = {
                     ""System.Byte[]"" : bytes,
                     ""System.Object"" : json
@@ -509,14 +509,14 @@ foo {
         [Fact]
         public void HoconValue_GetObject_should_use_fallback_values_with_complex_objects()
         {
-            var config1 = ConfigurationFactory.ParseString(@"
+            var config1 = HoconConfigurationFactory.ParseString(@"
 	            akka.actor.deployment {
 		            /worker1 {
 			            router = round-robin-group1
 			            routees.paths = [""/user/testroutes/1""]
 		            }
 	            }");
-            var config2 = ConfigurationFactory.ParseString(@"
+            var config2 = HoconConfigurationFactory.ParseString(@"
 	            akka.actor.deployment {
 		            /worker2 {
 			            router = round-robin-group2
@@ -558,10 +558,10 @@ foo {
         [Fact]
         public void ShouldSerializeFallbackValues()
         {
-            var a = ConfigurationFactory.ParseString(@" akka : {
+            var a = HoconConfigurationFactory.ParseString(@" akka : {
                 some-key : value
             }");
-            var b = ConfigurationFactory.ParseString(@"akka : {
+            var b = HoconConfigurationFactory.ParseString(@"akka : {
                 other-key : 42
             }");
 
@@ -580,10 +580,10 @@ foo {
         [Fact]
         public void WithFallback_ShouldNotChangeOriginalConfig()
         {
-            var a = ConfigurationFactory.ParseString(@" akka : {
+            var a = HoconConfigurationFactory.ParseString(@" akka : {
                 some-key : value
             }");
-            var b = ConfigurationFactory.ParseString(@"akka : {
+            var b = HoconConfigurationFactory.ParseString(@"akka : {
                 other-key : 42
             }");
 
@@ -602,8 +602,8 @@ foo {
         [Fact]
         public void WithFallback_ShouldMergeSubstitutionProperly()
         {
-            var a = ConfigurationFactory.ParseString("{ executor : fork-join-executor }");
-            var subbed = ConfigurationFactory.ParseString(@"
+            var a = HoconConfigurationFactory.ParseString("{ executor : fork-join-executor }");
+            var subbed = HoconConfigurationFactory.ParseString(@"
 mystring = substring
 myapp{
     my-fork-join-dispatcher {
@@ -621,7 +621,7 @@ akka.actor.deployment{
             var combined = a
                 .WithFallback(subbed.GetConfig("akka.actor.deployment./pool1.pool-dispatcher"));
 
-            var expectedConfig = ConfigurationFactory.ParseString(@"
+            var expectedConfig = HoconConfigurationFactory.ParseString(@"
 executor : fork-join-executor
 type = ForkJoinDispatcher
 dedicated-thread-pool.thread-count = 4

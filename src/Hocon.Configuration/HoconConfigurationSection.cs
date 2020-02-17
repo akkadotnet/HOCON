@@ -37,7 +37,7 @@ namespace Hocon
             get
             {
                 if (_config == null && !string.IsNullOrWhiteSpace(Hocon.Content))
-                    _config = ConfigurationFactory.ParseString(Hocon.Content);
+                    _config = HoconConfigurationFactory.ParseString(Hocon.Content);
                 return _config;
             }
         }
