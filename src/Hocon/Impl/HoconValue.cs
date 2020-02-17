@@ -119,7 +119,7 @@ namespace Hocon
         ///     Retrieves a list of values from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>A list of values represented by this <see cref="HoconValue" />.</returns>
-        public virtual List<HoconValue> GetArray()
+        public virtual IList<HoconValue> GetArray()
         {
             switch (Type)
             {
