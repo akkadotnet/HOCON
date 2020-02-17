@@ -11,6 +11,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="HoconAPISpec.ApproveConfiguration.approved.txt" />
+    <None Remove="HoconAPISpec.ApproveCore.approved.txt" />
+    <None Remove="HoconAPISpec.ApproveExtensionConfiguration.approved.txt" />
+    <None Remove="HoconAPISpec.ApproveImmutable.approved.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="HoconAPISpec.ApproveConfiguration.approved.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="HoconAPISpec.ApproveCore.approved.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="HoconAPISpec.ApproveExtensionConfiguration.approved.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="HoconAPISpec.ApproveImmutable.approved.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ApiApprover" Version="9.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
