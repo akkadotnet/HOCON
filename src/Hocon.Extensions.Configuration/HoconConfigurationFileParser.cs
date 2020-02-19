@@ -70,7 +70,7 @@ namespace Hocon.Extensions.Configuration
             }
         }
 
-        private void VisitArray(List<HoconValue> array)
+        private void VisitArray(IList<HoconValue> array)
         {
             for (int index = 0; index < array.Count; index++)
             {

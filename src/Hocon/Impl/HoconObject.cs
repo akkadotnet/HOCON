@@ -119,7 +119,7 @@ namespace Hocon
         ///     Converts a numerically indexed object into an array where its elements are sorted
         ///     based on the numerically sorted order of the key.
         /// </summary>
-        public List<HoconValue> GetArray()
+        public IList<HoconValue> GetArray()
         {
             var sortedDict = new SortedDictionary<int, HoconValue>();
             var type = HoconType.Empty;

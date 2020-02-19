@@ -97,6 +97,7 @@ Target "RunTests" (fun _ ->
         | true -> !! "./src/**/*.Tests.csproj"
         | _ -> !! "./src/**/*.Tests.csproj" 
                   -- "./src/**/Hocon.Configuration.Tests.csproj" // Mono barfs on this spec
+                  -- "./src/**/Hocon.API.Tests.csproj" // Linux does not like any spec using ApiApprover
 
     let runSingleProject project =
         let arguments =
