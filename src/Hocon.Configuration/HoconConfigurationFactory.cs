@@ -18,7 +18,7 @@ namespace Hocon
     ///     from a variety of sources including user-supplied strings, configuration
     ///     files and assembly resources.
     /// </summary>
-    public static class ConfigurationFactory
+    public static class HoconConfigurationFactory
     {
         private static readonly string[] DefaultHoconFilePaths = {"app.conf", "app.hocon"};
 
@@ -127,7 +127,7 @@ namespace Hocon
         /// <returns>The configuration defined in the current executing assembly.</returns>
         internal static Config FromResource(string resourceName)
         {
-            Assembly assembly = typeof(ConfigurationFactory).GetTypeInfo().Assembly;
+            Assembly assembly = typeof(HoconConfigurationFactory).GetTypeInfo().Assembly;
 
             return FromResource(resourceName, assembly);
         }

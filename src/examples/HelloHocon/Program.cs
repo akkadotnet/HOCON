@@ -13,7 +13,7 @@ namespace HelloHocon
     {
         private static void Main(string[] args)
         {
-            var config = ConfigurationFactory.Load();
+            var config = HoconConfigurationFactory.Load();
             var val = config.GetString("root.simple-string");
             Console.WriteLine("Hocon says: " + val);
             Console.ReadKey();
