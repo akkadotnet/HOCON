@@ -49,7 +49,17 @@ namespace Hocon
         protected ConfigurationException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
         public static Hocon.ConfigurationException NullOrEmptyConfig<T>(string path = null) { }
     }
-    public class static ConfigurationFactory
+    public class static DebuggingExtensions
+    {
+        public static string DumpConfig(this Hocon.Config c, bool dumpAsFallbacks = True) { }
+    }
+    public class HoconConfigurationElement : Hocon.CDataConfigurationElement
+    {
+        public HoconConfigurationElement() { }
+        [System.Configuration.ConfigurationPropertyAttribute("content", IsKey=true, IsRequired=true)]
+        public string Content { get; set; }
+    }
+    public class static HoconConfigurationFactory
     {
         public static Hocon.Config Empty { get; }
         public static Hocon.Config Default() { }
@@ -62,16 +72,6 @@ namespace Hocon
         public static Hocon.Config Load(string sectionName) { }
         public static Hocon.Config ParseString(string hocon, Hocon.HoconIncludeCallbackAsync includeCallback) { }
         public static Hocon.Config ParseString(string hocon) { }
-    }
-    public class static DebuggingExtensions
-    {
-        public static string DumpConfig(this Hocon.Config c, bool dumpAsFallbacks = True) { }
-    }
-    public class HoconConfigurationElement : Hocon.CDataConfigurationElement
-    {
-        public HoconConfigurationElement() { }
-        [System.Configuration.ConfigurationPropertyAttribute("content", IsKey=true, IsRequired=true)]
-        public string Content { get; set; }
     }
     public class HoconConfigurationSection : System.Configuration.ConfigurationSection
     {
