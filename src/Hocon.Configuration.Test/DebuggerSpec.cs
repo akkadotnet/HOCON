@@ -14,7 +14,7 @@ namespace Hocon.Configuration.Tests
         [Fact]
         public void Should_dump_stand_alone_HOCON()
         {
-            var myHocon = HoconConfigurationFactory.ParseString(@"akka{
+            var myHocon = ConfigurationFactory.ParseString(@"akka{
                 actor.provider = cluster
                 deployment{
                     /foo {
@@ -30,7 +30,7 @@ namespace Hocon.Configuration.Tests
         [Fact]
         public void Should_dump_HOCON_with_1_Fallback()
         {
-            var myHocon1 = HoconConfigurationFactory.ParseString(@"akka{
+            var myHocon1 = ConfigurationFactory.ParseString(@"akka{
                 actor.provider = cluster
                 deployment{
                     /foo {
@@ -39,7 +39,7 @@ namespace Hocon.Configuration.Tests
                 }
             }");
 
-            var myHocon2 = HoconConfigurationFactory.ParseString(@"akka{
+            var myHocon2 = ConfigurationFactory.ParseString(@"akka{
                 debug{
                     received  = on
                 }
@@ -64,7 +64,7 @@ namespace Hocon.Configuration.Tests
         [Fact]
         public void Should_dump_HOCON_with_2_Fallback()
         {
-            var myHocon1 = HoconConfigurationFactory.ParseString(@"akka{
+            var myHocon1 = ConfigurationFactory.ParseString(@"akka{
                 actor.provider = cluster
                 deployment{
                     /foo {
@@ -73,7 +73,7 @@ namespace Hocon.Configuration.Tests
                 }
             }");
 
-            var myHocon2 = HoconConfigurationFactory.ParseString(@"akka{
+            var myHocon2 = ConfigurationFactory.ParseString(@"akka{
                 debug{
                     received  = on
                 }
@@ -88,7 +88,7 @@ namespace Hocon.Configuration.Tests
                 }
             }");
 
-            var myHocon3 = HoconConfigurationFactory.ParseString(@"akka{
+            var myHocon3 = ConfigurationFactory.ParseString(@"akka{
                 remote{
                     transport = ""foo""
                 }

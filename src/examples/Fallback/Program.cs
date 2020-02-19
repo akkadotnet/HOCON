@@ -28,8 +28,8 @@ root {
    some-property3 = 789
 }
 ";
-            var baseConfig = HoconConfigurationFactory.ParseString(baseHocon);
-            var userConfg = HoconConfigurationFactory.ParseString(userHocon);
+            var baseConfig = ConfigurationFactory.ParseString(baseHocon);
+            var userConfg = ConfigurationFactory.ParseString(userHocon);
 
             var merged = userConfg.WithFallback(baseConfig);
 

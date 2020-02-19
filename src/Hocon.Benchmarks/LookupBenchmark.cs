@@ -19,7 +19,7 @@ namespace Hocon.Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            config = HoconConfigurationFactory.ParseString(TestConfigStrings.AkkaConfigString);
+            config = ConfigurationFactory.ParseString(TestConfigStrings.AkkaConfigString);
         }
 
         [GlobalCleanup]
