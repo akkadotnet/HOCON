@@ -26,7 +26,7 @@ namespace Hocon.Benchmarks
         [Benchmark]
         public Config ParseAkkaConfig()
         {
-            return HoconConfigurationFactory.ParseString(TestConfigStrings.AkkaConfigString);
+            return ConfigurationFactory.ParseString(TestConfigStrings.AkkaConfigString);
         }
     }
 }

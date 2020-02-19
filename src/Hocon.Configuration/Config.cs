@@ -75,7 +75,7 @@ namespace Hocon
         }
 
         /// <summary>
-        ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
+        ///     Identical to <see cref="ConfigurationFactory.Empty" />.
         /// </summary>
         /// <remarks>
         ///     Added for brevity and API backwards-compatibility with Akka.Hocon.
@@ -242,7 +242,7 @@ namespace Hocon
         /// <returns>The supplied configuration configured with the supplied fallback.</returns>
         public static Config operator +(Config config, string fallback)
         {
-            return config.WithFallback(HoconConfigurationFactory.ParseString(fallback));
+            return config.WithFallback(ConfigurationFactory.ParseString(fallback));
         }
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace Hocon
         /// <returns>A configuration configured with the supplied fallback.</returns>
         public static Config operator +(string configHocon, Config fallbackConfig)
         {
-            return HoconConfigurationFactory.ParseString(configHocon).WithFallback(fallbackConfig);
+            return ConfigurationFactory.ParseString(configHocon).WithFallback(fallbackConfig);
         }
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Hocon
         /// <returns>A configuration based on the supplied string.</returns>
         public static implicit operator Config(string str)
         {
-            return HoconConfigurationFactory.ParseString(str);
+            return ConfigurationFactory.ParseString(str);
         }
 
         /// <inheritdoc />
@@ -307,7 +307,7 @@ namespace Hocon
         [Obsolete("Used for serialization only", true)]
         public Config(SerializationInfo info, StreamingContext context):base(null)
         {
-            var config = HoconConfigurationFactory.ParseString(info.GetValue(SerializedPropertyName, typeof(string)) as string);
+            var config = ConfigurationFactory.ParseString(info.GetValue(SerializedPropertyName, typeof(string)) as string);
             
             Value = config.Value;
             _fallbacks.AddRange(config._fallbacks);
