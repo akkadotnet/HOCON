@@ -636,6 +636,20 @@ dedicated-thread-pool.substring = substring
             combined.GetString("dedicated-thread-pool.substring").Should().Be("substring");
         }
 
+        [Fact]
+        public void ConfigRoot_ConsecutiveCallShouldReturnTheSameInstance()
+        {
+            var a = HoconConfigurationFactory.ParseString(@" akka : {
+                some-key : value
+            }");
+            var b = HoconConfigurationFactory.ParseString(@"akka : {
+                other-key : 42
+            }");
+
+            var c = a.WithFallback(b);
+            ReferenceEquals(c.Root, c.Root).Should().BeTrue();
+        }
+
         /// <summary>
         /// Source issue: https://github.com/akkadotnet/HOCON/issues/175
         /// </summary>

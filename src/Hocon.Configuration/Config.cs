@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -74,6 +75,9 @@ namespace Hocon
             MergeConfig(fallback);
         }
 
+        public bool UseCache { get; set; } = true;
+        private ConcurrentDictionary<string, HoconValue> _cache = new ConcurrentDictionary<string, HoconValue>();
+
         /// <summary>
         ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
         /// </summary>
@@ -125,11 +129,20 @@ namespace Hocon
         protected override bool TryGetNode(HoconPath path, out HoconValue result)
         {
             result = null;
+            string fullPath = path.ToString();
+
+            if (UseCache && _cache.TryGetValue(fullPath, out result))
+                return true;
+
             var currentObject = Value.GetObject();
             if (currentObject == null)
                 return false;
             if (currentObject.TryGetValue(path, out result))
+            {
+                if (UseCache)
+                    _cache[fullPath] = result;
                 return true;
+            }
 
             foreach (var value in _fallbacks)
             {
@@ -137,7 +150,11 @@ namespace Hocon
                 if (currentObject == null)
                     return false;
                 if (currentObject.TryGetValue(path, out result))
+                {
+                    if (UseCache)
+                        _cache[fullPath] = result;
                     return true;
+                }
             }
 
             return false;
@@ -145,15 +162,29 @@ namespace Hocon
 
         protected override HoconValue GetNode(HoconPath path)
         {
-            var currentObject = Value.GetObject();
-            if (currentObject.TryGetValue(path, out var returnValue))
+            HoconValue returnValue;
+            string fullPath = path.ToString();
+
+            if (UseCache && _cache.TryGetValue(fullPath, out returnValue))
                 return returnValue;
 
-            foreach(var value in _fallbacks)
+            var currentObject = Value.GetObject();
+            if (currentObject.TryGetValue(path, out returnValue))
+            {
+                if (UseCache)
+                    _cache[fullPath] = returnValue;
+                return returnValue;
+            }
+
+            foreach (var value in _fallbacks)
             {
                 currentObject = value.GetObject();
                 if (currentObject.TryGetValue(path, out returnValue))
+                {
+                    if (UseCache)
+                        _cache[fullPath] = returnValue;
                     return returnValue;
+                }
             }
 
             throw new HoconException($"Could not find accessible field at path `{path}` in all fallbacks.");
