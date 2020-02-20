@@ -62,5 +62,19 @@ namespace Hocon.Configuration.Tests
             HoconConfigurationFactory.ParseString("{}").IsEmpty.Should().BeTrue();
             Config.Empty.IsEmpty.Should().BeTrue();
         }
+
+        [Fact]
+        public void QuotedKeyWithInvalidCharactersShouldSerializeProperly()
+        {
+            var hoconString = @"this.""should[]"".work = true";
+            var config = HoconConfigurationFactory.ParseString(hoconString);
+            var serialized = JsonConvert.SerializeObject(config);
+            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
+
+            Assert.True(config.GetBoolean("this.\"should[]\".work"));
+            Assert.True(deserialized.GetBoolean("this.\"should[]\".work"));
+            Assert.Equal(config, deserialized);
+        }
+
     }
 }

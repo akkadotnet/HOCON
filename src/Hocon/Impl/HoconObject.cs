@@ -174,7 +174,7 @@ namespace Hocon
             var i = new string(' ', indent * indentSize);
             var sb = new StringBuilder();
             foreach (var field in this)
-                sb.Append($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
+                sb.Append($"{i}{(field.Key.NeedQuotes() ? field.Key.AddQuotes() : field.Key)} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
             return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
         }
 
