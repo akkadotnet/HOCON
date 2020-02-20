@@ -103,7 +103,7 @@ namespace Hocon
         public string Raw => ResolvedValue?.Raw;
 
         /// <inheritdoc />
-        public List<HoconValue> GetArray()
+        public IList<HoconValue> GetArray()
         {
             return ResolvedValue?.GetArray();
         }

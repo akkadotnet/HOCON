@@ -52,7 +52,7 @@ namespace Hocon
             => throw new HoconException("Can not convert Hocon array into a string.");
 
         /// <inheritdoc />
-        public List<HoconValue> GetArray()
+        public IList<HoconValue> GetArray()
         {
             return this;
         }

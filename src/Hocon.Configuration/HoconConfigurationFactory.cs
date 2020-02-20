@@ -18,9 +18,9 @@ namespace Hocon
     ///     from a variety of sources including user-supplied strings, configuration
     ///     files and assembly resources.
     /// </summary>
-    public static class ConfigurationFactory
+    public static class HoconConfigurationFactory
     {
-        public static readonly string[] DefaultHoconFilePaths = {"app.conf", "app.hocon"};
+        private static readonly string[] DefaultHoconFilePaths = {"app.conf", "app.hocon"};
 
         /// <summary>
         ///     Generates an empty configuration.
@@ -104,7 +104,8 @@ namespace Hocon
         public static Config Default()
         {
             // attempt to load .hocon files first
-            foreach (var path in DefaultHoconFilePaths.Where(x => File.Exists(x))) return FromFile(path);
+            foreach (var path in DefaultHoconFilePaths.Where(x => File.Exists(x)))
+                return FromFile(path);
 
             // if we made it this far: no default HOCON files found. Check app.config
             try
@@ -121,7 +122,7 @@ namespace Hocon
             {
             }
 
-            return Empty;
+            return Config.Empty;
         }
 
         /// <summary>
@@ -132,7 +133,7 @@ namespace Hocon
         /// <returns>The configuration defined in the current executing assembly.</returns>
         internal static Config FromResource(string resourceName)
         {
-            Assembly assembly = typeof(ConfigurationFactory).GetTypeInfo().Assembly;
+            Assembly assembly = typeof(HoconConfigurationFactory).GetTypeInfo().Assembly;
 
             return FromResource(resourceName, assembly);
         }
