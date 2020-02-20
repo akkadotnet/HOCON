@@ -5,27 +5,27 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Hocon.Immutable.Extensions;
+using Hocon.Extensions;
 
-namespace Hocon.Immutable.Builder
+namespace Hocon.Builder
 {
-    public sealed class HoconImmutableArrayBuilder : List<HoconImmutableElement>
+    public sealed class HoconArrayBuilder : List<HoconElement>
     {
-        public HoconImmutableArrayBuilder AddRange(HoconArray array)
+        internal HoconArrayBuilder AddRange(InternalHoconArray array)
         {
             foreach (var element in array) Add(element.ToHoconImmutable());
             return this;
         }
 
-        public HoconImmutableArrayBuilder AddRange(HoconValue value)
+        internal HoconArrayBuilder AddRange(HoconValue value)
         {
             foreach (var element in value.GetArray()) Add(element.ToHoconImmutable());
             return this;
         }
 
-        public HoconImmutableArray Build()
+        public HoconArray Build()
         {
-            return HoconImmutableArray.Create(this);
+            return HoconArray.Create(this);
         }
     }
 }

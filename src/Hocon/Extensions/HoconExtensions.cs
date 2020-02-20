@@ -4,28 +4,28 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Hocon.Immutable.Builder;
+using Hocon.Builder;
 
-namespace Hocon.Immutable.Extensions
+namespace Hocon.Extensions
 {
-    public static class HoconImmutableExtensions
+    public static class HoconExtensions
     {
-        public static HoconImmutableObject ToHoconImmutable(this HoconRoot root)
+        internal static HoconObject ToHoconImmutable(this HoconRoot root)
         {
-            return new HoconImmutableObjectBuilder()
+            return new HoconObjectBuilder()
                 .Merge(root.Value.GetObject())
                 .Build();
         }
 
-        public static HoconImmutableElement ToHoconImmutable(this IHoconElement element)
+        internal static HoconElement ToHoconImmutable(this IHoconElement element)
         {
             switch (element)
             {
-                case HoconObject o:
+                case InternalHoconObject o:
                     return o.ToHoconImmutable();
-                case HoconArray a:
+                case InternalHoconArray a:
                     return a.ToHoconImmutable();
-                case HoconLiteral l:
+                case InternalHoconLiteral l:
                     return l.ToHoconImmutable();
                 case HoconValue v:
                     return v.ToHoconImmutable();
@@ -36,56 +36,56 @@ namespace Hocon.Immutable.Extensions
             }
         }
 
-        public static HoconImmutableElement ToHoconImmutable(this HoconValue value)
+        internal static HoconElement ToHoconImmutable(this HoconValue value)
         {
             switch (value.Type)
             {
                 case HoconType.Object:
-                    return new HoconImmutableObjectBuilder()
+                    return new HoconObjectBuilder()
                         .Merge(value.GetObject())
                         .Build();
                 case HoconType.Array:
-                    return new HoconImmutableArrayBuilder()
+                    return new HoconArrayBuilder()
                         .AddRange(value)
                         .Build();
                 case HoconType.Boolean:
                 case HoconType.Number:
                 case HoconType.String:
-                    return new HoconImmutableLiteralBuilder()
+                    return new HoconLiteralBuilder()
                         .Append(value)
                         .Build();
                 case HoconType.Empty:
-                    return HoconImmutableLiteral.Null;
+                    return HoconLiteral.Null;
                 default:
                     // Should never reach this line.
                     throw new HoconException($"Unknown Hocon field type:{value.Type}");
             }
         }
 
-        public static HoconImmutableObject ToHoconImmutable(this HoconObject @object)
+        internal static HoconObject ToHoconImmutable(this InternalHoconObject @object)
         {
-            return new HoconImmutableObjectBuilder()
+            return new HoconObjectBuilder()
                 .Merge(@object)
                 .Build();
         }
 
-        public static HoconImmutableElement ToHoconImmutable(this HoconField field)
+        internal static HoconElement ToHoconImmutable(this HoconField field)
         {
             return field.Value.ToHoconImmutable();
         }
 
-        public static HoconImmutableArray ToHoconImmutable(this HoconArray array)
+        internal static HoconArray ToHoconImmutable(this InternalHoconArray array)
         {
-            return new HoconImmutableArrayBuilder()
+            return new HoconArrayBuilder()
                 .AddRange(array)
                 .Build();
         }
 
-        public static HoconImmutableLiteral ToHoconImmutable(this HoconLiteral literal)
+        internal static HoconLiteral ToHoconImmutable(this InternalHoconLiteral literal)
         {
             return literal.LiteralType == HoconLiteralType.Null
                 ? null
-                : new HoconImmutableLiteralBuilder()
+                : new HoconLiteralBuilder()
                     .Append(literal)
                     .Build();
         }

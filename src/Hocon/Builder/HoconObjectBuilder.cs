@@ -5,27 +5,27 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Hocon.Immutable.Extensions;
+using Hocon.Extensions;
 
-namespace Hocon.Immutable.Builder
+namespace Hocon.Builder
 {
-    public sealed class HoconImmutableObjectBuilder : SortedDictionary<string, HoconImmutableElement>
+    public sealed class HoconObjectBuilder : SortedDictionary<string, HoconElement>
     {
-        public HoconImmutableObjectBuilder Merge(IDictionary<string, HoconImmutableElement> fields)
+        public HoconObjectBuilder Merge(IDictionary<string, HoconElement> fields)
         {
             foreach (var kvp in fields) this[kvp.Key] = kvp.Value;
             return this;
         }
 
-        public HoconImmutableObjectBuilder Merge(HoconObject @object)
+        internal HoconObjectBuilder Merge(InternalHoconObject @object)
         {
             foreach (var kvp in @object) this[kvp.Key] = kvp.Value.ToHoconImmutable();
             return this;
         }
 
-        public HoconImmutableObject Build()
+        public HoconObject Build()
         {
-            return HoconImmutableObject.Create(this);
+            return HoconObject.Create(this);
         }
     }
 }

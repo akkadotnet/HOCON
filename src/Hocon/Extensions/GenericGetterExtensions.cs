@@ -8,12 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Hocon.Immutable.Extensions
+namespace Hocon.Extensions
 {
     public static class GenericGetterExtensions
     {
-        private static readonly Dictionary<Type, Func<HoconImmutableElement, object>> PrimitiveConverters =
-            new Dictionary<Type, Func<HoconImmutableElement, object>>
+        private static readonly Dictionary<Type, Func<HoconElement, object>> PrimitiveConverters =
+            new Dictionary<Type, Func<HoconElement, object>>
             {
                 {typeof(bool), e => e.GetBoolean()},
                 {typeof(bool[]), e => e.ToArray<bool>()},
@@ -64,12 +64,12 @@ namespace Hocon.Immutable.Extensions
                 {typeof(TimeSpan[]), e => e.ToArray<TimeSpan>()}
             };
 
-        public static T Get<T>(this HoconImmutableElement element)
+        public static T Get<T>(this HoconElement element)
         {
             return (T) element.Get(typeof(T));
         }
 
-        public static object Get(this HoconImmutableElement element, Type type)
+        public static object Get(this HoconElement element, Type type)
         {
             if (PrimitiveConverters.ContainsKey(type))
                 return PrimitiveConverters[type].Invoke(element);

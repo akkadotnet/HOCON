@@ -8,36 +8,36 @@ using System;
 using System.Linq;
 using System.Numerics;
 
-namespace Hocon.Immutable.Extensions
+namespace Hocon.Extensions
 {
     public static class ValueGetterExtensions
     {
-        public static string GetString(this HoconImmutableElement element)
+        public static string GetString(this HoconElement element)
         {
-            if (!(element is HoconImmutableLiteral lit))
+            if (!(element is HoconLiteral lit))
                 throw new HoconException(
-                    $"Value getter can only work on {nameof(HoconImmutableLiteral)} type. {element.GetType()} found instead.");
+                    $"Value getter can only work on {nameof(HoconLiteral)} type. {element.GetType()} found instead.");
             return lit.Value;
         }
 
-        public static char GetChar(this HoconImmutableElement element)
+        public static char GetChar(this HoconElement element)
         {
-            if (!(element is HoconImmutableLiteral lit))
+            if (!(element is HoconLiteral lit))
                 throw new HoconException(
-                    $"Value getter functions can only work on {nameof(HoconImmutableLiteral)} type. {element.GetType()} found instead.");
+                    $"Value getter functions can only work on {nameof(HoconLiteral)} type. {element.GetType()} found instead.");
             return lit.Value[0];
         }
 
         /// <summary>
-        ///     Retrieves the boolean value from this <see cref="HoconImmutableElement" />.
+        ///     Retrieves the boolean value from this <see cref="HoconElement" />.
         /// </summary>
-        /// <returns>The boolean value represented by this <see cref="HoconImmutableElement" />.</returns>
+        /// <returns>The boolean value represented by this <see cref="HoconElement" />.</returns>
         /// <exception cref="System.NotSupportedException">
-        ///     This exception occurs when the <see cref="HoconImmutableElement" /> is not a <see cref="HoconImmutableLiteral" />
+        ///     This exception occurs when the <see cref="HoconElement" /> is not a <see cref="HoconLiteral" />
         ///     and it doesn't
         ///     conform to the standard boolean values: "on", "off", "yes", "no", "true", or "false"
         /// </exception>
-        public static bool GetBoolean(this HoconImmutableElement element)
+        public static bool GetBoolean(this HoconElement element)
         {
             return element;
         }
@@ -46,7 +46,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the decimal value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The decimal value represented by this <see cref="HoconValue" />.</returns>
-        public static decimal GetDecimal(this HoconImmutableElement element)
+        public static decimal GetDecimal(this HoconElement element)
         {
             return element;
         }
@@ -55,7 +55,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the float value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The float value represented by this <see cref="HoconValue" />.</returns>
-        public static float GetFloat(this HoconImmutableElement element)
+        public static float GetFloat(this HoconElement element)
         {
             return element;
         }
@@ -64,12 +64,12 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the double value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The double value represented by this <see cref="HoconValue" />.</returns>
-        public static double GetDouble(this HoconImmutableElement element)
+        public static double GetDouble(this HoconElement element)
         {
             return element;
         }
 
-        public static BigInteger GetBigInteger(this HoconImmutableElement element)
+        public static BigInteger GetBigInteger(this HoconElement element)
         {
             return element;
         }
@@ -78,7 +78,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the unsigned long value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The unsigned long value represented by this <see cref="HoconValue" />.</returns>
-        public static ulong GetULong(this HoconImmutableElement element)
+        public static ulong GetULong(this HoconElement element)
         {
             return element;
         }
@@ -87,7 +87,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the long value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The long value represented by this <see cref="HoconValue" />.</returns>
-        public static long GetLong(this HoconImmutableElement element)
+        public static long GetLong(this HoconElement element)
         {
             return element;
         }
@@ -96,7 +96,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the unsigned integer value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The unsigned integer value represented by this <see cref="HoconValue" />.</returns>
-        public static uint GetUInt(this HoconImmutableElement element)
+        public static uint GetUInt(this HoconElement element)
         {
             return element;
         }
@@ -105,7 +105,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the integer value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The integer value represented by this <see cref="HoconValue" />.</returns>
-        public static int GetInt(this HoconImmutableElement element)
+        public static int GetInt(this HoconElement element)
         {
             return element;
         }
@@ -114,7 +114,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the unsigned short value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The unsigned short value represented by this <see cref="HoconValue" />.</returns>
-        public static ushort GetUShort(this HoconImmutableElement element)
+        public static ushort GetUShort(this HoconElement element)
         {
             return element;
         }
@@ -123,7 +123,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the short value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The short value represented by this <see cref="HoconValue" />.</returns>
-        public static short GetShort(this HoconImmutableElement element)
+        public static short GetShort(this HoconElement element)
         {
             return element;
         }
@@ -132,7 +132,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the signed byte value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The signed byte value represented by this <see cref="HoconValue" />.</returns>
-        public static sbyte GetSByte(this HoconImmutableElement element)
+        public static sbyte GetSByte(this HoconElement element)
         {
             return element;
         }
@@ -141,7 +141,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the byte value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The byte value represented by this <see cref="HoconValue" />.</returns>
-        public static byte GetByte(this HoconImmutableElement element)
+        public static byte GetByte(this HoconElement element)
         {
             return element;
         }
@@ -150,7 +150,7 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the time span value from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The time span value represented by this <see cref="HoconValue" />.</returns>
-        public static TimeSpan GetTimeSpan(this HoconImmutableElement element)
+        public static TimeSpan GetTimeSpan(this HoconElement element)
         {
             return element;
         }
@@ -159,11 +159,11 @@ namespace Hocon.Immutable.Extensions
         ///     Retrieves the long value, optionally suffixed with a 'b', from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>The long value represented by this <see cref="HoconValue" />.</returns>
-        public static long? GetByteSize(this HoconImmutableElement element)
+        public static long? GetByteSize(this HoconElement element)
         {
-            if (!(element is HoconImmutableLiteral lit))
+            if (!(element is HoconLiteral lit))
                 throw new HoconException(
-                    $"Value getter functions can only work on {nameof(HoconImmutableLiteral)} type. {element.GetType()} found instead.");
+                    $"Value getter functions can only work on {nameof(HoconLiteral)} type. {element.GetType()} found instead.");
 
             var res = lit.Value;
             if (string.IsNullOrEmpty(res))
@@ -183,147 +183,147 @@ namespace Hocon.Immutable.Extensions
             throw new FormatException($"{unit} is not a valid byte size suffix");
         }
 
-        public static HoconImmutableElement GetValue(this HoconImmutableElement element, string path)
+        public static HoconElement GetValue(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static string GetString(this HoconImmutableElement element, string path)
+        public static string GetString(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static char GetChar(this HoconImmutableElement element, string path)
+        public static char GetChar(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static bool GetBoolean(this HoconImmutableElement element, string path)
+        public static bool GetBoolean(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static decimal GetDecimal(this HoconImmutableElement element, string path)
+        public static decimal GetDecimal(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static float GetFloat(this HoconImmutableElement element, string path)
+        public static float GetFloat(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static double GetDouble(this HoconImmutableElement element, string path)
+        public static double GetDouble(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static BigInteger GetBigInteger(this HoconImmutableElement element, string path)
+        public static BigInteger GetBigInteger(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static ulong GetULong(this HoconImmutableElement element, string path)
+        public static ulong GetULong(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static long GetLong(this HoconImmutableElement element, string path)
+        public static long GetLong(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static uint GetUInt(this HoconImmutableElement element, string path)
+        public static uint GetUInt(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static int GetInt(this HoconImmutableElement element, string path)
+        public static int GetInt(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static ushort GetUShort(this HoconImmutableElement element, string path)
+        public static ushort GetUShort(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static short GetShort(this HoconImmutableElement element, string path)
+        public static short GetShort(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static sbyte GetSByte(this HoconImmutableElement element, string path)
+        public static sbyte GetSByte(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static byte GetByte(this HoconImmutableElement element, string path)
+        public static byte GetByte(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static TimeSpan GetTimeSpan(this HoconImmutableElement element, string path)
+        public static TimeSpan GetTimeSpan(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 
-        public static long? GetByteSize(this HoconImmutableElement element, string path)
+        public static long? GetByteSize(this HoconElement element, string path)
         {
-            if (!(element is HoconImmutableObject obj))
+            if (!(element is HoconObject obj))
                 throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconImmutableObject)} type. {element.GetType()} found instead.");
+                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
             return obj[path];
         }
 

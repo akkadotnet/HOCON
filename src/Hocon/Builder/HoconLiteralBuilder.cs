@@ -7,9 +7,9 @@
 using System;
 using System.Text;
 
-namespace Hocon.Immutable.Builder
+namespace Hocon.Builder
 {
-    public sealed class HoconImmutableLiteralBuilder
+    public sealed class HoconLiteralBuilder
     {
         private readonly StringBuilder _builder;
 
@@ -39,45 +39,45 @@ namespace Hocon.Immutable.Builder
 
         #region Constructors
 
-        public HoconImmutableLiteralBuilder()
+        public HoconLiteralBuilder()
         {
             _builder = new StringBuilder();
         }
 
-        public HoconImmutableLiteralBuilder(int capacity)
+        public HoconLiteralBuilder(int capacity)
         {
             _builder = new StringBuilder(capacity);
         }
 
-        public HoconImmutableLiteralBuilder(string value)
+        public HoconLiteralBuilder(string value)
         {
             _builder = new StringBuilder(value);
         }
 
-        public HoconImmutableLiteralBuilder(int capacity, int maxCapacity)
+        public HoconLiteralBuilder(int capacity, int maxCapacity)
         {
             _builder = new StringBuilder(capacity, maxCapacity);
         }
 
-        public HoconImmutableLiteralBuilder(string value, int capacity)
+        public HoconLiteralBuilder(string value, int capacity)
         {
             _builder = new StringBuilder(value, capacity);
         }
 
-        public HoconImmutableLiteralBuilder(string value, int startIndex, int length, int capacity)
+        public HoconLiteralBuilder(string value, int startIndex, int length, int capacity)
         {
             _builder = new StringBuilder(value, startIndex, length, capacity);
         }
 
         #endregion
 
-        public HoconImmutableLiteralBuilder Append(HoconValue value)
+        internal HoconLiteralBuilder Append(HoconValue value)
         {
             foreach (var element in value)
             {
-                if (!(element is HoconLiteral lit))
+                if (!(element is InternalHoconLiteral lit))
                     throw new HoconException(
-                        $"Can only add Hocon class of type {nameof(HoconLiteral)} and its derived classes into a literal builder.");
+                        $"Can only add Hocon class of type {nameof(InternalHoconLiteral)} and its derived classes into a literal builder.");
 
                 _builder.Append(lit.Value);
             }
@@ -85,138 +85,138 @@ namespace Hocon.Immutable.Builder
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(HoconLiteral lit)
+        internal HoconLiteralBuilder Append(InternalHoconLiteral lit)
         {
             if (lit.LiteralType != HoconLiteralType.Null)
                 _builder.Append(lit.Value);
             return this;
         }
 
-        public bool Equals(HoconImmutableLiteralBuilder otherBuilder)
+        public bool Equals(HoconLiteralBuilder otherBuilder)
         {
             return _builder.Equals(otherBuilder._builder);
         }
 
-        public HoconImmutableLiteral Build()
+        public HoconLiteral Build()
         {
             return _builder.Length == 0
-                ? HoconImmutableLiteral.Create(null)
-                : HoconImmutableLiteral.Create(_builder.ToString());
+                ? HoconLiteral.Create(null)
+                : HoconLiteral.Create(_builder.ToString());
         }
 
         #region Facade wrapper functions
 
         #region Append facade
 
-        public HoconImmutableLiteralBuilder Append(ushort value)
+        public HoconLiteralBuilder Append(ushort value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(uint value)
+        public HoconLiteralBuilder Append(uint value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(ulong value)
+        public HoconLiteralBuilder Append(ulong value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(char[] value, int startIndex, int charCount)
+        public HoconLiteralBuilder Append(char[] value, int startIndex, int charCount)
         {
             _builder.Append(value, startIndex, charCount);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(string value, int startIndex, int count)
+        public HoconLiteralBuilder Append(string value, int startIndex, int count)
         {
             _builder.Append(value, startIndex, count);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(char value, int repeatCount)
+        public HoconLiteralBuilder Append(char value, int repeatCount)
         {
             _builder.Append(value, repeatCount);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(sbyte value)
+        public HoconLiteralBuilder Append(sbyte value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(float value)
+        public HoconLiteralBuilder Append(float value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(bool value)
+        public HoconLiteralBuilder Append(bool value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(char value)
+        public HoconLiteralBuilder Append(char value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(char[] value)
+        public HoconLiteralBuilder Append(char[] value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(decimal value)
+        public HoconLiteralBuilder Append(decimal value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(byte value)
+        public HoconLiteralBuilder Append(byte value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(short value)
+        public HoconLiteralBuilder Append(short value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(int value)
+        public HoconLiteralBuilder Append(int value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(long value)
+        public HoconLiteralBuilder Append(long value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(object value)
+        public HoconLiteralBuilder Append(object value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(double value)
+        public HoconLiteralBuilder Append(double value)
         {
             _builder.Append(value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Append(string value)
+        public HoconLiteralBuilder Append(string value)
         {
             _builder.Append(value);
             return this;
@@ -226,51 +226,51 @@ namespace Hocon.Immutable.Builder
 
         #region AppendFormat facade
 
-        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0,
+        public HoconLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0,
             object arg1, object arg2)
         {
             _builder.AppendFormat(provider, format, arg0, arg1, arg2);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(string format, object arg0)
+        public HoconLiteralBuilder AppendFormat(string format, object arg0)
         {
             _builder.AppendFormat(format, arg0);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(string format, params object[] args)
+        public HoconLiteralBuilder AppendFormat(string format, params object[] args)
         {
             _builder.AppendFormat(format, args);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0)
+        public HoconLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0)
         {
             _builder.AppendFormat(provider, format, arg0);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, params object[] args)
+        public HoconLiteralBuilder AppendFormat(IFormatProvider provider, string format, params object[] args)
         {
             _builder.AppendFormat(provider, format, args);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(string format, object arg0, object arg1)
+        public HoconLiteralBuilder AppendFormat(string format, object arg0, object arg1)
         {
             _builder.AppendFormat(format, arg0, arg1);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0,
+        public HoconLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0,
             object arg1)
         {
             _builder.AppendFormat(provider, format, arg0, arg1);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendFormat(string format, object arg0, object arg1, object arg2)
+        public HoconLiteralBuilder AppendFormat(string format, object arg0, object arg1, object arg2)
         {
             _builder.AppendFormat(format, arg0, arg1, arg2);
             return this;
@@ -321,13 +321,13 @@ namespace Hocon.Immutable.Builder
 
         #region AppendLine facade
 
-        public HoconImmutableLiteralBuilder AppendLine()
+        public HoconLiteralBuilder AppendLine()
         {
             _builder.AppendLine();
             return this;
         }
 
-        public HoconImmutableLiteralBuilder AppendLine(string value)
+        public HoconLiteralBuilder AppendLine(string value)
         {
             _builder.AppendLine(value);
             return this;
@@ -335,13 +335,13 @@ namespace Hocon.Immutable.Builder
 
         #endregion
 
-        public HoconImmutableLiteralBuilder Clear()
+        public HoconLiteralBuilder Clear()
         {
             _builder.Clear();
             return this;
         }
 
-        public HoconImmutableLiteralBuilder EnsureCapacity(int capacity)
+        public HoconLiteralBuilder EnsureCapacity(int capacity)
         {
             _builder.EnsureCapacity(capacity);
             return this;
@@ -361,49 +361,49 @@ namespace Hocon.Immutable.Builder
 
         #region Insert facade
 
-        public HoconImmutableLiteralBuilder Insert(int index, string value, int count)
+        public HoconLiteralBuilder Insert(int index, string value, int count)
         {
             _builder.Insert(index, value, count);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, ulong value)
+        public HoconLiteralBuilder Insert(int index, ulong value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, uint value)
+        public HoconLiteralBuilder Insert(int index, uint value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, ushort value)
+        public HoconLiteralBuilder Insert(int index, ushort value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, string value)
+        public HoconLiteralBuilder Insert(int index, string value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, float value)
+        public HoconLiteralBuilder Insert(int index, float value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, char[] value, int startIndex, int charCount)
+        public HoconLiteralBuilder Insert(int index, char[] value, int startIndex, int charCount)
         {
             _builder.Insert(index, value, startIndex, charCount);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, sbyte value)
+        public HoconLiteralBuilder Insert(int index, sbyte value)
         {
             _builder.Insert(index, value);
             return this;
@@ -417,55 +417,55 @@ namespace Hocon.Immutable.Builder
         }
 #endif
 
-        public HoconImmutableLiteralBuilder Insert(int index, long value)
+        public HoconLiteralBuilder Insert(int index, long value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, int value)
+        public HoconLiteralBuilder Insert(int index, int value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, double value)
+        public HoconLiteralBuilder Insert(int index, double value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, decimal value)
+        public HoconLiteralBuilder Insert(int index, decimal value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, char[] value)
+        public HoconLiteralBuilder Insert(int index, char[] value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, char value)
+        public HoconLiteralBuilder Insert(int index, char value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, byte value)
+        public HoconLiteralBuilder Insert(int index, byte value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, bool value)
+        public HoconLiteralBuilder Insert(int index, bool value)
         {
             _builder.Insert(index, value);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Insert(int index, object value)
+        public HoconLiteralBuilder Insert(int index, object value)
         {
             _builder.Insert(index, value);
             return this;
@@ -473,7 +473,7 @@ namespace Hocon.Immutable.Builder
 
         #endregion
 
-        public HoconImmutableLiteralBuilder Remove(int startIndex, int length)
+        public HoconLiteralBuilder Remove(int startIndex, int length)
         {
             _builder.Remove(startIndex, length);
             return this;
@@ -481,25 +481,25 @@ namespace Hocon.Immutable.Builder
 
         #region Replace facade
 
-        public HoconImmutableLiteralBuilder Replace(char oldChar, char newChar)
+        public HoconLiteralBuilder Replace(char oldChar, char newChar)
         {
             _builder.Replace(oldChar, newChar);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Replace(string oldValue, string newValue)
+        public HoconLiteralBuilder Replace(string oldValue, string newValue)
         {
             _builder.Replace(oldValue, newValue);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Replace(char oldChar, char newChar, int startIndex, int count)
+        public HoconLiteralBuilder Replace(char oldChar, char newChar, int startIndex, int count)
         {
             _builder.Replace(oldChar, newChar, startIndex, count);
             return this;
         }
 
-        public HoconImmutableLiteralBuilder Replace(string oldValue, string newValue, int startIndex, int count)
+        public HoconLiteralBuilder Replace(string oldValue, string newValue, int startIndex, int count)
         {
             _builder.Replace(oldValue, newValue, startIndex, count);
             return this;
