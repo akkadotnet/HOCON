@@ -27,7 +27,7 @@ namespace Hocon
         static Config()
         {
             EmptyValue = new HoconValue(null);
-            EmptyValue.Add(new HoconObject(EmptyValue));
+            EmptyValue.Add(new InternalHoconObject(EmptyValue));
         }
 
         [Obsolete("For json serialization/deserialization only", true)]
@@ -278,7 +278,7 @@ namespace Hocon
         private static Config CreateEmpty()
         {
             var value = new HoconValue(null);
-            value.Add(new HoconObject(value));
+            value.Add(new InternalHoconObject(value));
             return new Config(value);
         }
 

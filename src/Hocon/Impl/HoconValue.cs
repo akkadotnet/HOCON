@@ -20,7 +20,7 @@ namespace Hocon
     ///     This class represents the root type for a HOCON (Human-Optimized Config Object Notation)
     ///     configuration object.
     /// </summary>
-    public class HoconValue : List<IHoconElement>, IHoconElement
+    internal class HoconValue : List<IHoconElement>, IHoconElement
     {
         private static readonly Regex TimeSpanRegex = new Regex(
             @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$",
@@ -31,7 +31,7 @@ namespace Hocon
         /// </summary>
         public HoconValue(IHoconElement parent)
         {
-            if (parent != null && !(parent is HoconField) && !(parent is HoconArray))
+            if (parent != null && !(parent is HoconField) && !(parent is InternalHoconArray))
                 throw new HoconException("HoconValue parent must be HoconField, HoconArray, or null");
             Parent = parent;
         }
@@ -43,7 +43,7 @@ namespace Hocon
         public virtual HoconType Type { get; private set; } = HoconType.Empty;
 
         /// <inheritdoc />
-        public virtual HoconObject GetObject()
+        public virtual InternalHoconObject GetObject()
         {
             if (Type == HoconType.Empty)
                 return null;
@@ -66,7 +66,7 @@ namespace Hocon
             }
         }
 
-        public virtual bool TryGetObject(out HoconObject result)
+        public virtual bool TryGetObject(out InternalHoconObject result)
         {
             result = null;
             if (Type != HoconType.Object)
@@ -204,7 +204,7 @@ namespace Hocon
         }
 
         /// <summary>
-        ///     Wraps this <see cref="HoconValue" /> into a new <see cref="HoconObject" /> at the specified key.
+        ///     Wraps this <see cref="HoconValue" /> into a new <see cref="InternalHoconObject" /> at the specified key.
         /// </summary>
         /// <param name="key">The key designated to be the new root element.</param>
         /// <returns>A new HOCON root.</returns>
@@ -214,7 +214,7 @@ namespace Hocon
         public HoconRoot AtKey(string key)
         {
             var value = new HoconValue(null);
-            var obj = new HoconObject(value);
+            var obj = new InternalHoconObject(value);
             var field = new HoconField(key, obj);
             field.SetValue(Clone(field) as HoconValue);
             obj.Add(key, field);
@@ -306,7 +306,7 @@ namespace Hocon
                         Insert(index, clonedValue.GetObject());
                         break;
                     case HoconType.Array:
-                        var hoconArray = new HoconArray(this);
+                        var hoconArray = new InternalHoconArray(this);
                         hoconArray.AddRange(clonedValue.GetArray());
                         Insert(index, hoconArray);
                         break;
@@ -326,7 +326,7 @@ namespace Hocon
                 case HoconField v:
                     v.ResolveValue(this);
                     break;
-                case HoconArray a:
+                case InternalHoconArray a:
                     a.ResolveValue(child);
                     break;
                 default:
@@ -1019,17 +1019,17 @@ namespace Hocon
         ///     Retrieves a list of objects from this <see cref="HoconValue" />.
         /// </summary>
         /// <returns>A list of objects represented by this <see cref="HoconValue" />.</returns>
-        public IList<HoconObject> GetObjectList()
+        public IList<InternalHoconObject> GetObjectList()
         {
             return GetArray().Select(v => v.GetObject()).ToList();
         }
 
-        public bool TryGetObjectList(out IList<HoconObject> result)
+        public bool TryGetObjectList(out IList<InternalHoconObject> result)
         {
-            result = default(List<HoconObject>);
+            result = default(List<InternalHoconObject>);
             if (TryGetArray(out var arr))
             {
-                var list = new List<HoconObject>();
+                var list = new List<InternalHoconObject>();
                 foreach (var val in arr)
                 {
                     if (!val.TryGetObject(out var res))

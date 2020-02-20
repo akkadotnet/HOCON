@@ -77,12 +77,12 @@ namespace Hocon
                     return v.Any(n => n.IsSubstitution());
                 case HoconField f:
                     return f.Value.Any(n => n.IsSubstitution());
-                case HoconObject o:
+                case InternalHoconObject o:
                     foreach (var f in o.Values)
                         if (f.Value.Any(n => n.IsSubstitution()))
                             return true;
                     return false;
-                case HoconArray a:
+                case InternalHoconArray a:
                     foreach (var v in a)
                         if (v.Any(n => n.IsSubstitution()))
                             return true;

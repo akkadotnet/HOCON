@@ -9,9 +9,9 @@ namespace Hocon.Extensions
     /// <summary>
     ///     HoconElementExtensions
     /// </summary>
-    public static class HoconElementExtensions
+    internal static class HoconElementExtensions
     {
-        public static bool IsLiteral(this HoconType hoconType)
+        internal static bool IsLiteral(this HoconType hoconType)
         {
             switch (hoconType)
             {
@@ -24,12 +24,12 @@ namespace Hocon.Extensions
             }
         }
 
-        public static bool IsMergeable(this HoconType t1, HoconType t2)
+        internal static bool IsMergeable(this HoconType t1, HoconType t2)
         {
             return t1 == t2 || t1.IsLiteral() && t2.IsLiteral();
         }
 
-        public static bool IsMergeable(this IHoconElement e1, IHoconElement e2)
+        internal static bool IsMergeable(this IHoconElement e1, IHoconElement e2)
         {
             return e1.Type.IsMergeable(e2.Type);
         }

@@ -45,7 +45,7 @@ namespace Hocon.API.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ApproveImmutable()
         {
-            var publicApi = Filter(GeneratePublicApi(typeof(HoconImmutableObject).Assembly));
+            var publicApi = Filter(GeneratePublicApi(typeof(HoconObject).Assembly));
             Approvals.Verify(publicApi);
         }
 

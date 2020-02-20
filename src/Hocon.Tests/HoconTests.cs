@@ -408,7 +408,7 @@ A {
             emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<KeyNotFoundException>();
 
-            emptyConfig.GetObjectList(missingKey, new List<HoconObject>()).Should().Equal(new List<HoconObject>());
+            emptyConfig.GetObjectList(missingKey, new List<InternalHoconObject>()).Should().Equal(new List<InternalHoconObject>());
             emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<KeyNotFoundException>();
 

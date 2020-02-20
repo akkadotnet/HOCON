@@ -35,7 +35,7 @@ namespace Hocon.Extensions.Configuration
             return _data;
         }
 
-        private void VisitHoconObject(HoconObject hObject)
+        private void VisitHoconObject(InternalHoconObject hObject)
         {
             foreach (var field in hObject)
             {
