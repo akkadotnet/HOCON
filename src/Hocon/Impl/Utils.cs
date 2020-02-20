@@ -187,12 +187,14 @@ namespace Hocon
             return s.NeedQuotes() && s.Contains(Utils.NewLine);
         }
 
+        public static string AddTripleQuotes(this string s)
+        {
+            return $"\"\"\"{s}\"\"\"";
+        }
+
         public static string AddQuotes(this string s)
         {
-            if (s.Contains('"'))
-                return "\"" + s.Replace("\"", "\\\"") + "\"";
-
-            return "\"" + s + "\"";
+            return $"\"{s.Replace("\"", "\\\"")}\"";
         }
     }
 }

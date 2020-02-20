@@ -5,11 +5,13 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Hocon
 {
-    public abstract class HoconElement
+    public abstract class HoconElement :
+        IEquatable<HoconElement>
     {
         [Obsolete("There is no need to use Value property with Hocon.Immutable, please remove it.")]
         public HoconElement Value => this;
@@ -39,6 +41,63 @@ namespace Hocon
                     return obj[path];
 
                 throw new HoconException($"String path indexers only works on {nameof(HoconObject)}");
+            }
+        }
+
+        public override bool Equals(object other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (!(other is HoconElement element)) return false;
+            return Equals(element);
+        }
+
+        public bool Equals(HoconElement other)
+        {
+            if (ReferenceEquals(this, other)) return true;
+
+            switch (other)
+            {
+                case null:
+                    return false;
+                case HoconLiteral l:
+                    return l.Equals(other);
+                case HoconArray a:
+                    return a.Equals(other);
+                case HoconObject o:
+                    return o.Equals(other);
+                default:
+                    return false;
+            }
+        }
+
+        public virtual string ToString(int indent, int indentSize)
+        {
+            switch(this)
+            {
+                case HoconObject o:
+                    return o.ToString(indent, indentSize);
+                case HoconArray a:
+                    return a.ToString(indent, indentSize);
+                case HoconLiteral l:
+                    return l.ToString(indent, indentSize);
+                default:
+                    throw new HoconException("Should never reach this point");
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            switch(this)
+            {
+                case HoconLiteral l:
+                    return l.GetHashCode();
+                case HoconArray a:
+                    return a.GetHashCode();
+                case HoconObject o:
+                    return o.GetHashCode();
+                default:
+                    throw new HoconException("Should never get to this point.");
             }
         }
 

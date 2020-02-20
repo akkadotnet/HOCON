@@ -4,17 +4,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Hocon.Builder;
-
-namespace Hocon.Extensions
+namespace Hocon
 {
     public static class HoconExtensions
     {
         internal static HoconObject ToHoconImmutable(this HoconRoot root)
         {
-            return new HoconObjectBuilder()
-                .Merge(root.Value.GetObject())
-                .Build();
+            return new HoconObjectBuilder(root.Value.GetObject()).Build();
         }
 
         internal static HoconElement ToHoconImmutable(this IHoconElement element)
@@ -41,9 +37,7 @@ namespace Hocon.Extensions
             switch (value.Type)
             {
                 case HoconType.Object:
-                    return new HoconObjectBuilder()
-                        .Merge(value.GetObject())
-                        .Build();
+                    return new HoconObjectBuilder(value.GetObject()).Build();
                 case HoconType.Array:
                     return new HoconArrayBuilder()
                         .AddRange(value)
@@ -64,9 +58,7 @@ namespace Hocon.Extensions
 
         internal static HoconObject ToHoconImmutable(this InternalHoconObject @object)
         {
-            return new HoconObjectBuilder()
-                .Merge(@object)
-                .Build();
+            return new HoconObjectBuilder(@object).Build();
         }
 
         internal static HoconElement ToHoconImmutable(this HoconField field)

@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Hocon.Extensions
+namespace Hocon
 {
     public static class GenericGetterExtensions
     {

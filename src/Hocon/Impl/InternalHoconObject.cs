@@ -31,19 +31,6 @@ namespace Hocon
     /// </summary>
     internal class InternalHoconObject : Dictionary<string, HoconField>, IHoconElement
     {
-        private static readonly InternalHoconObject _empty;
-        public static InternalHoconObject Empty => _empty;
-
-        static InternalHoconObject()
-        {
-            var value = new HoconValue(null);
-            _empty = new InternalHoconObject(value);
-        }
-
-        [Obsolete("Only used for serialization", true)]
-        private InternalHoconObject()
-        { }
-
         /// <summary>
         ///     Initializes a new instance of the <see cref="InternalHoconObject" /> class.
         /// </summary>

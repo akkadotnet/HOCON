@@ -13,7 +13,10 @@ using System.Numerics;
 
 namespace Hocon
 {
-    public sealed class HoconArray : HoconElement, IImmutableList<HoconElement>
+    public sealed class HoconArray : 
+        HoconElement, 
+        IImmutableList<HoconElement>,
+        IEquatable<HoconArray>
     {
         private readonly ImmutableArray<HoconElement> _elements;
 
@@ -26,6 +29,11 @@ namespace Hocon
         }
 
         public new HoconElement this[int index] => _elements[index];
+
+        public override string ToString(int indent, int indentSize)
+        {
+            return $"[{string.Join(", ", ToString(indent + 1, indentSize))}]";
+        }
 
         internal static HoconArray Create(IEnumerable<HoconElement> elements)
         {
@@ -122,6 +130,37 @@ namespace Hocon
             IEqualityComparer<HoconElement> equalityComparer)
         {
             throw new InvalidOperationException("Can not change array state after it is built.");
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (!(obj is HoconArray otherArray))
+                return false;
+            return Equals(otherArray);
+        }
+
+        public bool Equals(HoconArray other)
+        {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (Count != other.Count) return false;
+
+            for(var i = 0; i < Count; i++)
+            {
+                if (this[i] != other[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return 722328647 + _elements.GetHashCode();
         }
 
         public int Count => _elements.Length;

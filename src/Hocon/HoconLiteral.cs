@@ -10,9 +10,12 @@ using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Hocon
 {
+    [JsonConverter(typeof(HoconLiteral))]
     public sealed class HoconLiteral : HoconElement, IEquatable<HoconLiteral>
     {
         public static readonly HoconLiteral Null = Create(null);
@@ -34,6 +37,13 @@ namespace Hocon
         public override string ToString()
         {
             return Value;
+        }
+
+        public override string ToString(int indent, int indentSize)
+        {
+            return Value == null ? "null" :
+                Value.NeedTripleQuotes() ? Value.AddTripleQuotes() : 
+                Value.NeedQuotes() ? Value.AddQuotes() : Value;
         }
 
         public bool Equals(HoconLiteral other)
