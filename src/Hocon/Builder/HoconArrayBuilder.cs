@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using Hocon.Extensions;
 
-namespace Hocon.Builder
+namespace Hocon
 {
     public sealed class HoconArrayBuilder : List<HoconElement>
     {

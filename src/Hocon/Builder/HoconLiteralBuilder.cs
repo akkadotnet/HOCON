@@ -7,7 +7,7 @@
 using System;
 using System.Text;
 
-namespace Hocon.Builder
+namespace Hocon
 {
     public sealed class HoconLiteralBuilder
     {

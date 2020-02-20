@@ -13,13 +13,25 @@ using System.Numerics;
 
 namespace Hocon
 {
-    public sealed class HoconObject :
+    public class HoconObject :
         HoconElement,
         IReadOnlyDictionary<string, HoconElement>
     {
+        public static readonly HoconObject Empty = new HoconObject();
+
         private readonly ImmutableSortedDictionary<string, HoconElement> _fields;
 
-        private HoconObject(IDictionary<string, HoconElement> fields)
+        protected HoconObject()
+        {
+            _fields = ImmutableSortedDictionary<string, HoconElement>.Empty;
+        }
+
+        protected HoconObject(IDictionary<string, HoconElement> fields)
+        {
+            _fields = fields.ToImmutableSortedDictionary();
+        }
+
+        protected HoconObject(IReadOnlyDictionary<string, HoconElement> fields)
         {
             _fields = fields.ToImmutableSortedDictionary();
         }

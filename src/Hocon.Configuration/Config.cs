@@ -18,19 +18,18 @@ namespace Hocon
     ///     configuration string.
     /// </summary>
     [Serializable]
-    public class Config : HoconRoot, ISerializable, IEquatable<Config>
+    public class Config : HoconObject, ISerializable, IEquatable<Config>
     {
-        private static readonly HoconValue EmptyValue;
-
         private const string SerializedPropertyName = "_data";
 
-        static Config()
-        {
-            EmptyValue = new HoconValue(null);
-            EmptyValue.Add(new InternalHoconObject(EmptyValue));
-        }
+        /// <summary>
+        ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
+        /// </summary>
+        /// <remarks>
+        ///     Added for brevity and API backwards-compatibility with Akka.Hocon.
+        /// </remarks>
+        public static Config Empty { get; } = new Config();
 
-        [Obsolete("For json serialization/deserialization only", true)]
         protected Config()
         {
         }
@@ -39,66 +38,40 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="Config" /> class.
         /// </summary>
-        protected Config(HoconValue value)
+        protected Config(HoconObject root):base(root)
         {
-            Value = (HoconValue)value.Clone(null);
-        }
-
-        /// <inheritdoc cref="Config(HoconValue)" />
-        protected Config(HoconValue value, Config fallback) : this(value)
-        {
-            MergeConfig(fallback);
-        }
-
-        /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="root">The root node to base this configuration.</param>
-        /// <exception cref="T:System.ArgumentNullException">"The root value cannot be null."</exception>
-        public Config(HoconRoot root)
-        {
-            Value = (HoconValue)root.Value.Clone(null);
             if (!(root is Config cfg))
                 return;
 
-            foreach(var value in cfg._fallbacks)
+            foreach (var value in cfg._fallbacks)
             {
-                _fallbacks.Add((HoconValue)value.Clone(null));
+                _fallbacks.Add(value);
             }
         }
 
-        /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="root">The configuration to use as the primary source.</param>
-        /// <param name="fallback">The configuration to use as a secondary source.</param>
-        /// <exception cref="ArgumentNullException">The source configuration cannot be null.</exception>
-        public Config(HoconRoot root, Config fallback) : this(root)
+        /// <inheritdoc cref="Config(HoconObject)" />
+        protected Config(HoconObject root, Config fallback) : this(root)
         {
             MergeConfig(fallback);
         }
 
-        /// <summary>
-        ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
-        /// </summary>
-        /// <remarks>
-        ///     Added for brevity and API backwards-compatibility with Akka.Hocon.
-        /// </remarks>
-        public static Config Empty => CreateEmpty();
-
-        protected List<HoconValue> _fallbacks { get; } = new List<HoconValue>();
-        public virtual IReadOnlyList<HoconValue> Fallbacks => _fallbacks.ToList().AsReadOnly();
+        protected List<HoconObject> _fallbacks { get; } = new List<HoconObject>();
+        public virtual IReadOnlyList<HoconObject> Fallbacks => _fallbacks.ToList().AsReadOnly();
 
         /// <summary>
         ///     Determines if this root node contains any values
         /// </summary>
-        public virtual bool IsEmpty => Value == EmptyValue && _fallbacks.Count == 0;
+        public virtual bool IsEmpty => Count == 0 && _fallbacks.Count == 0;
 
-        protected HoconValue _mergedValueCache = null;
-        public HoconValue Root
+        protected HoconObject _mergedValueCache = null;
+        public HoconObject Root
         {
             get
             {
                 if (_mergedValueCache == null)
                 {
-                    _mergedValueCache = (HoconValue)Value.Clone(null);
-                    var obj = _mergedValueCache.GetObject();
+                    var builder = new HoconObjectBuilder();
+                    builder.Merge(this);
 
                     foreach (var fallback in _fallbacks)
                     {
@@ -117,12 +90,12 @@ namespace Hocon
         public string ToString(bool useFallbackValues)
         {
             if (!useFallbackValues)
-                return Value.ToString();
+                return ToString();
 
             return Root.ToString();
         }
 
-        protected override bool TryGetNode(HoconPath path, out HoconValue result)
+        protected override bool TryGetNode(HoconPath path, out HoconElement result)
         {
             result = null;
             var currentObject = Value.GetObject();
@@ -172,7 +145,7 @@ namespace Hocon
 
         public virtual Config GetConfig(HoconPath path)
         {
-            if(Root.GetObject().TryGetValue(path, out var result))
+            if(Root.TryGetValue(path, out var result))
                 return new Config(result);
             return Empty;
         }

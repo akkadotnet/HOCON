@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using Hocon.Extensions;
 
-namespace Hocon.Builder
+namespace Hocon
 {
     public sealed class HoconObjectBuilder : SortedDictionary<string, HoconElement>
     {
@@ -17,10 +17,21 @@ namespace Hocon.Builder
             return this;
         }
 
+        public HoconObjectBuilder Merge(IReadOnlyDictionary<string, HoconElement> fields)
+        {
+            foreach (var kvp in fields) this[kvp.Key] = kvp.Value;
+            return this;
+        }
+
         internal HoconObjectBuilder Merge(InternalHoconObject @object)
         {
             foreach (var kvp in @object) this[kvp.Key] = kvp.Value.ToHoconImmutable();
             return this;
+        }
+
+        internal HoconObjectBuilder FallbackMerge(IReadOnlyDictionary<string, HoconElement> fields)
+        {
+
         }
 
         public HoconObject Build()
