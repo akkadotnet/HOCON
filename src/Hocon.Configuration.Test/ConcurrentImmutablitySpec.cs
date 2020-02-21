@@ -43,11 +43,11 @@ namespace Hocon.Configuration.Tests
         private Config C { get; set; } = fb1;
 
         [Fact]
-        public async Task ConcurrentConfig_modification_should_be_immutable()
+        public void ConcurrentConfig_modification_should_be_immutable()
         {
             C = C.SafeWithFallback(fb2);
 
-            var r = Parallel.ForEach(Enumerable.Range(1, 100), i =>
+            var r = Parallel.ForEach(Enumerable.Range(1, 1000), i =>
             {
                 /*
                  * Modify the Config that is being concurrently read with a fallback
