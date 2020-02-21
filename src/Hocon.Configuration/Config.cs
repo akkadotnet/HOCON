@@ -42,6 +42,7 @@ namespace Hocon
         protected Config(HoconValue value)
         {
             Value = (HoconValue)value.Clone(null);
+            Root = (HoconValue)value.Clone(null);
         }
 
         /// <inheritdoc cref="Config(HoconValue)" />
@@ -56,12 +57,14 @@ namespace Hocon
         public Config(HoconRoot root)
         {
             Value = (HoconValue)root.Value.Clone(null);
+            Root = (HoconValue)root.Value.Clone(null);
+
             if (!(root is Config cfg))
                 return;
 
             foreach(var value in cfg._fallbacks)
             {
-                _fallbacks.Add((HoconValue)value.Clone(null));
+                InsertFallbackValue(value);
             }
         }
 
@@ -90,25 +93,7 @@ namespace Hocon
         /// </summary>
         public virtual bool IsEmpty => Value == EmptyValue && _fallbacks.Count == 0;
 
-        protected HoconValue _mergedValueCache = null;
-        public HoconValue Root
-        {
-            get
-            {
-                if (_mergedValueCache == null)
-                {
-                    _mergedValueCache = (HoconValue)Value.Clone(null);
-                    var obj = _mergedValueCache.GetObject();
-
-                    foreach (var fallback in _fallbacks)
-                    {
-                        obj.FallbackMerge(fallback.GetObject());
-                    }
-                }
-
-                return _mergedValueCache;
-            }
-        }
+        public HoconValue Root { get; }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -196,15 +181,7 @@ namespace Hocon
             if (IsEmpty)
                 return fallback;
 
-            var result = new Config(Value);
-            foreach(var value in _fallbacks)
-            {
-                result._fallbacks.Add((HoconValue)value.Clone(null));
-            }
-            result.MergeConfig(fallback);
-
-            _mergedValueCache = null;
-            return result;
+            return new Config(this, fallback);
         }
 
         private void MergeConfig(Config other)
@@ -227,11 +204,12 @@ namespace Hocon
                     break;
                 }
             }
-            if (duplicateValue != null)
+            if (duplicateValue == null)
             {
-                _fallbacks.Remove(duplicateValue);
+                var clone = (HoconValue)value.Clone(null);
+                _fallbacks.Add(clone);
+                Root.GetObject().FallbackMerge(clone.GetObject());
             }
-            _fallbacks.Add((HoconValue)value.Clone(null));
         }
 
         /// <summary>

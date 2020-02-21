@@ -9,7 +9,6 @@ namespace Hocon
     }
     public class Config : Hocon.HoconRoot, System.IEquatable<Hocon.Config>, System.Runtime.Serialization.ISerializable
     {
-        protected Hocon.HoconValue _mergedValueCache;
         [System.ObsoleteAttribute("For json serialization/deserialization only", true)]
         protected Config() { }
         protected Config(Hocon.HoconValue value) { }
