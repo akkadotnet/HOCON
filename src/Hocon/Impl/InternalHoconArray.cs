@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Hocon.Extensions;
 
 namespace Hocon
 {

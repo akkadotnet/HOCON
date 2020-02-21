@@ -13,8 +13,13 @@ namespace Hocon
     public abstract class HoconElement :
         IEquatable<HoconElement>
     {
-        [Obsolete("There is no need to use Value property with Hocon.Immutable, please remove it.")]
+        [Obsolete("There is no need to use Value property anymore, please remove it.")]
         public HoconElement Value => this;
+
+        public virtual string Raw
+        {
+            get => ToString(1, 2);
+        }
 
         public HoconElement this[int index]
         {
@@ -41,6 +46,17 @@ namespace Hocon
                     return obj[path];
 
                 throw new HoconException($"String path indexers only works on {nameof(HoconObject)}");
+            }
+        }
+
+        public HoconElement this[HoconPath path]
+        {
+            get
+            {
+                if (this is HoconObject obj)
+                    return obj[path];
+
+                throw new HoconException($"HoconPath path indexers only works on {nameof(HoconObject)}");
             }
         }
 

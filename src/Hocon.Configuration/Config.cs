@@ -42,7 +42,7 @@ namespace Hocon
         /// <summary>
         ///     Initializes a new instance of the <see cref="Config" /> class.
         /// </summary>
-        private Config(HoconElement root):base(root)
+        public Config(HoconElement root):base(root)
         {
             if (!(root is Config cfg))
                 return;

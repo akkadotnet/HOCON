@@ -5,7 +5,6 @@
 // -----------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Hocon.Extensions;
 
 namespace Hocon
 {

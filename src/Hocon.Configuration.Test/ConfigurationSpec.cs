@@ -66,7 +66,7 @@ a {
         public void CanLoadDefaultConfig()
         {
             var defaultConf = HoconConfigurationFactory.Default();
-            defaultConf.Should().NotBe(HoconConfigurationFactory.Empty);
+            defaultConf.Should().NotBeEquivalentTo(HoconConfigurationFactory.Empty);
             defaultConf.HasPath("root.simple-string").Should().BeTrue();
             defaultConf.GetString("root.simple-string").Should().Be("Hello HOCON2");
         }
@@ -527,7 +527,7 @@ foo {
             
             var config = configWithFallback.GetConfig("akka.actor.deployment");
             var rootObj = config.Value.GetObject();
-            rootObj.Unwrapped.Should().ContainKeys("/worker1", "/worker2");
+            rootObj.Unwrapped.Keys.Should().Contain("/worker1", "/worker2");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
             rootObj["/worker1.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/1""");

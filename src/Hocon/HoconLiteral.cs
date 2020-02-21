@@ -467,72 +467,25 @@ namespace Hocon
             }
         }
 
-        private static readonly Regex TimeSpanRegex = new Regex(
-            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$",
-            RegexOptions.Compiled);
-
-        private static double ParsePositiveValue(string v)
-        {
-            var value = double.Parse(v, NumberFormatInfo.InvariantInfo);
-            if (value < 0)
-                throw new FormatException("Expected a positive value instead of " + value);
-            return value;
-        }
-
         public static implicit operator TimeSpan(HoconLiteral lit)
         {
-            var res = lit.Value;
+            if (lit.Value.TryMatchTimeSpan(out var result))
+                return result;
 
-            if (res.Equals("infinite", StringComparison.OrdinalIgnoreCase)) //Not in Hocon spec
-                return Timeout.InfiniteTimeSpan;
-
-            var match = TimeSpanRegex.Match(res);
-            if (match.Success)
+            double value;
+            try
             {
-                var u = match.Groups["unit"].Value;
-                var v = ParsePositiveValue(match.Groups["value"].Value);
-
-                switch (u)
-                {
-                    case "nanoseconds":
-                    case "nanosecond":
-                    case "nanos":
-                    case "nano":
-                    case "ns":
-                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
-                    case "microseconds":
-                    case "microsecond":
-                    case "micros":
-                    case "micro":
-                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
-                    case "milliseconds":
-                    case "millisecond":
-                    case "millis":
-                    case "milli":
-                    case "ms":
-                        return TimeSpan.FromMilliseconds(v);
-                    case "seconds":
-                    case "second":
-                    case "s":
-                        return TimeSpan.FromSeconds(v);
-                    case "minutes":
-                    case "minute":
-                    case "m":
-                        return TimeSpan.FromMinutes(v);
-                    case "hours":
-                    case "hour":
-                    case "h":
-                        return TimeSpan.FromHours(v);
-                    case "days":
-                    case "day":
-                    case "d":
-                        return TimeSpan.FromDays(v);
-                    default:
-                        throw new HoconException($"Unknown TimeSpan unit:{u}");
-                }
+                value = double.Parse(lit.Value, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Failed to parse TimeSpan value from '{lit.Value}'.", e);
             }
 
-            return TimeSpan.FromMilliseconds(ParsePositiveValue(res));
+            if (value < 0)
+                throw new HoconException($"Failed to parse TimeSpan value, expected a positive value instead of {value}.");
+
+            return TimeSpan.FromMilliseconds(value);
         }
 
         #endregion

@@ -317,8 +317,7 @@ test.value = 456
             }
 
             var config = HoconParser.Parse(hocon, IncludeCallback);
-            // TODO: need to figure a better way to retrieve array inside array
-            var array = config.GetValue("a").GetArray()[0].GetIntList();
+            int[] array = config.["a"][0];
             Assert.True(new[] {1, 2, 3}.SequenceEqual(array));
         }
 
@@ -408,7 +407,7 @@ A {
             emptyConfig.Invoking(c => c.GetLongList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<KeyNotFoundException>();
 
-            emptyConfig.GetObjectList(missingKey, new List<InternalHoconObject>()).Should().Equal(new List<InternalHoconObject>());
+            emptyConfig.GetObjectList(missingKey, new List<HoconObject>()).Should().Equal(new List<HoconObject>());
             emptyConfig.Invoking(c => c.GetObjectList(missingKey)).Should().Throw<HoconValueException>().Which
                 .InnerException.Should().BeOfType<KeyNotFoundException>();
 
@@ -509,12 +508,12 @@ a {
             Assert.Contains("d", b.Keys);
 
             Assert.NotNull(b["c"]);
-            Assert.IsType<HoconField>(b["c"]);
-            Assert.Equal(1, ((HoconField) b["c"]).Value.GetInt());
+            Assert.IsType<HoconLiteral>(b["c"]);
+            Assert.Equal(1, ((HoconLiteral) b["c"]).GetInt());
 
             Assert.NotNull(b["d"]);
-            Assert.IsType<HoconField>(b["d"]);
-            Assert.True(((HoconField) b["d"]).Value.GetBoolean());
+            Assert.IsType<HoconLiteral>(b["d"]);
+            Assert.True(((HoconLiteral) b["d"]).GetBoolean());
         }
 
         [Fact]
