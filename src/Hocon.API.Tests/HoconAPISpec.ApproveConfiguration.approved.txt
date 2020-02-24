@@ -7,31 +7,25 @@ namespace Hocon
         protected CDataConfigurationElement() { }
         protected override void DeserializeElement(System.Xml.XmlReader reader, bool serializeCollectionKey) { }
     }
-    public class Config : Hocon.HoconRoot, System.IEquatable<Hocon.Config>, System.Runtime.Serialization.ISerializable
+    [Newtonsoft.Json.JsonConverterAttribute(typeof(Hocon.HoconConfigConverter))]
+    public class Config : Hocon.HoconObject, System.IEquatable<Hocon.Config>
     {
-        protected Hocon.HoconValue _mergedValueCache;
-        [System.ObsoleteAttribute("For json serialization/deserialization only", true)]
-        protected Config() { }
-        protected Config(Hocon.HoconValue value) { }
-        protected Config(Hocon.HoconValue value, Hocon.Config fallback) { }
-        public Config(Hocon.HoconRoot root) { }
-        public Config(Hocon.HoconRoot root, Hocon.Config fallback) { }
-        [System.ObsoleteAttribute("Used for serialization only", true)]
-        public Config(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
+        public Config(Hocon.HoconElement root) { }
         public static Hocon.Config Empty { get; }
-        public virtual System.Collections.Generic.IReadOnlyList<Hocon.HoconValue> Fallbacks { get; }
+        public virtual System.Collections.Generic.IReadOnlyList<Hocon.HoconObject> Fallbacks { get; }
         public virtual bool IsEmpty { get; }
-        public Hocon.HoconValue Root { get; }
-        protected System.Collections.Generic.List<Hocon.HoconValue> _fallbacks { get; }
-        public override System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconField>> AsEnumerable() { }
+        public Hocon.HoconObject Root { get; }
+        protected System.Collections.Generic.List<Hocon.HoconObject> _fallbacks { get; }
+        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> AsEnumerable() { }
+        public static Hocon.Config Create(Hocon.HoconElement root) { }
         public virtual bool Equals(Hocon.Config other) { }
         public override bool Equals(object obj) { }
         public virtual Hocon.Config GetConfig(string path) { }
         public virtual Hocon.Config GetConfig(Hocon.HoconPath path) { }
-        protected override Hocon.HoconValue GetNode(Hocon.HoconPath path) { }
-        public void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
+        public override int GetHashCode() { }
+        public override Hocon.HoconElement GetValue(Hocon.HoconPath path) { }
         public string ToString(bool useFallbackValues) { }
-        protected override bool TryGetNode(Hocon.HoconPath path, out Hocon.HoconValue result) { }
+        public override bool TryGetValue(Hocon.HoconPath path, out Hocon.HoconElement result) { }
         public virtual Hocon.Config WithFallback(Hocon.Config fallback) { }
         public static Hocon.Config +(Hocon.Config config, string fallback) { }
         public static Hocon.Config +(string configHocon, Hocon.Config fallbackConfig) { }
@@ -67,7 +61,6 @@ namespace Hocon
         public static Hocon.Config FromResource(string resourceName, object instanceInAssembly) { }
         public static Hocon.Config FromResource<TAssembly>(string resourceName) { }
         public static Hocon.Config FromResource(string resourceName, System.Reflection.Assembly assembly) { }
-        [System.ObsoleteAttribute("Call the ConfigurationFactory.Default method instead.")]
         public static Hocon.Config Load() { }
         public static Hocon.Config Load(string sectionName) { }
         public static Hocon.Config ParseString(string hocon, Hocon.HoconIncludeCallbackAsync includeCallback) { }
