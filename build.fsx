@@ -102,8 +102,8 @@ Target "RunTests" (fun _ ->
     let runSingleProject project =
         let arguments =
             match (hasTeamCity) with
-            | true -> (sprintf "test -c Release --no-build --logger:trx --logger:\"console;verbosity=normal\" --results-directory %s -- -parallel none -teamcity" (outputTests))
-            | false -> (sprintf "test -c Release --no-build --logger:trx --logger:\"console;verbosity=normal\" --results-directory %s -- -parallel none" (outputTests))
+            | true -> (sprintf "test -c Release --no-build --logger:trx --logger:\"console;verbosity=normal\" --results-directory \"%s\" -- -parallel none -teamcity" (outputTests))
+            | false -> (sprintf "test -c Release --no-build --logger:trx --logger:\"console;verbosity=normal\" --results-directory \"%s\" -- -parallel none" (outputTests))
 
         let result = ExecProcess(fun info ->
             info.FileName <- "dotnet"
@@ -213,7 +213,7 @@ Target "CreateNuget" (fun _ ->
                     Configuration = configuration
                     AdditionalArgs = ["--include-symbols --no-build"]
                     VersionSuffix = overrideVersionSuffix project
-                    OutputPath = outputNuGet })
+                    OutputPath = "\"" + outputNuGet + "\"" })
 
     projects |> Seq.iter (runSingleProject)
 )
