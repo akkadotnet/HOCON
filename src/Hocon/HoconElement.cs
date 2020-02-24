@@ -16,6 +16,8 @@ namespace Hocon
         [Obsolete("There is no need to use Value property anymore, please remove it.")]
         public HoconElement Value => this;
 
+        public abstract HoconType Type { get; }
+
         public virtual string Raw
         {
             get => ToString(1, 2);
@@ -38,7 +40,7 @@ namespace Hocon
             }
         }
 
-        public HoconElement this[string path]
+        public virtual HoconElement this[string path]
         {
             get
             {
@@ -49,7 +51,7 @@ namespace Hocon
             }
         }
 
-        public HoconElement this[HoconPath path]
+        public virtual HoconElement this[HoconPath path]
         {
             get
             {
@@ -60,6 +62,24 @@ namespace Hocon
             }
         }
 
+        public HoconElement AtKey(string key)
+        {
+            return new HoconObjectBuilder
+            {
+                { key, this }
+            }.Build();
+        }
+
+        public virtual bool HasPath(string path)
+        {
+            return this.TryGetValue(path, out _);
+        }
+
+        public virtual bool HasPath(HoconPath path)
+        {
+            return this.TryGetValue(path, out _);
+        }
+
         public override bool Equals(object other)
         {
             if (other == null) return false;
@@ -68,39 +88,9 @@ namespace Hocon
             return Equals(element);
         }
 
-        public bool Equals(HoconElement other)
-        {
-            if (ReferenceEquals(this, other)) return true;
+        public abstract bool Equals(HoconElement other);
 
-            switch (other)
-            {
-                case null:
-                    return false;
-                case HoconLiteral l:
-                    return l.Equals(other);
-                case HoconArray a:
-                    return a.Equals(other);
-                case HoconObject o:
-                    return o.Equals(other);
-                default:
-                    return false;
-            }
-        }
-
-        public virtual string ToString(int indent, int indentSize)
-        {
-            switch(this)
-            {
-                case HoconObject o:
-                    return o.ToString(indent, indentSize);
-                case HoconArray a:
-                    return a.ToString(indent, indentSize);
-                case HoconLiteral l:
-                    return l.ToString(indent, indentSize);
-                default:
-                    throw new HoconException("Should never reach this point");
-            }
-        }
+        public abstract string ToString(int indent, int indentSize);
 
         public override int GetHashCode()
         {
@@ -115,6 +105,18 @@ namespace Hocon
                 default:
                     throw new HoconException("Should never get to this point.");
             }
+        }
+
+        public static bool operator == (HoconElement left, HoconElement right)
+        {
+            if (ReferenceEquals(left, right)) return true;
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(HoconElement left, HoconElement right)
+        {
+            if (ReferenceEquals(left, right)) return false;
+            return !left.Equals(right);
         }
 
         #region Casting operators

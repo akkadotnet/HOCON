@@ -641,12 +641,35 @@ namespace Hocon
 
         public static bool TryGetByteSize(this HoconElement element, out long? result)
         {
-            result = default;
-            if (element is HoconLiteral lit)
+            result = null;
+            if (!element.TryGetString(out var res))
+                return false;
+            if (string.IsNullOrEmpty(res))
+                return false;
+
+            res = res.Trim();
+            var index = res.LastIndexOfAny(Digits);
+            if (index == -1 || index + 1 >= res.Length)
             {
-                result = lit;
+                if (!long.TryParse(res, out var longParse))
+                    return false;
+                result = longParse;
                 return true;
             }
+
+            var value = res.Substring(0, index + 1);
+            var unit = res.Substring(index + 1).Trim();
+
+            if (!double.TryParse(value, out var doubleParse))
+                return false;
+
+            foreach (var byteSize in ByteSizes)
+                foreach (var suffix in byteSize.Suffixes)
+                    if (string.Equals(unit, suffix, StringComparison.Ordinal))
+                    {
+                        result = (long)(byteSize.Factor * doubleParse);
+                        return true;
+                    }
             return false;
         }
 
@@ -662,14 +685,14 @@ namespace Hocon
         }
         #endregion
 
-        /// <summary>
-        ///     Wraps any exception into <see cref="HoconValueException" /> with failure path specified
-        /// </summary>
-        private static T WrapWithValueException<T>(string path, Func<T> func)
+        #region Object value getter
+
+        #region HoconElement
+        public static HoconElement GetValue(this HoconElement element, string path)
         {
             try
             {
-                return func();
+                return element[path];
             }
             catch (Exception ex)
             {
@@ -677,112 +700,1099 @@ namespace Hocon
             }
         }
 
-        private static T WrapWithValueException<T>(HoconPath path, Func<T> func)
+        public static HoconElement GetValue(this HoconElement element, HoconPath path)
         {
             try
             {
-                return func();
+                return element[path];
             }
             catch (Exception ex)
             {
-                throw new HoconValueException(ex.Message, path.ToString(), ex);
+                throw new HoconValueException(ex.Message, path, ex);
             }
         }
 
-        #region Object value getter
-        public static HoconElement GetValue(this HoconElement element, string path)
+        public static bool TryGetValue(this HoconElement element, string path, out HoconElement result)
         {
-            return WrapWithValueException(path, () => element[path]);
-       }
+            result = default;
+            if (element is HoconObject obj)
+                return obj.TryGetValue(path, out result);
 
+            return false;
+        }
 
+        public static bool TryGetValue(this HoconElement element, HoconPath path, out HoconElement result)
+        {
+            result = default;
+            if (element is HoconObject obj)
+                return obj.TryGetValue(path, out result);
+
+            return false;
+        }
+        #endregion
+
+        #region HoconObject
+        public static HoconObject GetObject(this HoconElement element, string path)
+        {
+            try
+            {
+                return element[path].ToObject();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static HoconObject GetObject(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path].ToObject();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetObject(this HoconElement element, string path, out HoconObject result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetObject(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetObject(this HoconElement element, HoconPath path, out HoconObject result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetObject(out result);
+
+            result = default;
+            return false;
+        }
+        #endregion
+
+        #region String
         public static string GetString(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static string GetString(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetString(this HoconElement element, string path, out string result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetString(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetString(this HoconElement element, HoconPath path, out string result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetString(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static string GetString(this HoconElement element, string path, string @default)
+        {
+            if (element.TryGetString(path, out var result))
+                return result;
+            return @default;
+        }
+
+        public static string GetString(this HoconElement element, HoconPath path, string @default)
+        {
+            if (element.TryGetString(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Char
         public static char GetChar(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static char GetChar(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetChar(this HoconElement element, string path, out char result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetChar(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetChar(this HoconElement element, HoconPath path, out char result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetChar(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static char GetChar(this HoconElement element, string path, char @default)
+        {
+            if (element.TryGetChar(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static char GetChar(this HoconElement element, HoconPath path, char @default)
+        {
+            if (element.TryGetChar(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Boolean
         public static bool GetBoolean(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static bool GetBoolean(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetBoolean(this HoconElement element, string path, out bool result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetBoolean(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetBoolean(this HoconElement element, HoconPath path, out bool result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetBoolean(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool GetBoolean(this HoconElement element, string path, bool @default)
+        {
+            if (element.TryGetBoolean(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static bool GetBoolean(this HoconElement element, HoconPath path, bool @default)
+        {
+            if (element.TryGetBoolean(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Decimal
         public static decimal GetDecimal(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static decimal GetDecimal(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetDecimal(this HoconElement element, string path, out decimal result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetDecimal(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetDecimal(this HoconElement element, HoconPath path, out decimal result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetDecimal(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static decimal GetDecimal(this HoconElement element, string path, decimal @default)
+        {
+            if (element.TryGetDecimal(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static decimal GetDecimal(this HoconElement element, HoconPath path, decimal @default)
+        {
+            if (element.TryGetDecimal(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Float
         public static float GetFloat(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static float GetFloat(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetFloat(this HoconElement element, string path, out float result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetFloat(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetFloat(this HoconElement element, HoconPath path, out float result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetFloat(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static float GetFloat(this HoconElement element, string path, float @default)
+        {
+            if (element.TryGetFloat(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static float GetFloat(this HoconElement element, HoconPath path, float @default)
+        {
+            if (element.TryGetFloat(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Double
         public static double GetDouble(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static double GetDouble(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetDouble(this HoconElement element, string path, out double result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetDouble(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetDouble(this HoconElement element, HoconPath path, out double result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetDouble(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static double GetDouble(this HoconElement element, string path, double @default)
+        {
+            if (element.TryGetDouble(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static double GetDouble(this HoconElement element, HoconPath path, double @default)
+        {
+            if (element.TryGetDouble(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region BigInteger
         public static BigInteger GetBigInteger(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static BigInteger GetBigInteger(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetBigInteger(this HoconElement element, string path, out BigInteger result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetBigInteger(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetBigInteger(this HoconElement element, HoconPath path, out BigInteger result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetBigInteger(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static BigInteger GetBigInteger(this HoconElement element, string path, BigInteger @default)
+        {
+            if (element.TryGetBigInteger(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static BigInteger GetBigInteger(this HoconElement element, HoconPath path, BigInteger @default)
+        {
+            if (element.TryGetBigInteger(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region ULong
         public static ulong GetULong(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static ulong GetULong(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetULong(this HoconElement element, string path, out ulong result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetULong(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetULong(this HoconElement element, HoconPath path, out ulong result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetULong(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static ulong GetULong(this HoconElement element, string path, ulong @default)
+        {
+            if (element.TryGetULong(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static ulong GetULong(this HoconElement element, HoconPath path, ulong @default)
+        {
+            if (element.TryGetULong(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Long
         public static long GetLong(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static long GetLong(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetLong(this HoconElement element, string path, out long result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetLong(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetLong(this HoconElement element, HoconPath path, out long result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetLong(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static long GetLong(this HoconElement element, string path, long @default)
+        {
+            if (element.TryGetLong(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static long GetLong(this HoconElement element, HoconPath path, long @default)
+        {
+            if (element.TryGetLong(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region UInt
         public static uint GetUInt(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static uint GetUInt(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetUInt(this HoconElement element, string path, out uint result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetUInt(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetUInt(this HoconElement element, HoconPath path, out uint result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetUInt(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static uint GetUInt(this HoconElement element, string path, uint @default)
+        {
+            if (element.TryGetUInt(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static uint GetUInt(this HoconElement element, HoconPath path, uint @default)
+        {
+            if (element.TryGetUInt(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region GetInt
         public static int GetInt(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static int GetInt(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetInt(this HoconElement element, string path, out int result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetInt(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetInt(this HoconElement element, HoconPath path, out int result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetInt(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static int GetInt(this HoconElement element, string path, int @default)
+        {
+            if (element.TryGetInt(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static int GetInt(this HoconElement element, HoconPath path, int @default)
+        {
+            if (element.TryGetInt(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region UShort
         public static ushort GetUShort(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static ushort GetUShort(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetUShort(this HoconElement element, string path, out ushort result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetUShort(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetUShort(this HoconElement element, HoconPath path, out ushort result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetUShort(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static ushort GetUShort(this HoconElement element, string path, ushort @default)
+        {
+            if (element.TryGetUShort(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static ushort GetUShort(this HoconElement element, HoconPath path, ushort @default)
+        {
+            if (element.TryGetUShort(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Short
         public static short GetShort(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static short GetShort(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetShort(this HoconElement element, string path, out short result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetShort(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetShort(this HoconElement element, HoconPath path, out short result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetShort(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static short GetShort(this HoconElement element, string path, short @default)
+        {
+            if (element.TryGetShort(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static short GetShort(this HoconElement element, HoconPath path, short @default)
+        {
+            if (element.TryGetShort(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region SByte
         public static sbyte GetSByte(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static sbyte GetSByte(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetSByte(this HoconElement element, string path, out sbyte result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetSByte(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetSByte(this HoconElement element, HoconPath path, out sbyte result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetSByte(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static sbyte GetSByte(this HoconElement element, string path, sbyte @default)
+        {
+            if (element.TryGetSByte(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static sbyte GetSByte(this HoconElement element, HoconPath path, sbyte @default)
+        {
+            if (element.TryGetSByte(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region Byte
         public static byte GetByte(this HoconElement element, string path)
         {
-            return WrapWithValueException(path, () => element[path]);
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
-        public static TimeSpan GetTimeSpan(this HoconElement element, string path, bool allowInfinite)
+        public static byte GetByte(this HoconElement element, HoconPath path)
         {
-            return WrapWithValueException(path, () => element[path].GetTimeSpan(allowInfinite));
+            try
+            {
+                return element[path];
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
 
+        public static bool TryGetByte(this HoconElement element, string path, out byte result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetByte(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetByte(this HoconElement element, HoconPath path, out byte result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetByte(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static byte GetByte(this HoconElement element, string path, byte @default)
+        {
+            if (element.TryGetByte(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static byte GetByte(this HoconElement element, HoconPath path, byte @default)
+        {
+            if (element.TryGetByte(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region TimeSpan
+        public static TimeSpan GetTimeSpan(this HoconElement element, string path, bool allowInfinite = true)
+        {
+            try
+            {
+                return element[path].GetTimeSpan(allowInfinite);
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static TimeSpan GetTimeSpan(this HoconElement element, HoconPath path, bool allowInfinite = true)
+        {
+            try
+            {
+                return element[path].GetTimeSpan(allowInfinite);
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetTimeSpan(this HoconElement element, string path, out TimeSpan result, bool allowInfinite = true)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetTimeSpan(out result, allowInfinite);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetTimeSpan(this HoconElement element, HoconPath path, out TimeSpan result, bool allowInfinite = true)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetTimeSpan(out result, allowInfinite);
+
+            result = default;
+            return false;
+        }
+
+        public static TimeSpan GetByte(this HoconElement element, string path, TimeSpan @default, bool allowInfinite = true)
+        {
+            if (element.TryGetTimeSpan(path, out var result, allowInfinite))
+                return result;
+
+            return @default;
+        }
+
+        public static TimeSpan GetByte(this HoconElement element, HoconPath path, TimeSpan @default, bool allowInfinite = true)
+        {
+            if (element.TryGetTimeSpan(path, out var result, allowInfinite))
+                return result;
+
+            return @default;
+        }
+        #endregion
+
+        #region ByteSize
         public static long? GetByteSize(this HoconElement element, string path)
         {
-            if (!(element is HoconObject obj))
-                throw new HoconException(
-                    $"Path value getter can only work on {nameof(HoconObject)} type. {element.GetType()} found instead.");
-            return obj[path];
+            try
+            {
+                return element[path].GetByteSize();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
         }
+
+        public static long? GetByteSize(this HoconElement element, HoconPath path)
+        {
+            try
+            {
+                return element[path].GetByteSize();
+            }
+            catch (Exception ex)
+            {
+                throw new HoconValueException(ex.Message, path, ex);
+            }
+        }
+
+        public static bool TryGetByteSize(this HoconElement element, string path, out long? result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetByteSize(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static bool TryGetByteSize(this HoconElement element, HoconPath path, out long? result)
+        {
+            if (element.TryGetValue(path, out var value))
+                return value.TryGetByteSize(out result);
+
+            result = default;
+            return false;
+        }
+
+        public static long? GetByteSize(this HoconElement element, string path, long? @default)
+        {
+            if (element.TryGetByteSize(path, out var result))
+                return result;
+
+            return @default;
+        }
+
+        public static long? GetByteSize(this HoconElement element, HoconPath path, long? @default)
+        {
+            if (element.TryGetByteSize(path, out var result))
+                return result;
+
+            return @default;
+        }
+        #endregion
         #endregion
 
         #region Helpers

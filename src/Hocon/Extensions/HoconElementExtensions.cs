@@ -15,8 +15,6 @@ namespace Hocon
         {
             switch (hoconType)
             {
-                case HoconType.Boolean:
-                case HoconType.Number:
                 case HoconType.String:
                     return true;
                 default:

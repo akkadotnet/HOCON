@@ -16,20 +16,56 @@ using Newtonsoft.Json.Linq;
 namespace Hocon
 {
     [JsonConverter(typeof(HoconLiteral))]
-    public sealed class HoconLiteral : HoconElement, IEquatable<HoconLiteral>
+    public sealed class HoconLiteral : HoconElement
     {
-        public static readonly HoconLiteral Null = Create(null);
+        public static readonly HoconLiteral Null = new HoconLiteral(null, HoconLiteralType.Null);
 
         private HoconLiteral(string value)
         {
-            Value = value;
+            _value = value;
+            LiteralType =
+                value.NeedTripleQuotes() ? HoconLiteralType.TripleQuotedString :
+                value.NeedQuotes() ? HoconLiteralType.QuotedString : HoconLiteralType.UnquotedString;
         }
 
-        public new string Value { get; }
-
-        internal static HoconLiteral Create(string value)
+        private HoconLiteral(string value, HoconLiteralType literalType)
         {
+            _value = value;
+            LiteralType = literalType;
+        }
+
+        public override HoconType Type => HoconType.String;
+        public HoconLiteralType LiteralType { get; }
+
+        private string _value;
+        public new string Value
+        {
+            get
+            {
+                if (LiteralType == HoconLiteralType.Null)
+                    return null;
+                return _value;
+            }
+        }
+
+        public override string Raw => Value == null ? "null" :
+                LiteralType == HoconLiteralType.TripleQuotedString ? Value.AddTripleQuotes() :
+                LiteralType == HoconLiteralType.QuotedString ? Value.AddQuotes() : Value;
+
+        public static HoconLiteral Create(string value)
+        {
+            if (value == null)
+                return Null;
+
             return new HoconLiteral(value);
+        }
+
+        internal static HoconLiteral Create(string value, HoconLiteralType literalType)
+        {
+            if (literalType == HoconLiteralType.Null)
+                return Null;
+
+            return new HoconLiteral(value, literalType);
         }
 
         #region Interface implementations
@@ -41,20 +77,15 @@ namespace Hocon
 
         public override string ToString(int indent, int indentSize)
         {
-            return Value == null ? "null" :
-                Value.NeedTripleQuotes() ? Value.AddTripleQuotes() : 
-                Value.NeedQuotes() ? Value.AddQuotes() : Value;
+            return Raw;
         }
 
-        public bool Equals(HoconLiteral other)
+        public override bool Equals(HoconElement other)
         {
-            if (other == null) return false;
-            return ReferenceEquals(this, other) || string.Equals(Value, other.Value);
-        }
+            if (ReferenceEquals(this, other)) return true;
+            if (!(other is HoconLiteral otherLiteral)) return false;
 
-        public override bool Equals(object obj)
-        {
-            return ReferenceEquals(this, obj) || obj is HoconLiteral other && Equals(other);
+            return otherLiteral.Value == Value;
         }
 
         public override int GetHashCode()

@@ -17,7 +17,7 @@ namespace Hocon
     public class HoconObject :
         HoconElement,
         IReadOnlyDictionary<string, HoconElement>,
-        IEquatable<HoconObject>
+        IDictionary<string, HoconElement>
     {
         public static readonly HoconObject Empty = new HoconObject();
 
@@ -41,30 +41,40 @@ namespace Hocon
             _fields = fields.ToImmutableSortedDictionary();
         }
 
-        /*
         protected HoconObject(IReadOnlyDictionary<string, HoconElement> fields)
         {
             _fields = fields.ToImmutableSortedDictionary();
         }
-        */
 
-        public HoconElement this[HoconPath path] => GetValue(path);
+        public override HoconType Type => HoconType.Object;
 
-        public new HoconElement this[string path] => GetValue(path);
+        public override HoconElement this[HoconPath path] => GetValue(path);
 
-        [Obsolete("There is no need to use Unwrapped property anymore, please remove it.")]
-        public HoconObject Unwrapped => this;
+        public new HoconElement this[string path] {
+            get => GetValue(path);
+            set => throw new InvalidOperationException("HoconObject is a read only Dictionary.");
+        }
+
+        public IDictionary<string, object> Unwrapped =>
+            this.ToDictionary(k => k.Key, v =>
+                    v.Value is HoconObject obj ? (object)obj.Unwrapped : v.Value);
 
         public IEnumerable<string> Keys => _fields.Keys;
         public IEnumerable<HoconElement> Values => _fields.Values;
         public int Count => _fields.Count;
 
-        public bool HasPath(string path)
+        ICollection<string> IDictionary<string, HoconElement>.Keys => _fields.Keys.ToArray();
+
+        ICollection<HoconElement> IDictionary<string, HoconElement>.Values => _fields.Values.ToArray();
+
+        public bool IsReadOnly => true;
+
+        public override bool HasPath(string path)
         {
             return TryGetValue(path, out _);
         }
 
-        public bool HasPath(HoconPath path)
+        public override bool HasPath(HoconPath path)
         {
             return TryGetValue(path, out _);
         }
@@ -129,13 +139,25 @@ namespace Hocon
             return ToString(1, indentSize);
         }
 
+        public override string ToString()
+        {
+            return ToString(1, 2);
+        }
+
         public override string ToString(int indent, int indentSize)
         {
             var i = new string(' ', indent * indentSize);
-            var sb = new StringBuilder();
+            var j = new string(' ', (indent - 1) * indentSize);
+            var sb = new StringBuilder($"{{{Environment.NewLine}");
             foreach (var field in this)
-                sb.Append($"{i}{field.Key} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
-            return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
+            {
+                sb.Append($"{i}{(field.Key.NeedQuotes() ? field.Key.AddQuotes() : field.Key)} : {field.Value.ToString(indent + 1, indentSize)},{Environment.NewLine}");
+            }
+            if (sb.Length > Environment.NewLine.Length + 1) 
+                sb.Remove(sb.Length - Environment.NewLine.Length - 1, Environment.NewLine.Length + 1);
+            sb.Append($"{Environment.NewLine}{j}}}");
+            return sb.ToString();
+            //return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
         }
 
         internal static HoconObject Create(IDictionary<string, HoconElement> fields)
@@ -145,12 +167,17 @@ namespace Hocon
 
         #region Interface implementation
 
-        public HoconElement GetValue(string path)
+        public bool ContainsKey(string key)
+        {
+            return _fields.ContainsKey(key);
+        }
+
+        public virtual HoconElement GetValue(string path)
         {
             return GetValue(HoconPath.Parse(path));
         }
 
-        public HoconElement GetValue(HoconPath path)
+        public virtual HoconElement GetValue(HoconPath path)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -180,18 +207,13 @@ namespace Hocon
             }
         }
 
-        public bool ContainsKey(string key)
-        {
-            return _fields.ContainsKey(key);
-        }
-
-        public bool TryGetValue(string key, out HoconElement result)
+        public virtual bool TryGetValue(string path, out HoconElement result)
         {
             result = null;
-            return !string.IsNullOrWhiteSpace(key) && TryGetValue(HoconPath.Parse(key), out result);
+            return !string.IsNullOrWhiteSpace(path) && TryGetValue(HoconPath.Parse(path), out result);
         }
 
-        public bool TryGetValue(HoconPath path, out HoconElement result)
+        public virtual bool TryGetValue(HoconPath path, out HoconElement result)
         {
             result = null;
             if (path == null || path.Count == 0)
@@ -232,27 +254,17 @@ namespace Hocon
             return GetEnumerator();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(HoconElement other)
         {
-            if (obj == null)
-                return false;
-            if (ReferenceEquals(this, obj))
-                return true;
-            if (!(obj is HoconObject otherObject))
-                return false;
-            return Equals(otherObject);
-        }
-
-        public bool Equals(HoconObject other)
-        {
-            if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
+            if (!(other is HoconObject otherObject))
+                return false;
 
-            foreach (var kvp in other)
+            foreach (var kvp in otherObject)
             {
-                if (!TryGetValue(kvp.Key, out var thisValue))
+                if (!_fields.TryGetValue(kvp.Key, out var thisValue))
                     return false;
-                if (thisValue != kvp.Value)
+                if (!thisValue.Equals(kvp.Value))
                     return false;
             }
             return true;
@@ -264,6 +276,45 @@ namespace Hocon
                 EqualityComparer<ImmutableSortedDictionary<string, HoconElement>>
                 .Default
                 .GetHashCode(_fields);
+        }
+
+        public void Add(string key, HoconElement value)
+        {
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
+        }
+
+        public bool Remove(string key)
+        {
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
+        }
+
+        public void Add(KeyValuePair<string, HoconElement> item)
+        {
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
+        }
+
+        public void Clear()
+        {
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
+        }
+
+        public bool Contains(KeyValuePair<string, HoconElement> item)
+        {
+            return _fields.Contains(item);
+        }
+
+        public void CopyTo(KeyValuePair<string, HoconElement>[] array, int arrayIndex)
+        {
+            foreach(var kvp in _fields)
+            {
+                array[arrayIndex] = kvp;
+                arrayIndex++;
+            }
+        }
+
+        public bool Remove(KeyValuePair<string, HoconElement> item)
+        {
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
         }
 
         #endregion

@@ -10,13 +10,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 
 namespace Hocon
 {
     public sealed class HoconArray : 
         HoconElement, 
-        IImmutableList<HoconElement>,
-        IEquatable<HoconArray>
+        IImmutableList<HoconElement>
     {
         private readonly ImmutableArray<HoconElement> _elements;
 
@@ -28,11 +28,25 @@ namespace Hocon
             _elements = elements.ToImmutableArray();
         }
 
+        public override HoconType Type => HoconType.Array;
+
         public new HoconElement this[int index] => _elements[index];
+
+        public override string Raw => $"[{string.Join(", ", _elements)}]";
 
         public override string ToString(int indent, int indentSize)
         {
-            return $"[{string.Join(", ", ToString(indent + 1, indentSize))}]";
+            var i = new string(' ', indent * indentSize);
+            var j = new string(' ', (indent - 1) * indentSize);
+            var sb = new StringBuilder($"[{Environment.NewLine}");
+            foreach(var element in _elements)
+            {
+                sb.Append($"{i}{element.ToString(indent + 1, indentSize)},{Environment.NewLine}");
+            }
+            if (sb.Length > 2)
+                sb.Remove(sb.Length - Environment.NewLine.Length - 1, Environment.NewLine.Length + 1);
+            sb.Append($"{Environment.NewLine}{j}]");
+            return sb.ToString();
         }
 
         internal static HoconArray Create(IEnumerable<HoconElement> elements)
@@ -132,17 +146,7 @@ namespace Hocon
             throw new InvalidOperationException("Can not change array state after it is built.");
         }
 
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-            if (ReferenceEquals(this, obj))
-                return true;
-            if (!(obj is HoconArray otherArray))
-                return false;
-            return Equals(otherArray);
-        }
-
+        /*
         public bool Equals(HoconArray other)
         {
             if (other == null) return false;
@@ -157,10 +161,27 @@ namespace Hocon
 
             return true;
         }
+        */
 
         public override int GetHashCode()
         {
             return 722328647 + _elements.GetHashCode();
+        }
+
+        public override bool Equals(HoconElement other)
+        {
+            if (ReferenceEquals(this, other)) return true;
+            if (!(other is HoconArray otherArray)) return false;
+
+            if (otherArray.Count != Count) return false;
+            for(var i=0; i<Count; ++i)
+            {
+                var thisElem = this[i];
+                var otherElem = otherArray[i];
+                if (!thisElem.Equals(otherElem))
+                    return false;
+            }
+            return true;
         }
 
         public int Count => _elements.Length;

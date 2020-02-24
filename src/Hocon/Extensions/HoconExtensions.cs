@@ -42,8 +42,6 @@ namespace Hocon
                     return new HoconArrayBuilder()
                         .AddRange(value)
                         .Build();
-                case HoconType.Boolean:
-                case HoconType.Number:
                 case HoconType.String:
                     return new HoconLiteralBuilder()
                         .Append(value)

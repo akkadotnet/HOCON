@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace Hocon
 {
@@ -17,10 +18,9 @@ namespace Hocon
     ///     the internal representation of a HOCON (Human-Optimized Config Object Notation)
     ///     configuration string.
     /// </summary>
+    [JsonConverter(typeof(HoconConfigConverter))]
     public class Config : HoconObject, IEquatable<Config>
     {
-        private const string SerializedPropertyName = "_data";
-
         /// <summary>
         ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
         /// </summary>
@@ -36,6 +36,7 @@ namespace Hocon
 
         private Config():base()
         {
+            Root = this;
         }
 
         /// <inheritdoc />
@@ -44,19 +45,15 @@ namespace Hocon
         /// </summary>
         public Config(HoconElement root):base(root)
         {
-            if (!(root is Config cfg))
-                return;
-
-            foreach (var value in cfg._fallbacks)
+            if(root is Config cfg)
             {
-                _fallbacks.Add(value);
+                Root = cfg.Root;
+                _fallbacks = cfg._fallbacks.ToList();
+            }  
+            else 
+            {
+                Root = this;
             }
-        }
-
-        /// <inheritdoc cref="Config(HoconElement)" />
-        private Config(HoconObject root, Config fallback) : this(root)
-        {
-            MergeConfig(fallback);
         }
 
         protected List<HoconObject> _fallbacks { get; } = new List<HoconObject>();
@@ -67,26 +64,7 @@ namespace Hocon
         /// </summary>
         public virtual bool IsEmpty => Count == 0 && _fallbacks.Count == 0;
 
-        protected HoconObject _mergedValueCache = null;
-        public HoconObject Root
-        {
-            get
-            {
-                if (_mergedValueCache == null)
-                {
-                    var builder = new HoconObjectBuilder(this);
-
-                    foreach (var fallback in _fallbacks)
-                    {
-                        builder = builder.FallbackMerge(fallback);
-                    }
-
-                    _mergedValueCache = builder.Build();
-                }
-
-                return _mergedValueCache;
-            }
-        }
+        public HoconObject Root { get; private set; }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -99,45 +77,6 @@ namespace Hocon
 
             return Root.ToString();
         }
-
-        /*
-        protected override bool TryGetNode(HoconPath path, out HoconElement result)
-        {
-            result = null;
-            var currentObject = Value.GetObject();
-            if (currentObject == null)
-                return false;
-            if (currentObject.TryGetValue(path, out result))
-                return true;
-
-            foreach (var value in _fallbacks)
-            {
-                currentObject = value.GetObject();
-                if (currentObject == null)
-                    return false;
-                if (currentObject.TryGetValue(path, out result))
-                    return true;
-            }
-
-            return false;
-        }
-
-        protected override HoconValue GetNode(HoconPath path)
-        {
-            var currentObject = Value.GetObject();
-            if (currentObject.TryGetValue(path, out var returnValue))
-                return returnValue;
-
-            foreach(var value in _fallbacks)
-            {
-                currentObject = value.GetObject();
-                if (currentObject.TryGetValue(path, out returnValue))
-                    return returnValue;
-            }
-
-            throw new HoconException($"Could not find accessible field at path `{path}` in all fallbacks.");
-        }
-        */
 
         /// <summary>
         ///     Retrieves a new configuration from the current configuration
@@ -155,6 +94,30 @@ namespace Hocon
             if (Root.TryGetValue(path, out var result))
                 return new Config(result);
             return Empty;
+        }
+
+        public override HoconElement GetValue(HoconPath path)
+        {
+            if (base.TryGetValue(path, out var result))
+                return result;
+
+            foreach (var fallback in _fallbacks)
+                if (fallback.TryGetValue(path, out result))
+                    return result;
+
+            throw new HoconException($"Cuold not find path '{path}'.");
+        }
+
+        public override bool TryGetValue(HoconPath path, out HoconElement result)
+        {
+            if (base.TryGetValue(path, out result))
+                return true;
+
+            foreach (var fallback in _fallbacks)
+                if (fallback.TryGetValue(path, out result))
+                    return true;
+
+            return false;
         }
 
         /// <summary>
@@ -177,10 +140,6 @@ namespace Hocon
                 return fallback;
 
             var result = new Config(this);
-            foreach(var value in _fallbacks)
-            {
-                result._fallbacks.Add(value);
-            }
             result.MergeConfig(fallback);
 
             return result;
@@ -208,9 +167,14 @@ namespace Hocon
             }
             if (duplicateValue != null)
             {
-                _fallbacks.Remove(duplicateValue);
+                return;
             }
-            _fallbacks.Add(value);
+
+            if (duplicateValue == null)
+            {
+                _fallbacks.Add(value);
+                Root = value.Merge(Root);
+            }
         }
 
         /// <summary>
@@ -271,6 +235,15 @@ namespace Hocon
             if (obj is Config cfg)
                 return Equals(cfg);
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1171003304;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<HoconObject>>.Default.GetHashCode(_fallbacks);
+            hashCode = hashCode * -1521134295 + EqualityComparer<HoconObject>.Default.GetHashCode(Root);
+            return hashCode;
         }
     }
 

@@ -6,12 +6,30 @@
 
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Hocon
 {
     public sealed class HoconLiteralBuilder
     {
+        private readonly Regex _dotRegex = new Regex(@"\.", RegexOptions.Compiled);
+
         private readonly StringBuilder _builder;
+        private HoconLiteralType _literalType = HoconLiteralType.UnquotedString;
+        private HoconLiteralType LiteralType
+        {
+            get => _literalType;
+            set
+            {
+                _literalType = value;
+
+                if (_builder.ToString().NeedTripleQuotes())
+                    _literalType = HoconLiteralType.TripleQuotedString;
+                if (_builder.ToString().NeedQuotes())
+                    _literalType = HoconLiteralType.QuotedString;
+
+            }
+        }
 
         #region Properties
 
@@ -75,11 +93,17 @@ namespace Hocon
         {
             foreach (var element in value)
             {
+                if(element is HoconSubstitution sub)
+                {
+                    Append(sub.ResolvedValue);
+                    continue;
+                }
+
                 if (!(element is InternalHoconLiteral lit))
                     throw new HoconException(
                         $"Can only add Hocon class of type {nameof(InternalHoconLiteral)} and its derived classes into a literal builder.");
 
-                _builder.Append(lit.Value);
+                Append(lit);
             }
 
             return this;
@@ -87,21 +111,19 @@ namespace Hocon
 
         internal HoconLiteralBuilder Append(InternalHoconLiteral lit)
         {
-            if (lit.LiteralType != HoconLiteralType.Null)
-                _builder.Append(lit.Value);
+            _builder.Append(lit.Value);
+            LiteralType = lit.LiteralType;
             return this;
         }
 
         public bool Equals(HoconLiteralBuilder otherBuilder)
         {
-            return _builder.Equals(otherBuilder._builder);
+            return _builder.Equals(otherBuilder._builder) && LiteralType == otherBuilder.LiteralType;
         }
 
         public HoconLiteral Build()
         {
-            return _builder.Length == 0
-                ? HoconLiteral.Create(null)
-                : HoconLiteral.Create(_builder.ToString());
+            return HoconLiteral.Create(_builder.ToString(), _literalType);
         }
 
         #region Facade wrapper functions
@@ -111,114 +133,133 @@ namespace Hocon
         public HoconLiteralBuilder Append(ushort value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(uint value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(ulong value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(char[] value, int startIndex, int charCount)
         {
             _builder.Append(value, startIndex, charCount);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Append(string value, int startIndex, int count)
         {
             _builder.Append(value, startIndex, count);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Append(char value, int repeatCount)
         {
             _builder.Append(value, repeatCount);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Append(sbyte value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(float value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(bool value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Bool;
             return this;
         }
 
         public HoconLiteralBuilder Append(char value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Append(char[] value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Append(decimal value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(byte value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(short value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(int value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(long value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Append(object value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Append(double value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.Double;
             return this;
         }
 
         public HoconLiteralBuilder Append(string value)
         {
             _builder.Append(value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -230,36 +271,42 @@ namespace Hocon
             object arg1, object arg2)
         {
             _builder.AppendFormat(provider, format, arg0, arg1, arg2);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendFormat(string format, object arg0)
         {
             _builder.AppendFormat(format, arg0);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendFormat(string format, params object[] args)
         {
             _builder.AppendFormat(format, args);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendFormat(IFormatProvider provider, string format, object arg0)
         {
             _builder.AppendFormat(provider, format, arg0);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendFormat(IFormatProvider provider, string format, params object[] args)
         {
             _builder.AppendFormat(provider, format, args);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendFormat(string format, object arg0, object arg1)
         {
             _builder.AppendFormat(format, arg0, arg1);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -267,12 +314,14 @@ namespace Hocon
             object arg1)
         {
             _builder.AppendFormat(provider, format, arg0, arg1);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendFormat(string format, object arg0, object arg1, object arg2)
         {
             _builder.AppendFormat(format, arg0, arg1, arg2);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -283,36 +332,42 @@ namespace Hocon
         public HoconImmutableLiteralBuilder AppendJoin(string separator, params object[] values)
         {
             _builder.AppendJoin(separator, values);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconImmutableLiteralBuilder AppendJoin(string separator, params string[] values)
         {
             _builder.AppendJoin(separator, values);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconImmutableLiteralBuilder AppendJoin(char separator, params object[] values)
         {
             _builder.AppendJoin(separator, values);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconImmutableLiteralBuilder AppendJoin(char separator, params string[] values)
         {
             _builder.AppendJoin(separator, values);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconImmutableLiteralBuilder AppendJoin<T>(char separator, IEnumerable<T> values)
         {
             _builder.AppendJoin(separator, values);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconImmutableLiteralBuilder AppendJoin<T>(string separator, IEnumerable<T> values)
         {
             _builder.AppendJoin(separator, values);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -324,12 +379,14 @@ namespace Hocon
         public HoconLiteralBuilder AppendLine()
         {
             _builder.AppendLine();
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder AppendLine(string value)
         {
             _builder.AppendLine(value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -338,6 +395,7 @@ namespace Hocon
         public HoconLiteralBuilder Clear()
         {
             _builder.Clear();
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -364,48 +422,56 @@ namespace Hocon
         public HoconLiteralBuilder Insert(int index, string value, int count)
         {
             _builder.Insert(index, value, count);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, ulong value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, uint value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, ushort value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, string value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, float value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Double;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, char[] value, int startIndex, int charCount)
         {
             _builder.Insert(index, value, startIndex, charCount);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, sbyte value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
@@ -413,6 +479,7 @@ namespace Hocon
         public HoconImmutableLiteralBuilder Insert(int index, ReadOnlySpan<char> value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 #endif
@@ -420,54 +487,63 @@ namespace Hocon
         public HoconLiteralBuilder Insert(int index, long value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, int value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, double value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Double;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, decimal value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Double;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, char[] value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, char value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, byte value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Long;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, bool value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.Bool;
             return this;
         }
 
         public HoconLiteralBuilder Insert(int index, object value)
         {
             _builder.Insert(index, value);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -476,6 +552,8 @@ namespace Hocon
         public HoconLiteralBuilder Remove(int startIndex, int length)
         {
             _builder.Remove(startIndex, length);
+            if (_builder.Length == 0)
+                LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
@@ -484,24 +562,28 @@ namespace Hocon
         public HoconLiteralBuilder Replace(char oldChar, char newChar)
         {
             _builder.Replace(oldChar, newChar);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Replace(string oldValue, string newValue)
         {
             _builder.Replace(oldValue, newValue);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Replace(char oldChar, char newChar, int startIndex, int count)
         {
             _builder.Replace(oldChar, newChar, startIndex, count);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 
         public HoconLiteralBuilder Replace(string oldValue, string newValue, int startIndex, int count)
         {
             _builder.Replace(oldValue, newValue, startIndex, count);
+            LiteralType = HoconLiteralType.UnquotedString;
             return this;
         }
 

@@ -183,7 +183,7 @@ namespace Hocon
         {
         }
 
-        public override HoconType Type => HoconType.Boolean;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Bool;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -198,7 +198,7 @@ namespace Hocon
         {
         }
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Double;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -213,7 +213,7 @@ namespace Hocon
         {
         }
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Long;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -228,7 +228,7 @@ namespace Hocon
         {
         }
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Hex;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -245,7 +245,7 @@ namespace Hocon
 
         public override HoconLiteralType LiteralType => HoconLiteralType.Long;
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
 
         public override IHoconElement Clone(IHoconElement newParent)
         {

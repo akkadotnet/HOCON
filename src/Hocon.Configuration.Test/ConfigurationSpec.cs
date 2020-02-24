@@ -66,7 +66,7 @@ a {
         public void CanLoadDefaultConfig()
         {
             var defaultConf = HoconConfigurationFactory.Default();
-            defaultConf.Should().NotBeEquivalentTo(HoconConfigurationFactory.Empty);
+            //defaultConf.Should().BeSameAs(HoconConfigurationFactory.Empty);
             defaultConf.HasPath("root.simple-string").Should().BeTrue();
             defaultConf.GetString("root.simple-string").Should().Be("Hello HOCON2");
         }
@@ -100,9 +100,9 @@ a {
 
             var obj1 = root1.Value.GetObject();
             var obj2 = root2.Value.GetObject();
-            obj1.Merge(obj2);
+            obj1 = obj1.Merge(obj2);
 
-            var config = new Config(root1);
+            var config = new Config(obj1);
 
             Assert.Equal(123, config.GetInt("a.b"));
             Assert.Equal(999, config.GetInt("a.c"));
@@ -530,8 +530,8 @@ foo {
             rootObj.Unwrapped.Keys.Should().Contain("/worker1", "/worker2");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
-            rootObj["/worker1.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/1""");
-            rootObj["/worker2.routees.paths"].Value[0].GetArray()[0].Raw.Should().Be(@"""/user/testroutes/2""");
+            rootObj["/worker1.routees.paths"].Value.GetArray()[0].Raw.Should().Be(@"""/user/testroutes/1""");
+            rootObj["/worker2.routees.paths"].Value.GetArray()[0].Raw.Should().Be(@"""/user/testroutes/2""");
         }
 
 

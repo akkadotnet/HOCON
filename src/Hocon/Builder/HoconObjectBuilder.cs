@@ -20,8 +20,10 @@ namespace Hocon
             Merge(other);
         }
 
-        public HoconObjectBuilder(IDictionary<string, HoconElement> source):base(source)
-        { }
+        public HoconObjectBuilder(Dictionary<string, HoconElement> source):base(source)
+        { 
+
+        }
 
         /*
         public HoconObjectBuilder(IReadOnlyDictionary<string, HoconElement> source)
@@ -36,7 +38,7 @@ namespace Hocon
                 this[kvp.Key] = kvp.Value.ToHoconImmutable();
         }
 
-        public HoconObjectBuilder Merge(IDictionary<string, HoconElement> fields)
+        public HoconObjectBuilder Merge(Dictionary<string, HoconElement> fields)
         {
             return InternalMerge(fields.GetEnumerator());
         }

@@ -133,9 +133,7 @@ namespace Hocon
                 case HoconType.Object:
                     return GetObject().GetArray();
 
-                case HoconType.Boolean:
                 case HoconType.String:
-                case HoconType.Number:
                     throw new HoconException("Hocon literal could not be converted to array.");
 
                 case HoconType.Empty:
@@ -173,8 +171,6 @@ namespace Hocon
         {
             switch (Type)
             {
-                case HoconType.Boolean:
-                case HoconType.Number:
                 case HoconType.String:
                     return ConcatRawString();
                 case HoconType.Object:
@@ -309,8 +305,6 @@ namespace Hocon
                         hoconArray.AddRange(clonedValue.GetArray());
                         Insert(index, hoconArray);
                         break;
-                    case HoconType.Boolean:
-                    case HoconType.Number:
                     case HoconType.String:
                         var elementList = new List<IHoconElement>();
                         foreach(var element in clonedValue)
@@ -362,9 +356,7 @@ namespace Hocon
                     return other.Type == HoconType.Empty;
                 case HoconType.Array:
                     return GetArray().SequenceEqual(other.GetArray());
-                case HoconType.Boolean:
                 case HoconType.String:
-                case HoconType.Number:
                     return string.Equals(GetString(), other.GetString());
                 case HoconType.Object:
                     return GetObject() == other.GetObject();
