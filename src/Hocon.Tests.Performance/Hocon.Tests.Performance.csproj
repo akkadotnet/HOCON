@@ -4,11 +4,16 @@
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
 
     <IsPackable>false</IsPackable>
+
+    <ApplicationIcon />
+
+    <OutputType>Exe</OutputType>
+
+    <StartupObject>Hocon.Tests.Performance.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBench" Version="1.2.2" />
-    <DotNetCliToolReference Include="dotnet-nbench" Version="1.2.2" />
+    <PackageReference Include="NBench" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
