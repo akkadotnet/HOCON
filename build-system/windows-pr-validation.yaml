@@ -16,9 +16,19 @@ name: $(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
 jobs:
 - template: azure-pipeline.template.yaml
   parameters:
-    name: Windows
+    name: 'windows_tests'
+    displayName: 'Windows Tests'
     vmImage: 'vs2017-win2016'
     scriptFileName: build.cmd
-    scriptArgs: all
-    outputDirectory: 'bin/nuget'
-    artifactName: 'nuget_pack-$(Build.BuildId)'
+    scriptArgs: runtests
+    outputDirectory: 'TestResults'
+    artifactName: 'tests-$(Build.BuildId)'
+- template: azure-pipeline.template.yaml
+  parameters:
+    name: 'windows_perf_tests'
+    displayName: 'Windows Performance Tests'
+    vmImage: 'vs2017-win2016'
+    scriptFileName: build.cmd
+    scriptArgs: nbench
+    outputDirectory: 'PerfResults'
+    artifactName: 'perf_tests_windows-$(Build.BuildId)'
