@@ -180,25 +180,15 @@ namespace Hocon
 
         private void InsertFallbackValue(HoconObject value)
         {
-            HoconObject duplicateValue = null;
             foreach(var fallbackValue in _fallbacks)
             {
                 if(fallbackValue == value)
                 {
-                    duplicateValue = fallbackValue;
-                    break;
+                    return;
                 }
             }
-            if (duplicateValue != null)
-            {
-                return;
-            }
-
-            if (duplicateValue == null)
-            {
-                _fallbacks.Add(value);
-                Root = value.Merge(Root);
-            }
+            _fallbacks.Add(value);
+            Root = value.Merge(Root);
         }
 
         /// <summary>

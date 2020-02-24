@@ -108,5 +108,13 @@ akka {
             Assert.NotEqual(path1.Value, path2.Value);
             Assert.Equal("i am.\"kong.fu\".panda", path1.Value);
         }
+
+        [Fact]
+        public void QuotedKeyShouldHandleInvalidCharacters()
+        {
+            var hoconString = @"this.""should[]"".work = true";
+            var config = HoconParser.Parse(hoconString);
+            Assert.True(config.GetBoolean("this.\"should[]\".work"));
+        }
     }
 }
