@@ -23,12 +23,3 @@ jobs:
     scriptArgs: runtests
     outputDirectory: 'TestResults'
     artifactName: 'tests_linux-$(Build.BuildId)'
-- template: azure-pipeline.template.yaml
-  parameters:
-    name: 'linux_perf_tests'
-    displayName: 'Linux Performance Tests'
-    vmImage: 'ubuntu-16.04'
-    scriptFileName: build.sh
-    scriptArgs: nbench
-    outputDirectory: 'PerfResults'
-    artifactName: 'perf_tests_linux-$(Build.BuildId)'
