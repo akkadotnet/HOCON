@@ -1,12 +1,9 @@
-### 2.0.0 February 13 2020 ####
+### 2.0.1 February 25 2020 ####
+Bugfixes and improvements made to HOCON 2.0.0
 
-* [Add JSON serialization by implementing `ISerializable`.](https://github.com/akkadotnet/HOCON/pull/214)
-* [Resolve `Config` containing a single empty object as an empty `Config`.](https://github.com/akkadotnet/HOCON/pull/214)
-* [Refactor `Hocon.Parser` class to `Hocon.HoconParser` for clarity.](https://github.com/akkadotnet/HOCON/pull/215)
-* [Add `IEquitable<Config>` interface implementation to `Config` class.](https://github.com/akkadotnet/HOCON/pull/218)
-* [Change `GetString()`, `GetStringList()`, `GetInt()`, and `GetDouble()` throws on failure instead of returning a default value to conform to Hocon spec.](https://github.com/akkadotnet/HOCON/pull/218)
-* [Add `TryGet[DataType]()` functions to all getters to eliminate as much Exception throwing as possible to improve performance.](https://github.com/akkadotnet/HOCON/pull/218)
-* [Remove as much wrapping functions as possible to improve performance.](https://github.com/akkadotnet/HOCON/pull/218)
-* [Move `ConfigurationException` from `Akka.Configuration` to `Hocon`](https://github.com/akkadotnet/HOCON/pull/218)
-* [Fix `Config.WithFallback()` with hocon files containing substitution failed to merge the fallbacks correctly..](https://github.com/akkadotnet/HOCON/pull/218)
-* [Hocon is now compatible with Hyperion serializer.](https://github.com/akkadotnet/HOCON/pull/218)
+* [Bugfix: HoconValue.TryGetObject can throw System.ArgumentNullException](https://github.com/akkadotnet/HOCON/issues/233)
+* [Bugfix: System.InvalidOperationException : Collection was modified; enumeration operation may not execute](https://github.com/akkadotnet/HOCON/issues/234)
+* [Bugfix: unquoted key error during serialization](https://github.com/akkadotnet/HOCON/pull/223)
+* [Fixed NuGet symbol package publication](https://github.com/akkadotnet/HOCON/issues/222)
+
+For more details, please [see the issues in the HOCON v2.0.1 milestone here](https://github.com/akkadotnet/HOCON/milestone/7).
