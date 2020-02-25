@@ -33,7 +33,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Immutable", "src\Hoco
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Immutable.Tests", "src\Hocon.Immutable.Tests\Hocon.Immutable.Tests.csproj", "{FEEC6F6B-2511-4BEC-9568-4E6AE6C1D275}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerializationDebug", "src\examples\SerializationDebug\SerializationDebug.csproj", "{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerializationDebug", "src\examples\SerializationDebug\SerializationDebug.csproj", "{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.API.Tests", "src\Hocon.API.Tests\Hocon.API.Tests.csproj", "{2EC48C29-E5A7-4C3F-AB26-1C121E098867}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Tests.Performance", "src\Hocon.Tests.Performance\Hocon.Tests.Performance.csproj", "{BD958665-7CE8-4DEF-89EA-8933393016D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +105,14 @@ Global
 		{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D1D4813-7AB6-4268-A9DF-627A60E08FB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EC48C29-E5A7-4C3F-AB26-1C121E098867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EC48C29-E5A7-4C3F-AB26-1C121E098867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EC48C29-E5A7-4C3F-AB26-1C121E098867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EC48C29-E5A7-4C3F-AB26-1C121E098867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD958665-7CE8-4DEF-89EA-8933393016D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD958665-7CE8-4DEF-89EA-8933393016D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD958665-7CE8-4DEF-89EA-8933393016D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD958665-7CE8-4DEF-89EA-8933393016D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

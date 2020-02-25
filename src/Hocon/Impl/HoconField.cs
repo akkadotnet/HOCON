@@ -88,7 +88,7 @@ namespace Hocon
             return Value.GetString();
         }
 
-        public List<HoconValue> GetArray()
+        public IList<HoconValue> GetArray()
         {
             return Value.GetArray();
         }

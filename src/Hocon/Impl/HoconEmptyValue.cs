@@ -44,7 +44,7 @@ namespace Hocon
             return "";
         }
 
-        public override List<HoconValue> GetArray()
+        public override IList<HoconValue> GetArray()
         {
             return new List<HoconValue>();
         }
