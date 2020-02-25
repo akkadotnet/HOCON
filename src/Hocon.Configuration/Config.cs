@@ -155,7 +155,8 @@ namespace Hocon
         public virtual Config WithFallback(Config fallback)
         {
             if (ReferenceEquals(fallback, this))
-                throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
+                return this; // no-op
+                //throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
 
             if (fallback.IsNullOrEmpty())
                 return this; // no-op
