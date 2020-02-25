@@ -60,6 +60,11 @@ namespace Hocon
             }
         }
 
+        public Config(HoconElement root, Config fallback):this(root)
+        {
+            MergeConfig(fallback);
+        }
+
         private ConcurrentDictionary<string, HoconElement> _cache;
 
         protected List<HoconObject> _fallbacks { get; } = new List<HoconObject>();

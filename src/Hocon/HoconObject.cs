@@ -172,6 +172,18 @@ namespace Hocon
             return _fields.ContainsKey(key);
         }
 
+        [Obsolete("Use GetValue() instead")]
+        public HoconElement GetField(string path)
+        {
+            return GetValue(path);
+        }
+
+        [Obsolete("Use GetValue() instead")]
+        public HoconElement GetField(HoconPath path)
+        {
+            return GetValue(path);
+        }
+
         public virtual HoconElement GetValue(string path)
         {
             return GetValue(HoconPath.Parse(path));

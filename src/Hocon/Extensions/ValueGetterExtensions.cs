@@ -180,6 +180,13 @@ namespace Hocon
             return TimeSpan.FromMilliseconds(value);
         }
 
+        public static TimeSpan GetTimeSpan(this HoconElement element, TimeSpan? @default, bool allowInfinite = true)
+        {
+            if (element.TryGetTimeSpan(out var result, allowInfinite))
+                return result;
+            return @default.GetValueOrDefault();
+        }
+
         /// <summary>
         ///     Retrieves the long value, optionally suffixed with a 'b', from this <see cref="HoconValue" />.
         /// </summary>
@@ -211,6 +218,13 @@ namespace Hocon
         public static HoconObject GetObject(this HoconElement element)
         {
             return element.ToObject();
+        }
+
+        public static HoconObject GetObject(this HoconElement element, HoconObject @default)
+        {
+            if (element.TryGetObject(out var result))
+                return result;
+            return @default;
         }
         #endregion
 
@@ -732,6 +746,20 @@ namespace Hocon
         #endregion
 
         #region HoconObject
+        public static HoconObject GetObject(this HoconElement element, string path, HoconObject @default)
+        {
+            if (element.TryGetObject(path, out var result))
+                return result;
+            return @default;
+        }
+
+        public static HoconObject GetObject(this HoconElement element, HoconPath path, HoconObject @default)
+        {
+            if (element.TryGetObject(path, out var result))
+                return result;
+            return @default;
+        }
+
         public static HoconObject GetObject(this HoconElement element, string path)
         {
             try
@@ -1697,6 +1725,20 @@ namespace Hocon
             {
                 throw new HoconValueException(ex.Message, path, ex);
             }
+        }
+
+        public static TimeSpan GetTimeSpan(this HoconElement element, string path, TimeSpan? @default, bool allowInfinite = true)
+        {
+            if (element.TryGetTimeSpan(path, out var result, allowInfinite))
+                return result;
+            return @default.GetValueOrDefault();
+        }
+
+        public static TimeSpan GetTimeSpan(this HoconElement element, HoconPath path, TimeSpan? @default, bool allowInfinite = true)
+        {
+            if (element.TryGetTimeSpan(path, out var result, allowInfinite))
+                return result;
+            return @default.GetValueOrDefault();
         }
 
         public static bool TryGetTimeSpan(this HoconElement element, string path, out TimeSpan result, bool allowInfinite = true)
