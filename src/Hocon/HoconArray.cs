@@ -43,7 +43,7 @@ namespace Hocon
             {
                 sb.Append($"{i}{element.ToString(indent + 1, indentSize)},{Environment.NewLine}");
             }
-            if (sb.Length > 2)
+            if (sb.Length > Environment.NewLine.Length + 1)
                 sb.Remove(sb.Length - Environment.NewLine.Length - 1, Environment.NewLine.Length + 1);
             sb.Append($"{Environment.NewLine}{j}]");
             return sb.ToString();

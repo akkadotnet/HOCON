@@ -256,15 +256,6 @@ namespace Hocon
                 return Equals(cfg);
             return false;
         }
-
-        public override int GetHashCode()
-        {
-            var hashCode = -1171003304;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<HoconObject>>.Default.GetHashCode(_fallbacks);
-            hashCode = hashCode * -1521134295 + EqualityComparer<HoconObject>.Default.GetHashCode(Root);
-            return hashCode;
-        }
     }
 
     /// <summary>

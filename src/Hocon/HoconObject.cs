@@ -21,7 +21,7 @@ namespace Hocon
     {
         public static readonly HoconObject Empty = new HoconObject();
 
-        private readonly ImmutableSortedDictionary<string, HoconElement> _fields;
+        private ImmutableSortedDictionary<string, HoconElement> _fields;
 
         protected HoconObject()
         {
@@ -282,17 +282,12 @@ namespace Hocon
             return true;
         }
 
-        public override int GetHashCode()
-        {
-            return -813220765 + 
-                EqualityComparer<ImmutableSortedDictionary<string, HoconElement>>
-                .Default
-                .GetHashCode(_fields);
-        }
-
+        [Obsolete("Used only for serialization", true)]
         public void Add(string key, HoconElement value)
         {
-            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
+            var fields = _fields.ToList();
+            fields.Add(new KeyValuePair<string, HoconElement>(key, value));
+            _fields = fields.ToImmutableSortedDictionary();
         }
 
         public bool Remove(string key)

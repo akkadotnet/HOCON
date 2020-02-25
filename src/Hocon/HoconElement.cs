@@ -92,21 +92,6 @@ namespace Hocon
 
         public abstract string ToString(int indent, int indentSize);
 
-        public override int GetHashCode()
-        {
-            switch(this)
-            {
-                case HoconLiteral l:
-                    return l.GetHashCode();
-                case HoconArray a:
-                    return a.GetHashCode();
-                case HoconObject o:
-                    return o.GetHashCode();
-                default:
-                    throw new HoconException("Should never get to this point.");
-            }
-        }
-
         public static bool operator == (HoconElement left, HoconElement right)
         {
             if (ReferenceEquals(left, right)) return true;

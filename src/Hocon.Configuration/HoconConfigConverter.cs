@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Hocon
 {
@@ -11,13 +12,18 @@ namespace Hocon
     {
         public override Config ReadJson(JsonReader reader, Type objectType, Config existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var hocon = (string)reader.Value;
-            return HoconConfigurationFactory.ParseString(hocon);
+            var obj = serializer.Deserialize<JObject>(reader);
+            var data = obj["$"].Value<string>().Substring(1);
+            return HoconConfigurationFactory.ParseString(data);
         }
 
         public override void WriteJson(JsonWriter writer, Config value, JsonSerializer serializer)
         {
-            writer.WriteValue(value.Root.ToString());
+            var jsonObject = new JObject
+            {
+                { "$", $"H{value.Root.ToString()}" },
+            };
+            serializer.Serialize(writer, jsonObject);
         }
     }
 }
