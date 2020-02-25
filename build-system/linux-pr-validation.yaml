@@ -16,9 +16,19 @@ pr:
 jobs:
 - template: azure-pipeline.template.yaml
   parameters:
-    name: Ubuntu
+    name: 'linux_tests'
+    displayName: 'Linux Tests'
     vmImage: 'ubuntu-16.04'
-    scriptFileName: ./build.sh
-    scriptArgs: all
-    outputDirectory: 'bin/nuget'
-    artifactName: 'nuget_pack-$(Build.BuildId)'
+    scriptFileName: build.sh
+    scriptArgs: runtests
+    outputDirectory: 'TestResults'
+    artifactName: 'tests_linux-$(Build.BuildId)'
+- template: azure-pipeline.template.yaml
+  parameters:
+    name: 'linux_perf_tests'
+    displayName: 'Linux Performance Tests'
+    vmImage: 'ubuntu-16.04'
+    scriptFileName: build.sh
+    scriptArgs: nbench
+    outputDirectory: 'PerfResults'
+    artifactName: 'perf_tests_linux-$(Build.BuildId)'
