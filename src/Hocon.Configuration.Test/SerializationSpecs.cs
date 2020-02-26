@@ -4,9 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Hocon.Configuration.Tests
@@ -39,19 +39,12 @@ namespace Hocon.Configuration.Tests
             VerifySerialization(final);
         }
 
-        private void VerifySerialization(Config config)
-        {
-            var serialized = JsonConvert.SerializeObject(config);
-            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
-            config.DumpConfig().Should().Be(deserialized.DumpConfig());
-        }
-
         [Fact]
         public void CanSerializeEmptyConfig()
         {
             var config = Config.Empty;
-            var serialized = JsonConvert.SerializeObject(config);
-            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
+            var serialized = config.Serialize();
+            var deserialized = Config.Deserialize(serialized);
             deserialized.IsEmpty.Should().BeTrue();
         }
 
@@ -68,13 +61,20 @@ namespace Hocon.Configuration.Tests
         {
             var hoconString = @"this.""should[]"".work = true";
             var config = HoconConfigurationFactory.ParseString(hoconString);
-            var serialized = JsonConvert.SerializeObject(config);
-            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
+            var serialized = config.Serialize();
+            var deserialized = Config.Deserialize(serialized);
 
             Assert.True(config.GetBoolean("this.\"should[]\".work"));
             Assert.True(deserialized.GetBoolean("this.\"should[]\".work"));
             Assert.Equal(config, deserialized);
         }
 
+
+        private void VerifySerialization(Config config)
+        {
+            var serialized = config.Serialize();
+            var deserialized = Config.Deserialize(serialized);
+            config.DumpConfig().Should().Be(deserialized.DumpConfig());
+        }
     }
 }

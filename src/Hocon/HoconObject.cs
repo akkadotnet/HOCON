@@ -21,11 +21,11 @@ namespace Hocon
     {
         public static readonly HoconObject Empty = new HoconObject();
 
-        private ImmutableSortedDictionary<string, HoconElement> _fields;
+        protected ImmutableSortedDictionary<string, HoconElement> Fields;
 
         protected HoconObject()
         {
-            _fields = ImmutableSortedDictionary<string, HoconElement>.Empty;
+            Fields = ImmutableSortedDictionary<string, HoconElement>.Empty;
         }
 
         protected HoconObject(HoconElement source)
@@ -33,17 +33,17 @@ namespace Hocon
             if (!(source is HoconObject other))
                 throw new HoconException($"Could not create HoconObject from {source.GetType()}");
 
-            _fields = other.ToImmutableSortedDictionary();
+            Fields = other.ToImmutableSortedDictionary();
         }
 
         protected HoconObject(IDictionary<string, HoconElement> fields)
         {
-            _fields = fields.ToImmutableSortedDictionary();
+            Fields = fields.ToImmutableSortedDictionary();
         }
 
         protected HoconObject(IReadOnlyDictionary<string, HoconElement> fields)
         {
-            _fields = fields.ToImmutableSortedDictionary();
+            Fields = fields.ToImmutableSortedDictionary();
         }
 
         public override HoconType Type => HoconType.Object;
@@ -59,13 +59,18 @@ namespace Hocon
             this.ToDictionary(k => k.Key, v =>
                     v.Value is HoconObject obj ? (object)obj.Unwrapped : v.Value);
 
-        public IEnumerable<string> Keys => _fields.Keys;
-        public IEnumerable<HoconElement> Values => _fields.Values;
-        public int Count => _fields.Count;
+        public IEnumerable<string> Keys => Fields.Keys;
+        public IEnumerable<HoconElement> Values => Fields.Values;
+        public int Count => Fields.Count;
 
-        ICollection<string> IDictionary<string, HoconElement>.Keys => _fields.Keys.ToArray();
+        ICollection<string> IDictionary<string, HoconElement>.Keys => Fields.Keys.ToArray();
 
-        ICollection<HoconElement> IDictionary<string, HoconElement>.Values => _fields.Values.ToArray();
+        ICollection<HoconElement> IDictionary<string, HoconElement>.Values => Fields.Values.ToArray();
+
+        public virtual IEnumerable<KeyValuePair<string, HoconElement>> AsEnumerable()
+        {
+            return Fields.AsEnumerable();
+        }
 
         public bool IsReadOnly => true;
 
@@ -83,7 +88,7 @@ namespace Hocon
         {
             var sortedDict = new SortedDictionary<int, HoconElement>();
             Type type = null;
-            foreach (var kvp in _fields)
+            foreach (var kvp in Fields)
             {
                 if (!int.TryParse(kvp.Key, out var index) || index < 0)
                     continue;
@@ -106,7 +111,7 @@ namespace Hocon
             result = default;
             var sortedDict = new SortedDictionary<int, HoconElement>();
             Type type = null;
-            foreach (var kvp in _fields)
+            foreach (var kvp in Fields)
             {
                 if (!int.TryParse(kvp.Key, out var index) || index < 0)
                     continue;
@@ -160,6 +165,20 @@ namespace Hocon
             //return sb.Length > 2 ? sb.ToString(0, sb.Length - Environment.NewLine.Length - 1) : sb.ToString();
         }
 
+        public override string Raw
+        {
+            get
+            {
+                var sb = new StringBuilder("{");
+                foreach (var field in this)
+                {
+                    sb.Append($"{(field.Key.NeedQuotes() ? field.Key.AddQuotes() : field.Key)} : {field.Value.Raw}, ");
+                }
+                sb.Append("}");
+                return sb.ToString();
+            }
+        }
+
         internal static HoconObject Create(IDictionary<string, HoconElement> fields)
         {
             return new HoconObject(fields);
@@ -169,7 +188,7 @@ namespace Hocon
 
         public bool ContainsKey(string key)
         {
-            return _fields.ContainsKey(key);
+            return Fields.ContainsKey(key);
         }
 
         [Obsolete("Use GetValue() instead")]
@@ -203,7 +222,7 @@ namespace Hocon
             {
                 var key = path[pathIndex];
 
-                if (!currentObject._fields.TryGetValue(key, out var field))
+                if (!currentObject.Fields.TryGetValue(key, out var field))
                     throw new KeyNotFoundException(
                         $"Could not find field with key `{key}` at path `{new HoconPath(path.GetRange(0, pathIndex + 1)).Value}`");
 
@@ -237,7 +256,7 @@ namespace Hocon
             {
                 var key = path[pathIndex];
 
-                if (!currentObject._fields.TryGetValue(key, out var field))
+                if (!currentObject.Fields.TryGetValue(key, out var field))
                     return false;
 
                 if (pathIndex >= path.Count - 1)
@@ -256,8 +275,8 @@ namespace Hocon
 
         public IEnumerator<KeyValuePair<string, HoconElement>> GetEnumerator()
         {
-            return !_fields.IsEmpty
-                ? _fields.GetEnumerator()
+            return !Fields.IsEmpty
+                ? Fields.GetEnumerator()
                 : Enumerable.Empty<KeyValuePair<string, HoconElement>>().GetEnumerator();
         }
 
@@ -274,7 +293,7 @@ namespace Hocon
 
             foreach (var kvp in otherObject)
             {
-                if (!_fields.TryGetValue(kvp.Key, out var thisValue))
+                if (!Fields.TryGetValue(kvp.Key, out var thisValue))
                     return false;
                 if (!thisValue.Equals(kvp.Value))
                     return false;
@@ -285,9 +304,9 @@ namespace Hocon
         [Obsolete("Used only for serialization", true)]
         public void Add(string key, HoconElement value)
         {
-            var fields = _fields.ToList();
+            var fields = Fields.ToList();
             fields.Add(new KeyValuePair<string, HoconElement>(key, value));
-            _fields = fields.ToImmutableSortedDictionary();
+            Fields = fields.ToImmutableSortedDictionary();
         }
 
         public bool Remove(string key)
@@ -307,12 +326,12 @@ namespace Hocon
 
         public bool Contains(KeyValuePair<string, HoconElement> item)
         {
-            return _fields.Contains(item);
+            return Fields.Contains(item);
         }
 
         public void CopyTo(KeyValuePair<string, HoconElement>[] array, int arrayIndex)
         {
-            foreach(var kvp in _fields)
+            foreach(var kvp in Fields)
             {
                 array[arrayIndex] = kvp;
                 arrayIndex++;

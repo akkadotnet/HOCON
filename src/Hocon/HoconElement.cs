@@ -18,10 +18,7 @@ namespace Hocon
 
         public abstract HoconType Type { get; }
 
-        public virtual string Raw
-        {
-            get => ToString(1, 2);
-        }
+        public abstract string Raw { get; }
 
         public HoconElement this[int index]
         {

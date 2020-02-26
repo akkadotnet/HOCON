@@ -10,12 +10,9 @@ using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Hocon
 {
-    [JsonConverter(typeof(HoconLiteral))]
     public sealed class HoconLiteral : HoconElement
     {
         public static readonly HoconLiteral Null = new HoconLiteral(null, HoconLiteralType.Null);

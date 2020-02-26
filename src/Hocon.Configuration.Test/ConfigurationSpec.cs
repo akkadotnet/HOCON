@@ -32,19 +32,6 @@ namespace Hocon.Configuration.Tests
         }
 
         [Fact]
-        public void Config_should_be_serializable()
-        {
-            var config = HoconConfigurationFactory.ParseString(@"
-                foo{
-                  bar.biz = 12
-                  baz = ""quoted""
-                }");
-            var serialized = JsonConvert.SerializeObject(config);
-            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
-            config.DumpConfig().Should().Be(deserialized.DumpConfig());
-        }
-
-        [Fact]
         public void CanEnumerateQuotedKeys()
         {
             var hocon = @"

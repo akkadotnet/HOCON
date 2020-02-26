@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
-using Newtonsoft.Json;
 
 namespace Hocon
 {
@@ -19,8 +19,8 @@ namespace Hocon
     ///     the internal representation of a HOCON (Human-Optimized Config Object Notation)
     ///     configuration string.
     /// </summary>
-    [JsonConverter(typeof(HoconConfigConverter))]
-    public class Config : HoconObject, IEquatable<Config>
+    [Serializable]
+    public class Config : HoconObject, ISerializable, IEquatable<Config>
     {
         /// <summary>
         ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
@@ -35,10 +35,9 @@ namespace Hocon
             return new Config(root);
         }
 
-        private Config():base()
+        public Config()
         {
             Root = this;
-            _cache = new ConcurrentDictionary<string, HoconElement>();
         }
 
         /// <inheritdoc />
@@ -56,7 +55,6 @@ namespace Hocon
             else 
             {
                 Root = this;
-                _cache = new ConcurrentDictionary<string, HoconElement>();
             }
         }
 
@@ -65,8 +63,7 @@ namespace Hocon
             MergeConfig(fallback);
         }
 
-        private ConcurrentDictionary<string, HoconElement> _cache;
-
+        private ConcurrentDictionary<string, HoconElement> _cache = new ConcurrentDictionary<string, HoconElement>();
         protected List<HoconObject> _fallbacks { get; } = new List<HoconObject>();
         public virtual IReadOnlyList<HoconObject> Fallbacks => _fallbacks.ToList().AsReadOnly();
 
@@ -125,7 +122,7 @@ namespace Hocon
                     return result;
                 }
 
-            throw new HoconException($"Cuold not find path '{path}'.");
+            throw new HoconException($"Could not find path '{path}'.");
         }
 
         public override bool TryGetValue(HoconPath path, out HoconElement result)
@@ -161,7 +158,6 @@ namespace Hocon
         {
             if (ReferenceEquals(fallback, this))
                 return this; // no-op
-                //throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
 
             if (fallback.IsNullOrEmpty())
                 return this; // no-op
@@ -230,7 +226,7 @@ namespace Hocon
         }
 
         /// <inheritdoc />
-        public IEnumerable<KeyValuePair<string, HoconElement>> AsEnumerable()
+        public override IEnumerable<KeyValuePair<string, HoconElement>> AsEnumerable()
         {
             foreach (var kvp in Root)
             {
@@ -255,6 +251,43 @@ namespace Hocon
             if (obj is Config cfg)
                 return Equals(cfg);
             return false;
+        }
+
+        public string Serialize()
+        {
+            return new HoconObjectBuilder()
+                .Add("$root", this)
+                .Add("$fallbacks", new HoconArrayBuilder(_fallbacks).Build())
+                .Build().Raw;
+        }
+
+        private void InternalDeserialize(string raw)
+        {
+            var config = HoconConfigurationFactory.ParseString(raw);
+            Fields = config["\"$root\""].ToObject().ToImmutableSortedDictionary();
+            foreach (var element in config["\"$fallbacks\""].GetArray())
+            {
+                InsertFallbackValue(element.ToObject());
+            }
+        }
+
+        public static Config Deserialize(string raw)
+        {
+            var result = new Config();
+            result.InternalDeserialize(raw);
+            return result;
+        }
+
+        [Obsolete("Used for serialization only", true)]
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+           info.AddValue("$config", Serialize(), typeof(string));
+        }
+
+        [Obsolete("Used for serialization only", true)]
+        protected Config(SerializationInfo info, StreamingContext context)
+        {
+            InternalDeserialize((string)info.GetValue("$config", typeof(string)));
         }
     }
 

@@ -21,21 +21,17 @@ namespace Hocon
         }
 
         public HoconObjectBuilder(Dictionary<string, HoconElement> source):base(source)
-        { 
-
-        }
-
-        /*
-        public HoconObjectBuilder(IReadOnlyDictionary<string, HoconElement> source)
-        {
-            Merge(source);
-        }
-        */
+        { }
 
         internal HoconObjectBuilder(InternalHoconObject @object)
         {
             foreach (var kvp in @object) 
                 this[kvp.Key] = kvp.Value.ToHoconImmutable();
+        }
+
+        public HoconObjectBuilder Merge(HoconObject other)
+        {
+            return InternalMerge(other.GetEnumerator());
         }
 
         public HoconObjectBuilder Merge(Dictionary<string, HoconElement> fields)
@@ -82,6 +78,24 @@ namespace Hocon
         public HoconObject Build()
         {
             return HoconObject.Create(this);
+        }
+
+        public new HoconObjectBuilder Add(string key, HoconElement value)
+        {
+            base.Add(key, value);
+            return this;
+        }
+
+        public new HoconObjectBuilder Clear()
+        {
+            base.Clear();
+            return this;
+        }
+
+        public new HoconObjectBuilder Remove(string key)
+        {
+            base.Remove(key);
+            return this;
         }
     }
 }

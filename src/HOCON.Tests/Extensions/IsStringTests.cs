@@ -26,7 +26,6 @@ namespace Hocon.Tests.Extensions
 
         public HoconObject TestHocon => HoconParser.Parse(RawTestHocon);
 
-        /*
         [Fact]
         public void IsString_should_detect_String_literals()
         {
@@ -35,6 +34,5 @@ namespace Hocon.Tests.Extensions
             var values = TestHocon.GetObject("root.foo");
             values["bar"].Type.Should().Be(HoconType.String);
         }
-        */
     }
 }

@@ -10,6 +10,15 @@ namespace Hocon
 {
     public sealed class HoconArrayBuilder : List<HoconElement>
     {
+        public HoconArrayBuilder():base()
+        { }
+
+        public HoconArrayBuilder(IEnumerable<HoconElement> collection):base(collection)
+        { }
+
+        public HoconArrayBuilder(int capacity):base(capacity)
+        { }
+
         internal HoconArrayBuilder AddRange(InternalHoconArray array)
         {
             foreach (var element in array) Add(element.ToHoconImmutable());
