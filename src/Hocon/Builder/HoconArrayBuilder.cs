@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace Hocon
@@ -21,12 +22,18 @@ namespace Hocon
 
         internal HoconArrayBuilder AddRange(InternalHoconArray array)
         {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array));
+
             foreach (var element in array) Add(element.ToHoconImmutable());
             return this;
         }
 
         internal HoconArrayBuilder AddRange(HoconValue value)
         {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
             foreach (var element in value.GetArray()) Add(element.ToHoconImmutable());
             return this;
         }

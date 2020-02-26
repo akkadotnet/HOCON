@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 
 namespace Hocon
@@ -31,21 +32,33 @@ namespace Hocon
 
         public HoconObjectBuilder Merge(HoconObject other)
         {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+
             return InternalMerge(other.GetEnumerator());
         }
 
         public HoconObjectBuilder Merge(Dictionary<string, HoconElement> fields)
         {
+            if (fields == null)
+                throw new ArgumentNullException(nameof(fields));
+
             return InternalMerge(fields.GetEnumerator());
         }
 
         public HoconObjectBuilder Merge(IReadOnlyDictionary<string, HoconElement> fields)
         {
+            if (fields == null)
+                throw new ArgumentNullException(nameof(fields));
+
             return InternalMerge(fields.GetEnumerator());
         }
 
         public HoconObjectBuilder FallbackMerge(HoconObject @object)
         {
+            if (@object == null)
+                throw new ArgumentNullException(nameof(@object));
+
             return new HoconObjectBuilder(@object).InternalMerge(GetEnumerator());
         }
 

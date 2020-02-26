@@ -91,6 +91,9 @@ namespace Hocon
 
         internal HoconLiteralBuilder Append(HoconValue value)
         {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
             foreach (var element in value)
             {
                 if(element is HoconSubstitution sub)
@@ -111,6 +114,9 @@ namespace Hocon
 
         internal HoconLiteralBuilder Append(InternalHoconLiteral lit)
         {
+            if (lit == null)
+                throw new ArgumentNullException(nameof(lit));
+
             _builder.Append(lit.Value);
             LiteralType = lit.LiteralType;
             return this;
