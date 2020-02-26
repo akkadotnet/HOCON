@@ -35,7 +35,7 @@ namespace Hocon
             return new Config(root);
         }
 
-        public Config()
+        private Config()
         {
             Root = this;
         }
@@ -56,11 +56,6 @@ namespace Hocon
             {
                 Root = this;
             }
-        }
-
-        public Config(HoconElement root, Config fallback):this(root)
-        {
-            MergeConfig(fallback);
         }
 
         private ConcurrentDictionary<string, HoconElement> _cache = new ConcurrentDictionary<string, HoconElement>();

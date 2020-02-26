@@ -301,12 +301,9 @@ namespace Hocon
             return true;
         }
 
-        [Obsolete("Used only for serialization", true)]
         public void Add(string key, HoconElement value)
         {
-            var fields = Fields.ToList();
-            fields.Add(new KeyValuePair<string, HoconElement>(key, value));
-            Fields = fields.ToImmutableSortedDictionary();
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
         }
 
         public bool Remove(string key)

@@ -7,23 +7,27 @@ namespace Hocon
         protected CDataConfigurationElement() { }
         protected override void DeserializeElement(System.Xml.XmlReader reader, bool serializeCollectionKey) { }
     }
-    [Newtonsoft.Json.JsonConverterAttribute(typeof(Hocon.HoconConfigConverter))]
-    public class Config : Hocon.HoconObject, System.IEquatable<Hocon.Config>
+    public class Config : Hocon.HoconObject, System.IEquatable<Hocon.Config>, System.Runtime.Serialization.ISerializable
     {
         public Config(Hocon.HoconElement root) { }
+        [System.ObsoleteAttribute("Used for serialization only", true)]
+        protected Config(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
         public static Hocon.Config Empty { get; }
         public virtual System.Collections.Generic.IReadOnlyList<Hocon.HoconObject> Fallbacks { get; }
         public virtual bool IsEmpty { get; }
         public Hocon.HoconObject Root { get; }
         protected System.Collections.Generic.List<Hocon.HoconObject> _fallbacks { get; }
-        public System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> AsEnumerable() { }
+        public override System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> AsEnumerable() { }
         public static Hocon.Config Create(Hocon.HoconElement root) { }
+        public static Hocon.Config Deserialize(string raw) { }
         public virtual bool Equals(Hocon.Config other) { }
         public override bool Equals(object obj) { }
         public virtual Hocon.Config GetConfig(string path) { }
         public virtual Hocon.Config GetConfig(Hocon.HoconPath path) { }
-        public override int GetHashCode() { }
+        [System.ObsoleteAttribute("Used for serialization only", true)]
+        public void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
         public override Hocon.HoconElement GetValue(Hocon.HoconPath path) { }
+        public string Serialize() { }
         public string ToString(bool useFallbackValues) { }
         public override bool TryGetValue(Hocon.HoconPath path, out Hocon.HoconElement result) { }
         public virtual Hocon.Config WithFallback(Hocon.Config fallback) { }

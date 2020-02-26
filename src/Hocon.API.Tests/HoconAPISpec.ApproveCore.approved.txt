@@ -208,6 +208,8 @@ namespace Hocon
     public sealed class HoconArrayBuilder : System.Collections.Generic.List<Hocon.HoconElement>
     {
         public HoconArrayBuilder() { }
+        public HoconArrayBuilder(System.Collections.Generic.IEnumerable<Hocon.HoconElement> collection) { }
+        public HoconArrayBuilder(int capacity) { }
         public Hocon.HoconArray Build() { }
     }
     public enum HoconCallbackType
@@ -222,14 +224,13 @@ namespace Hocon
         public Hocon.HoconElement this[int index] { get; }
         public virtual Hocon.HoconElement this[string path] { get; }
         public virtual Hocon.HoconElement this[Hocon.HoconPath path] { get; }
-        public virtual string Raw { get; }
+        public abstract string Raw { get; }
         public abstract Hocon.HoconType Type { get; }
         [System.ObsoleteAttribute("There is no need to use Value property anymore, please remove it.")]
         public Hocon.HoconElement Value { get; }
         public Hocon.HoconElement AtKey(string key) { }
         public override bool Equals(object other) { }
         public abstract bool Equals(Hocon.HoconElement other);
-        public override int GetHashCode() { }
         public virtual bool HasPath(string path) { }
         public virtual bool HasPath(Hocon.HoconPath path) { }
         public abstract string ToString(int indent, int indentSize);
@@ -275,7 +276,6 @@ namespace Hocon
     }
     public class static HoconExtensions { }
     public delegate System.Threading.Tasks.Task<string> HoconIncludeCallbackAsync(Hocon.HoconCallbackType callbackType, string value);
-    [Newtonsoft.Json.JsonConverterAttribute(typeof(Hocon.HoconLiteral))]
     public sealed class HoconLiteral : Hocon.HoconElement
     {
         public static readonly Hocon.HoconLiteral Null;
@@ -393,6 +393,7 @@ namespace Hocon
     public class HoconObject : Hocon.HoconElement, System.Collections.Generic.ICollection<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>>, System.Collections.Generic.IDictionary<string, Hocon.HoconElement>, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>>, System.Collections.Generic.IReadOnlyCollection<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>>, System.Collections.Generic.IReadOnlyDictionary<string, Hocon.HoconElement>, System.Collections.IEnumerable
     {
         public static readonly Hocon.HoconObject Empty;
+        protected System.Collections.Immutable.ImmutableSortedDictionary<string, Hocon.HoconElement> Fields;
         protected HoconObject() { }
         protected HoconObject(Hocon.HoconElement source) { }
         protected HoconObject(System.Collections.Generic.IDictionary<string, Hocon.HoconElement> fields) { }
@@ -402,18 +403,23 @@ namespace Hocon
         public override Hocon.HoconElement this[Hocon.HoconPath path] { get; }
         public Hocon.HoconElement this[string path] { get; set; }
         public System.Collections.Generic.IEnumerable<string> Keys { get; }
+        public override string Raw { get; }
         public override Hocon.HoconType Type { get; }
         public System.Collections.Generic.IDictionary<string, object> Unwrapped { get; }
         public System.Collections.Generic.IEnumerable<Hocon.HoconElement> Values { get; }
         public void Add(string key, Hocon.HoconElement value) { }
         public void Add(System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement> item) { }
+        public virtual System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> AsEnumerable() { }
         public void Clear() { }
         public bool Contains(System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement> item) { }
         public bool ContainsKey(string key) { }
         public void CopyTo(System.Collections.Generic.KeyValuePair<, >[] array, int arrayIndex) { }
         public override bool Equals(Hocon.HoconElement other) { }
         public System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> GetEnumerator() { }
-        public override int GetHashCode() { }
+        [System.ObsoleteAttribute("Use GetValue() instead")]
+        public Hocon.HoconElement GetField(string path) { }
+        [System.ObsoleteAttribute("Use GetValue() instead")]
+        public Hocon.HoconElement GetField(Hocon.HoconPath path) { }
         public virtual Hocon.HoconElement GetValue(string path) { }
         public virtual Hocon.HoconElement GetValue(Hocon.HoconPath path) { }
         public override bool HasPath(string path) { }
@@ -450,10 +456,14 @@ namespace Hocon
         public HoconObjectBuilder() { }
         public HoconObjectBuilder(Hocon.HoconElement source) { }
         public HoconObjectBuilder(System.Collections.Generic.Dictionary<string, Hocon.HoconElement> source) { }
+        public Hocon.HoconObjectBuilder Add(string key, Hocon.HoconElement value) { }
         public Hocon.HoconObject Build() { }
+        public Hocon.HoconObjectBuilder Clear() { }
         public Hocon.HoconObjectBuilder FallbackMerge(Hocon.HoconObject @object) { }
+        public Hocon.HoconObjectBuilder Merge(Hocon.HoconObject other) { }
         public Hocon.HoconObjectBuilder Merge(System.Collections.Generic.Dictionary<string, Hocon.HoconElement> fields) { }
         public Hocon.HoconObjectBuilder Merge(System.Collections.Generic.IReadOnlyDictionary<string, Hocon.HoconElement> fields) { }
+        public Hocon.HoconObjectBuilder Remove(string key) { }
     }
     public sealed class HoconParser
     {
@@ -573,6 +583,9 @@ namespace Hocon
         public static long GetLong(this Hocon.HoconElement element, string path, long @default) { }
         public static long GetLong(this Hocon.HoconElement element, Hocon.HoconPath path, long @default) { }
         public static Hocon.HoconObject GetObject(this Hocon.HoconElement element) { }
+        public static Hocon.HoconObject GetObject(this Hocon.HoconElement element, Hocon.HoconObject @default) { }
+        public static Hocon.HoconObject GetObject(this Hocon.HoconElement element, string path, Hocon.HoconObject @default) { }
+        public static Hocon.HoconObject GetObject(this Hocon.HoconElement element, Hocon.HoconPath path, Hocon.HoconObject @default) { }
         public static Hocon.HoconObject GetObject(this Hocon.HoconElement element, string path) { }
         public static Hocon.HoconObject GetObject(this Hocon.HoconElement element, Hocon.HoconPath path) { }
         public static sbyte GetSByte(this Hocon.HoconElement element) { }
@@ -591,8 +604,11 @@ namespace Hocon
         public static string GetString(this Hocon.HoconElement element, string path, string @default) { }
         public static string GetString(this Hocon.HoconElement element, Hocon.HoconPath path, string @default) { }
         public static System.TimeSpan GetTimeSpan(this Hocon.HoconElement element, bool allowInfinite = True) { }
+        public static System.TimeSpan GetTimeSpan(this Hocon.HoconElement element, System.Nullable<System.TimeSpan> @default, bool allowInfinite = True) { }
         public static System.TimeSpan GetTimeSpan(this Hocon.HoconElement element, string path, bool allowInfinite = True) { }
         public static System.TimeSpan GetTimeSpan(this Hocon.HoconElement element, Hocon.HoconPath path, bool allowInfinite = True) { }
+        public static System.TimeSpan GetTimeSpan(this Hocon.HoconElement element, string path, System.Nullable<System.TimeSpan> @default, bool allowInfinite = True) { }
+        public static System.TimeSpan GetTimeSpan(this Hocon.HoconElement element, Hocon.HoconPath path, System.Nullable<System.TimeSpan> @default, bool allowInfinite = True) { }
         public static uint GetUInt(this Hocon.HoconElement element) { }
         public static uint GetUInt(this Hocon.HoconElement element, string path) { }
         public static uint GetUInt(this Hocon.HoconElement element, Hocon.HoconPath path) { }
