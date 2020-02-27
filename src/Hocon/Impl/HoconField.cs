@@ -20,11 +20,11 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public sealed class HoconField : IHoconElement
+    internal sealed class HoconField : IHoconElement
     {
         private readonly List<HoconValue> _internalValues = new List<HoconValue>();
 
-        public HoconField(string key, HoconObject parent)
+        public HoconField(string key, InternalHoconObject parent)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
@@ -77,7 +77,7 @@ namespace Hocon
         public string Raw => Value.Raw;
 
         /// <inheritdoc />
-        public HoconObject GetObject()
+        public InternalHoconObject GetObject()
         {
             return Value.GetObject();
         }
@@ -95,7 +95,7 @@ namespace Hocon
 
         public IHoconElement Clone(IHoconElement newParent)
         {
-            var newField = new HoconField(Key, (HoconObject) newParent);
+            var newField = new HoconField(Key, (InternalHoconObject) newParent);
             foreach (var internalValue in _internalValues) newField._internalValues.Add(internalValue.Clone(newField) as HoconValue);
             return newField;
         }
@@ -117,7 +117,7 @@ namespace Hocon
             if (Type == HoconType.Object) return;
 
             var v = new HoconValue(this);
-            var o = new HoconObject(v);
+            var o = new InternalHoconObject(v);
             v.Add(o);
             _internalValues.Add(v);
         }
@@ -158,8 +158,6 @@ namespace Hocon
                     case HoconType.Object:
                         filteredObjectValue.Add(value);
                         break;
-                    case HoconType.Boolean:
-                    case HoconType.Number:
                     case HoconType.String:
                     case HoconType.Array:
                         filteredObjectValue.Clear();
@@ -182,7 +180,7 @@ namespace Hocon
         {
             if (value.Type != HoconType.Empty)
                 return;
-            ((HoconObject) Parent).ResolveValue(this);
+            ((InternalHoconObject) Parent).ResolveValue(this);
         }
 
         public override string ToString()

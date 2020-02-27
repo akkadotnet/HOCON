@@ -8,10 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Hocon.Immutable.Extensions;
 using Xunit;
 
-namespace Hocon.Immutable.Tests
+namespace Hocon.Tests
 {
     public class ApiTest
     {
@@ -56,7 +55,7 @@ namespace Hocon.Immutable.Tests
         [MemberData(nameof(ObjectArrayData))]
         public void CanIntelligentlyUseIndexerTypeToAccessMembers(string hocon)
         {
-            var config = HoconParser.Parse(hocon).ToHoconImmutable();
+            var config = HoconParser.Parse(hocon);
 
             Assert.Equal(1, config["a"][0]["a"].GetInt());
             Assert.Equal(2, config["a"][0]["b"].GetInt());
@@ -128,7 +127,7 @@ namespace Hocon.Immutable.Tests
 
   root_2 : 1234
 }";
-            var config = HoconParser.Parse(hocon).ToHoconImmutable();
+            var config = HoconParser.Parse(hocon);
 
 #pragma warning disable 618
             Assert.True(config.Value.GetBoolean("root.bool")); // legacy
