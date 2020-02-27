@@ -5,32 +5,22 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using AspNetWebApp.Models;
+using Hocon;
 
 namespace AspNetWebApp.Controllers
 {
     public class HomeController : Controller
     {
+        private string _hocon;
+
+        public HomeController()
+        {
+            _hocon = System.IO.File.ReadAllText("appsettings.conf");
+        }
+
         public IActionResult Index()
         {
-            return View();
-        }
-
-        public IActionResult About()
-        {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
+            ViewData["HOCON"] = _hocon;
             return View();
         }
 
