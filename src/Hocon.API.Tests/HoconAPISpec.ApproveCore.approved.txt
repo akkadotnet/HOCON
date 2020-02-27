@@ -1,7 +1,55 @@
 ﻿[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
 namespace Hocon
 {
-    public class static ArrayGetterExtensions
+    public sealed class HoconArray : Hocon.HoconElement, System.Collections.Generic.IEnumerable<Hocon.HoconElement>, System.Collections.Generic.IReadOnlyCollection<Hocon.HoconElement>, System.Collections.Generic.IReadOnlyList<Hocon.HoconElement>, System.Collections.IEnumerable, System.Collections.Immutable.IImmutableList<Hocon.HoconElement>
+    {
+        public int Count { get; }
+        public Hocon.HoconElement this[int index] { get; }
+        public override string Raw { get; }
+        public override Hocon.HoconType Type { get; }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Add(Hocon.HoconElement element) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> AddRange(System.Collections.Generic.IEnumerable<Hocon.HoconElement> elements) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Clear() { }
+        public override bool Equals(Hocon.HoconElement other) { }
+        public System.Collections.Generic.IEnumerator<Hocon.HoconElement> GetEnumerator() { }
+        public override int GetHashCode() { }
+        public int IndexOf(Hocon.HoconElement item, int startIndex, int count, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Insert(int index, Hocon.HoconElement element) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> InsertRange(int index, System.Collections.Generic.IEnumerable<Hocon.HoconElement> elements) { }
+        public int LastIndexOf(Hocon.HoconElement item, int startIndex, int count, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Remove(Hocon.HoconElement element, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveAll(System.Predicate<Hocon.HoconElement> match) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveAt(int index) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveRange(System.Collections.Generic.IEnumerable<Hocon.HoconElement> elements, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveRange(int index, int count) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Replace(Hocon.HoconElement oldValue, Hocon.HoconElement newValue, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
+        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> SetItem(int index, Hocon.HoconElement element) { }
+        public override string ToString(int indent, int indentSize) { }
+        public static bool[] op_Implicit(Hocon.HoconArray arr) { }
+        public static sbyte[] op_Implicit(Hocon.HoconArray arr) { }
+        public static byte[] op_Implicit(Hocon.HoconArray arr) { }
+        public static short[] op_Implicit(Hocon.HoconArray arr) { }
+        public static ushort[] op_Implicit(Hocon.HoconArray arr) { }
+        public static int[] op_Implicit(Hocon.HoconArray arr) { }
+        public static uint[] op_Implicit(Hocon.HoconArray arr) { }
+        public static long[] op_Implicit(Hocon.HoconArray arr) { }
+        public static ulong[] op_Implicit(Hocon.HoconArray arr) { }
+        public static System.Numerics.BigInteger[] op_Implicit(Hocon.HoconArray arr) { }
+        public static float[] op_Implicit(Hocon.HoconArray arr) { }
+        public static double[] op_Implicit(Hocon.HoconArray arr) { }
+        public static decimal[] op_Implicit(Hocon.HoconArray arr) { }
+        public static System.TimeSpan[] op_Implicit(Hocon.HoconArray arr) { }
+        public static string[] op_Implicit(Hocon.HoconArray arr) { }
+        public static char[] op_Implicit(Hocon.HoconArray arr) { }
+    }
+    public sealed class HoconArrayBuilder : System.Collections.Generic.List<Hocon.HoconElement>
+    {
+        public HoconArrayBuilder() { }
+        public HoconArrayBuilder(System.Collections.Generic.IEnumerable<Hocon.HoconElement> collection) { }
+        public HoconArrayBuilder(int capacity) { }
+        public Hocon.HoconArray Build() { }
+    }
+    public class static HoconArrayGetterExtensions
     {
         public static System.Collections.Generic.IList<Hocon.HoconElement> GetArray(this Hocon.HoconElement element) { }
         public static System.Collections.Generic.IList<System.Numerics.BigInteger> GetBigIntegerList(this Hocon.HoconElement element) { }
@@ -159,59 +207,6 @@ namespace Hocon
         public static bool TryGetUShortList(this Hocon.HoconElement element, string path, out System.Collections.Generic.IList<ushort> result) { }
         public static bool TryGetUShortList(this Hocon.HoconElement element, Hocon.HoconPath path, out System.Collections.Generic.IList<ushort> result) { }
     }
-    public class static GenericGetterExtensions
-    {
-        public static T Get<T>(this Hocon.HoconElement element) { }
-        public static object Get(this Hocon.HoconElement element, System.Type type) { }
-    }
-    public sealed class HoconArray : Hocon.HoconElement, System.Collections.Generic.IEnumerable<Hocon.HoconElement>, System.Collections.Generic.IReadOnlyCollection<Hocon.HoconElement>, System.Collections.Generic.IReadOnlyList<Hocon.HoconElement>, System.Collections.IEnumerable, System.Collections.Immutable.IImmutableList<Hocon.HoconElement>
-    {
-        public int Count { get; }
-        public Hocon.HoconElement this[int index] { get; }
-        public override string Raw { get; }
-        public override Hocon.HoconType Type { get; }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Add(Hocon.HoconElement element) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> AddRange(System.Collections.Generic.IEnumerable<Hocon.HoconElement> elements) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Clear() { }
-        public override bool Equals(Hocon.HoconElement other) { }
-        public System.Collections.Generic.IEnumerator<Hocon.HoconElement> GetEnumerator() { }
-        public override int GetHashCode() { }
-        public int IndexOf(Hocon.HoconElement item, int startIndex, int count, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Insert(int index, Hocon.HoconElement element) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> InsertRange(int index, System.Collections.Generic.IEnumerable<Hocon.HoconElement> elements) { }
-        public int LastIndexOf(Hocon.HoconElement item, int startIndex, int count, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Remove(Hocon.HoconElement element, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveAll(System.Predicate<Hocon.HoconElement> match) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveAt(int index) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveRange(System.Collections.Generic.IEnumerable<Hocon.HoconElement> elements, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> RemoveRange(int index, int count) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> Replace(Hocon.HoconElement oldValue, Hocon.HoconElement newValue, System.Collections.Generic.IEqualityComparer<Hocon.HoconElement> equalityComparer) { }
-        public System.Collections.Immutable.IImmutableList<Hocon.HoconElement> SetItem(int index, Hocon.HoconElement element) { }
-        public override string ToString(int indent, int indentSize) { }
-        public static bool[] op_Implicit(Hocon.HoconArray arr) { }
-        public static sbyte[] op_Implicit(Hocon.HoconArray arr) { }
-        public static byte[] op_Implicit(Hocon.HoconArray arr) { }
-        public static short[] op_Implicit(Hocon.HoconArray arr) { }
-        public static ushort[] op_Implicit(Hocon.HoconArray arr) { }
-        public static int[] op_Implicit(Hocon.HoconArray arr) { }
-        public static uint[] op_Implicit(Hocon.HoconArray arr) { }
-        public static long[] op_Implicit(Hocon.HoconArray arr) { }
-        public static ulong[] op_Implicit(Hocon.HoconArray arr) { }
-        public static System.Numerics.BigInteger[] op_Implicit(Hocon.HoconArray arr) { }
-        public static float[] op_Implicit(Hocon.HoconArray arr) { }
-        public static double[] op_Implicit(Hocon.HoconArray arr) { }
-        public static decimal[] op_Implicit(Hocon.HoconArray arr) { }
-        public static System.TimeSpan[] op_Implicit(Hocon.HoconArray arr) { }
-        public static string[] op_Implicit(Hocon.HoconArray arr) { }
-        public static char[] op_Implicit(Hocon.HoconArray arr) { }
-    }
-    public sealed class HoconArrayBuilder : System.Collections.Generic.List<Hocon.HoconElement>
-    {
-        public HoconArrayBuilder() { }
-        public HoconArrayBuilder(System.Collections.Generic.IEnumerable<Hocon.HoconElement> collection) { }
-        public HoconArrayBuilder(int capacity) { }
-        public Hocon.HoconArray Build() { }
-    }
     public enum HoconCallbackType
     {
         File = 0,
@@ -275,6 +270,11 @@ namespace Hocon
         public HoconException(string message, System.Exception innerException) { }
     }
     public class static HoconExtensions { }
+    public class static HoconGenericGetterExtensions
+    {
+        public static T Get<T>(this Hocon.HoconElement element) { }
+        public static object Get(this Hocon.HoconElement element, System.Type type) { }
+    }
     public delegate System.Threading.Tasks.Task<string> HoconIncludeCallbackAsync(Hocon.HoconCallbackType callbackType, string value);
     public sealed class HoconLiteral : Hocon.HoconElement
     {
@@ -509,26 +509,19 @@ namespace Hocon
         Object = 2,
         String = 3,
     }
+    public class static HoconTypeConverterExtensions
+    {
+        public static Hocon.HoconArray ToArray(this Hocon.HoconElement element) { }
+        public static Hocon.HoconLiteral ToLiteral(this Hocon.HoconElement element) { }
+        public static Hocon.HoconObject ToObject(this Hocon.HoconElement element) { }
+    }
     public class HoconValueException : Hocon.HoconException
     {
         public HoconValueException(string message, string failPath, System.Exception innerException) { }
         public HoconValueException(string message, Hocon.HoconPath failPath, System.Exception innerException) { }
         public string FailPath { get; }
     }
-    public class static StringUtil
-    {
-        public static string AddQuotes(this string s) { }
-        public static string AddTripleQuotes(this string s) { }
-        public static bool NeedQuotes(this string s) { }
-        public static bool NeedTripleQuotes(this string s) { }
-    }
-    public class static TypeConverterExtensions
-    {
-        public static Hocon.HoconArray ToArray(this Hocon.HoconElement element) { }
-        public static Hocon.HoconLiteral ToLiteral(this Hocon.HoconElement element) { }
-        public static Hocon.HoconObject ToObject(this Hocon.HoconElement element) { }
-    }
-    public class static ValueGetterExtensions
+    public class static HoconValueGetterExtensions
     {
         public static System.Numerics.BigInteger GetBigInteger(this Hocon.HoconElement element) { }
         public static System.Numerics.BigInteger GetBigInteger(this Hocon.HoconElement element, string path) { }
@@ -682,5 +675,12 @@ namespace Hocon
         public static bool TryGetUShort(this Hocon.HoconElement element, Hocon.HoconPath path, out ushort result) { }
         public static bool TryGetValue(this Hocon.HoconElement element, string path, out Hocon.HoconElement result) { }
         public static bool TryGetValue(this Hocon.HoconElement element, Hocon.HoconPath path, out Hocon.HoconElement result) { }
+    }
+    public class static StringUtil
+    {
+        public static string AddQuotes(this string s) { }
+        public static string AddTripleQuotes(this string s) { }
+        public static bool NeedQuotes(this string s) { }
+        public static bool NeedTripleQuotes(this string s) { }
     }
 }
