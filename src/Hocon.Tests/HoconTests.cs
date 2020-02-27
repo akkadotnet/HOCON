@@ -440,23 +440,44 @@ A {
             var hocon2 = HoconParser.Parse(hoconStr);
 
             Assert.Equal(hocon1, hocon2);
+            Assert.True(hocon1 == hocon2);
             Assert.Equal(hocon1.Value, hocon2.Value);
 
             Assert.Equal(hocon1.GetValue("a"), hocon2.GetValue("a"));
+            Assert.True(hocon1.GetValue("a") == hocon2.GetValue("a"));
+
             Assert.Equal(hocon1.GetValue("b"), hocon2.GetValue("b"));
+            Assert.True(hocon1.GetValue("b") == hocon2.GetValue("b"));
+
             Assert.Equal(hocon1.GetValue("c"), hocon2.GetValue("c"));
+            Assert.True(hocon1.GetValue("c") == hocon2.GetValue("c"));
+
             Assert.Equal(hocon1.GetValue("d"), hocon2.GetValue("d"));
+            Assert.True(hocon1.GetValue("d") == hocon2.GetValue("d"));
 
             Assert.Equal(hocon1.GetValue("a"), hocon1.GetValue("d.x"));
+            Assert.True(hocon1.GetValue("a") == hocon1.GetValue("d.x"));
+
             Assert.Equal(hocon1.GetValue("b"), hocon1.GetValue("d.y"));
+            Assert.True(hocon1.GetValue("b") == hocon1.GetValue("d.y"));
+
             Assert.Equal(hocon1.GetValue("c"), hocon1.GetValue("d.z"));
+            Assert.True(hocon1.GetValue("c") == hocon1.GetValue("d.z"));
 
             Assert.Equal(hocon1.GetValue("a"), hocon2.GetValue("d.x"));
+            Assert.True(hocon1.GetValue("a") == hocon2.GetValue("d.x"));
+
             Assert.Equal(hocon1.GetValue("b"), hocon2.GetValue("d.y"));
+            Assert.True(hocon1.GetValue("b") == hocon2.GetValue("d.y"));
+
             Assert.Equal(hocon1.GetValue("c"), hocon2.GetValue("d.z"));
+            Assert.True(hocon1.GetValue("c") == hocon2.GetValue("d.z"));
 
             Assert.Equal(hocon1.GetString("a"), hocon2.GetString("a"));
+            Assert.True(hocon1.GetString("a") == hocon2.GetString("a"));
+
             Assert.Equal(hocon1.GetString("a"), hocon1.GetString("d.x"));
+            Assert.True(hocon1.GetString("a") == hocon1.GetString("d.x"));
 
             Assert.Equal(hocon1.GetValue("b").GetArray(), hocon2.GetValue("b").GetArray());
             Assert.Equal(hocon1.GetValue("b").GetArray(), hocon1.GetValue("d.y").GetArray());
@@ -509,12 +530,12 @@ a {
             Assert.Contains("d", b.Keys);
 
             Assert.NotNull(b["c"]);
-            Assert.IsType<HoconField>(b["c"]);
-            Assert.Equal(1, ((HoconField) b["c"]).Value.GetInt());
+            Assert.IsType<HoconLiteral>(b["c"]);
+            Assert.Equal(1, ((HoconLiteral) b["c"]).GetInt());
 
             Assert.NotNull(b["d"]);
-            Assert.IsType<HoconField>(b["d"]);
-            Assert.True(((HoconField) b["d"]).Value.GetBoolean());
+            Assert.IsType<HoconLiteral>(b["d"]);
+            Assert.True(((HoconLiteral) b["d"]).GetBoolean());
         }
 
         [Fact]

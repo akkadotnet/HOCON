@@ -14,7 +14,7 @@ namespace Hocon
     ///     This class represents the root element in a HOCON (Human-Optimized Config Object Notation)
     ///     configuration string.
     /// </summary>
-    public class HoconRoot:IEquatable<HoconRoot>
+    internal class HoconRoot:IEquatable<HoconRoot>
     {
         /// <inheritdoc />
         /// <summary>
@@ -133,7 +133,7 @@ namespace Hocon
                     var o = v.GetObject();
                     if(o is HoconMergedObject mo)
                     {
-                        o = new HoconObject(v);
+                        o = new InternalHoconObject(v);
                         foreach(var obj in mo.Objects)
                             o.Merge(obj);
                     }
@@ -147,7 +147,7 @@ namespace Hocon
                 case HoconType.Array:
                     var a = v.GetArray();
                     v.Clear();
-                    var newArray = new HoconArray(v);
+                    var newArray = new InternalHoconArray(v);
                     foreach (var item in a)
                     {
                         Flatten(item);
@@ -570,12 +570,12 @@ namespace Hocon
             return @default;
         }
 
-        public virtual HoconObject GetObject(string path)
+        public virtual InternalHoconObject GetObject(string path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetObject());
         }
 
-        public virtual HoconObject GetObject(HoconPath path)
+        public virtual InternalHoconObject GetObject(HoconPath path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetObject());
         }
@@ -586,7 +586,7 @@ namespace Hocon
         /// <param name="path">The path that contains the value to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The double value defined in the specified path.</returns>
-        public virtual HoconObject GetObject(string path, HoconObject @default)
+        public virtual InternalHoconObject GetObject(string path, InternalHoconObject @default)
         {
             if (TryGetNode(path, out var value))
                 if (value.TryGetObject(out var result))
@@ -595,8 +595,8 @@ namespace Hocon
             return @default;
         }
 
-        /// <inheritdoc cref="GetObject(string,HoconObject)" />
-        public virtual HoconObject GetObject(HoconPath path, HoconObject @default = null)
+        /// <inheritdoc cref="GetObject(string,InternalHoconObject)" />
+        public virtual InternalHoconObject GetObject(HoconPath path, InternalHoconObject @default = null)
         {
             if (TryGetNode(path, out var value))
                 if (value.TryGetObject(out var result))
@@ -939,12 +939,12 @@ namespace Hocon
         /// <param name="path">The path that contains the objects to retrieve.</param>
         /// <returns>The list of objects defined in the specified path.</returns>
         /// <exception cref="HoconParserException">Thrown if path does not exist</exception>
-        public virtual IList<HoconObject> GetObjectList(string path)
+        public virtual IList<InternalHoconObject> GetObjectList(string path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetObjectList());
         }
 
-        public virtual IList<HoconObject> GetObjectList(HoconPath path)
+        public virtual IList<InternalHoconObject> GetObjectList(HoconPath path)
         {
             return WrapWithValueException(path, () => GetNode(path).GetObjectList());
         }
@@ -955,7 +955,7 @@ namespace Hocon
         /// <param name="path">The path that contains the objects to retrieve.</param>
         /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <returns>The list of objects defined in the specified path.</returns>
-        public virtual IList<HoconObject> GetObjectList(string path, IList<HoconObject> @default)
+        public virtual IList<InternalHoconObject> GetObjectList(string path, IList<InternalHoconObject> @default)
         {
             if (TryGetNode(path, out var value))
                 if (value.TryGetObjectList(out var result))
@@ -965,7 +965,7 @@ namespace Hocon
         }
 
         /// <inheritdoc cref="GetObjectList(string)" />
-        public virtual IList<HoconObject> GetObjectList(HoconPath path, IList<HoconObject> @default = null)
+        public virtual IList<InternalHoconObject> GetObjectList(HoconPath path, IList<InternalHoconObject> @default = null)
         {
             if (TryGetNode(path, out var value))
                 if (value.TryGetObjectList(out var result))

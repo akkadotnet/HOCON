@@ -163,7 +163,7 @@ bar : ${yet-another-to-ignore}
 bar : [42]
 ";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
             Assert.Equal(42, config.GetInt("foo"));
@@ -182,7 +182,7 @@ foo : { a : { c : 1 } }
 foo : ${foo.a}
 foo : { a : 2 }";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
 
@@ -206,7 +206,7 @@ bar.b = 3
 foo : { c : ${bar.b}, d : 2 }
 foo.d = 4";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
 
@@ -223,7 +223,7 @@ foo.d = 4";
         {
             var hocon = "foo : ${?foo}";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
             // should not create a field
@@ -245,7 +245,7 @@ a += ${b}
 b = [ 4, 5 ]
 ";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
             var array = config.GetValue("a").GetArray();
@@ -264,7 +264,7 @@ b = [ 4, 5 ]
         {
             var hocon = "a = ${?a}foo";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
 
@@ -286,7 +286,7 @@ bar : { foo : 42,
       }
 bar : { foo : 43 }";
 
-            HoconRoot config = null;
+            HoconObject config = null;
             var ex = Record.Exception(() => config = HoconParser.Parse(hocon));
             Assert.Null(ex);
 

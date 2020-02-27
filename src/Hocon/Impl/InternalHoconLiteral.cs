@@ -19,9 +19,9 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public abstract class HoconLiteral : IHoconElement
+    internal abstract class InternalHoconLiteral : IHoconElement
     {
-        protected HoconLiteral(IHoconElement parent, string value)
+        protected InternalHoconLiteral(IHoconElement parent, string value)
         {
             Parent = parent;
             Value = value;
@@ -48,7 +48,7 @@ namespace Hocon
         ///     This element is a string literal. It is not an object.
         ///     Therefore this method will throw an exception.
         /// </exception>
-        public HoconObject GetObject()
+        public InternalHoconObject GetObject()
         {
             throw new HoconException("Hocon literal could not be converted to object.");
         }
@@ -98,7 +98,7 @@ namespace Hocon
             return Raw;
         }
 
-        internal static HoconLiteral Create(IHoconElement owner, Token token)
+        internal static InternalHoconLiteral Create(IHoconElement owner, Token token)
         {
             switch (token.LiteralType)
             {
@@ -149,18 +149,18 @@ namespace Hocon
             return Value?.GetHashCode() ?? 0;
         }
 
-        public static bool operator ==(HoconLiteral left, HoconLiteral right)
+        public static bool operator ==(InternalHoconLiteral left, InternalHoconLiteral right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(HoconLiteral left, HoconLiteral right)
+        public static bool operator !=(InternalHoconLiteral left, InternalHoconLiteral right)
         {
             return !Equals(left, right);
         }
     }
 
-    public sealed class HoconNull : HoconLiteral
+    internal sealed class HoconNull : InternalHoconLiteral
     {
         public HoconNull(IHoconElement parent) : base(parent, "null")
         {
@@ -177,13 +177,13 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconBool : HoconLiteral
+    internal sealed class HoconBool : InternalHoconLiteral
     {
         public HoconBool(IHoconElement parent, string value) : base(parent, value)
         {
         }
 
-        public override HoconType Type => HoconType.Boolean;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Bool;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -192,13 +192,13 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconDouble : HoconLiteral
+    internal sealed class HoconDouble : InternalHoconLiteral
     {
         public HoconDouble(IHoconElement parent, string value) : base(parent, value)
         {
         }
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Double;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -207,13 +207,13 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconLong : HoconLiteral
+    internal sealed class HoconLong : InternalHoconLiteral
     {
         public HoconLong(IHoconElement parent, string value) : base(parent, value)
         {
         }
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Long;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -222,13 +222,13 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconHex : HoconLiteral
+    internal sealed class HoconHex : InternalHoconLiteral
     {
         public HoconHex(IHoconElement parent, string value) : base(parent, value)
         {
         }
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
         public override HoconLiteralType LiteralType => HoconLiteralType.Hex;
 
         public override IHoconElement Clone(IHoconElement newParent)
@@ -237,7 +237,7 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconOctal : HoconLiteral
+    internal sealed class HoconOctal : InternalHoconLiteral
     {
         public HoconOctal(IHoconElement parent, string value) : base(parent, value)
         {
@@ -245,7 +245,7 @@ namespace Hocon
 
         public override HoconLiteralType LiteralType => HoconLiteralType.Long;
 
-        public override HoconType Type => HoconType.Number;
+        public override HoconType Type => HoconType.String;
 
         public override IHoconElement Clone(IHoconElement newParent)
         {
@@ -253,7 +253,7 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconUnquotedString : HoconLiteral
+    internal sealed class HoconUnquotedString : InternalHoconLiteral
     {
         public HoconUnquotedString(IHoconElement parent, string value) : base(parent, value)
         {
@@ -268,7 +268,7 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconQuotedString : HoconLiteral
+    internal sealed class HoconQuotedString : InternalHoconLiteral
     {
         public HoconQuotedString(IHoconElement parent, string value) : base(parent, value)
         {
@@ -284,7 +284,7 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconTripleQuotedString : HoconLiteral
+    internal sealed class HoconTripleQuotedString : InternalHoconLiteral
     {
         public HoconTripleQuotedString(IHoconElement parent, string value) : base(parent, value)
         {
@@ -300,7 +300,7 @@ namespace Hocon
         }
     }
 
-    public sealed class HoconWhitespace : HoconLiteral
+    internal sealed class HoconWhitespace : InternalHoconLiteral
     {
         public HoconWhitespace(IHoconElement parent, string value) : base(parent, value)
         {

@@ -11,22 +11,58 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace Hocon.Immutable
+namespace Hocon
 {
-    public sealed class HoconImmutableLiteral : HoconImmutableElement, IEquatable<HoconImmutableLiteral>
+    public sealed class HoconLiteral : HoconElement
     {
-        public static readonly HoconImmutableLiteral Null = Create(null);
+        public static readonly HoconLiteral Null = new HoconLiteral(null, HoconLiteralType.Null);
 
-        private HoconImmutableLiteral(string value)
+        private HoconLiteral(string value)
         {
-            Value = value;
+            _value = value;
+            LiteralType =
+                value.NeedTripleQuotes() ? HoconLiteralType.TripleQuotedString :
+                value.NeedQuotes() ? HoconLiteralType.QuotedString : HoconLiteralType.UnquotedString;
         }
 
-        public new string Value { get; }
-
-        internal static HoconImmutableLiteral Create(string value)
+        private HoconLiteral(string value, HoconLiteralType literalType)
         {
-            return new HoconImmutableLiteral(value);
+            _value = value;
+            LiteralType = literalType;
+        }
+
+        public override HoconType Type => HoconType.String;
+        public HoconLiteralType LiteralType { get; }
+
+        private string _value;
+        public new string Value
+        {
+            get
+            {
+                if (LiteralType == HoconLiteralType.Null)
+                    return null;
+                return _value;
+            }
+        }
+
+        public override string Raw => Value == null ? "null" :
+                LiteralType == HoconLiteralType.TripleQuotedString ? Value.AddTripleQuotes() :
+                LiteralType == HoconLiteralType.QuotedString ? Value.AddQuotes() : Value;
+
+        public static HoconLiteral Create(string value)
+        {
+            if (value == null)
+                return Null;
+
+            return new HoconLiteral(value);
+        }
+
+        internal static HoconLiteral Create(string value, HoconLiteralType literalType)
+        {
+            if (literalType == HoconLiteralType.Null)
+                return Null;
+
+            return new HoconLiteral(value, literalType);
         }
 
         #region Interface implementations
@@ -36,15 +72,17 @@ namespace Hocon.Immutable
             return Value;
         }
 
-        public bool Equals(HoconImmutableLiteral other)
+        public override string ToString(int indent, int indentSize)
         {
-            if (other == null) return false;
-            return ReferenceEquals(this, other) || string.Equals(Value, other.Value);
+            return Raw;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(HoconElement other)
         {
-            return ReferenceEquals(this, obj) || obj is HoconImmutableLiteral other && Equals(other);
+            if (ReferenceEquals(this, other)) return true;
+            if (!(other is HoconLiteral otherLiteral)) return false;
+
+            return otherLiteral.Value == Value;
         }
 
         public override int GetHashCode()
@@ -56,22 +94,22 @@ namespace Hocon.Immutable
 
         #region Casting operators
 
-        public static implicit operator char(HoconImmutableLiteral lit)
+        public static implicit operator char(HoconLiteral lit)
         {
             return lit.Value?[0] ?? '\0';
         }
 
-        public static implicit operator char[](HoconImmutableLiteral lit)
+        public static implicit operator char[](HoconLiteral lit)
         {
             return lit.Value?.ToCharArray() ?? new char[] { };
         }
 
-        public static implicit operator string(HoconImmutableLiteral lit)
+        public static implicit operator string(HoconLiteral lit)
         {
             return lit.Value;
         }
 
-        public static implicit operator bool(HoconImmutableLiteral lit)
+        public static implicit operator bool(HoconLiteral lit)
         {
             switch (lit.Value)
             {
@@ -89,7 +127,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator sbyte(HoconImmutableLiteral lit)
+        public static implicit operator sbyte(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -122,7 +160,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator byte(HoconImmutableLiteral lit)
+        public static implicit operator byte(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -155,7 +193,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator short(HoconImmutableLiteral lit)
+        public static implicit operator short(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -188,7 +226,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator ushort(HoconImmutableLiteral lit)
+        public static implicit operator ushort(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -221,7 +259,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator int(HoconImmutableLiteral lit)
+        public static implicit operator int(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -254,7 +292,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator uint(HoconImmutableLiteral lit)
+        public static implicit operator uint(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -287,7 +325,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator long(HoconImmutableLiteral lit)
+        public static implicit operator long(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -320,7 +358,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator ulong(HoconImmutableLiteral lit)
+        public static implicit operator ulong(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -353,7 +391,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator BigInteger(HoconImmutableLiteral lit)
+        public static implicit operator BigInteger(HoconLiteral lit)
         {
             var value = lit.Value;
             if (value.StartsWith("0x"))
@@ -386,7 +424,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator float(HoconImmutableLiteral lit)
+        public static implicit operator float(HoconLiteral lit)
         {
             var value = lit.Value;
             switch (value)
@@ -410,7 +448,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator double(HoconImmutableLiteral lit)
+        public static implicit operator double(HoconLiteral lit)
         {
             var value = lit.Value;
             switch (value)
@@ -434,7 +472,7 @@ namespace Hocon.Immutable
             }
         }
 
-        public static implicit operator decimal(HoconImmutableLiteral lit)
+        public static implicit operator decimal(HoconLiteral lit)
         {
             var value = lit.Value;
             switch (value)
@@ -457,72 +495,25 @@ namespace Hocon.Immutable
             }
         }
 
-        private static readonly Regex TimeSpanRegex = new Regex(
-            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$",
-            RegexOptions.Compiled);
-
-        private static double ParsePositiveValue(string v)
+        public static implicit operator TimeSpan(HoconLiteral lit)
         {
-            var value = double.Parse(v, NumberFormatInfo.InvariantInfo);
-            if (value < 0)
-                throw new FormatException("Expected a positive value instead of " + value);
-            return value;
-        }
+            if (lit.Value.TryMatchTimeSpan(out var result))
+                return result;
 
-        public static implicit operator TimeSpan(HoconImmutableLiteral lit)
-        {
-            var res = lit.Value;
-
-            if (res.Equals("infinite", StringComparison.OrdinalIgnoreCase)) //Not in Hocon spec
-                return Timeout.InfiniteTimeSpan;
-
-            var match = TimeSpanRegex.Match(res);
-            if (match.Success)
+            double value;
+            try
             {
-                var u = match.Groups["unit"].Value;
-                var v = ParsePositiveValue(match.Groups["value"].Value);
-
-                switch (u)
-                {
-                    case "nanoseconds":
-                    case "nanosecond":
-                    case "nanos":
-                    case "nano":
-                    case "ns":
-                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
-                    case "microseconds":
-                    case "microsecond":
-                    case "micros":
-                    case "micro":
-                        return TimeSpan.FromTicks((long) Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
-                    case "milliseconds":
-                    case "millisecond":
-                    case "millis":
-                    case "milli":
-                    case "ms":
-                        return TimeSpan.FromMilliseconds(v);
-                    case "seconds":
-                    case "second":
-                    case "s":
-                        return TimeSpan.FromSeconds(v);
-                    case "minutes":
-                    case "minute":
-                    case "m":
-                        return TimeSpan.FromMinutes(v);
-                    case "hours":
-                    case "hour":
-                    case "h":
-                        return TimeSpan.FromHours(v);
-                    case "days":
-                    case "day":
-                    case "d":
-                        return TimeSpan.FromDays(v);
-                    default:
-                        throw new HoconException($"Unknown TimeSpan unit:{u}");
-                }
+                value = double.Parse(lit.Value, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo);
+            }
+            catch (Exception e)
+            {
+                throw new HoconException($"Failed to parse TimeSpan value from '{lit.Value}'.", e);
             }
 
-            return TimeSpan.FromMilliseconds(ParsePositiveValue(res));
+            if (value < 0)
+                throw new HoconException($"Failed to parse TimeSpan value, expected a positive value instead of {value}.");
+
+            return TimeSpan.FromMilliseconds(value);
         }
 
         #endregion
