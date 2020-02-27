@@ -37,6 +37,7 @@ namespace Hocon
                 if (IsEmpty)
                     return string.Empty;
 
+                // TODO: this is a dangerous hack, please consider a better option.
                 // this is chosen to encode \ in a key
                 // anything will do, but if the key contains a lot of this we'll need to do many escapes and impact perf.
                 // let's hope this sequence appears rare enough for most situations

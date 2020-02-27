@@ -12,7 +12,7 @@ namespace Hocon
     ///     This class represents an empty <see cref="HoconValue" />,
     ///     it masquerades as all other types and are usually used to represent empty or unresolved substitution.
     /// </summary>
-    public sealed class HoconEmptyValue : HoconValue
+    internal sealed class HoconEmptyValue : HoconValue
     {
         public HoconEmptyValue() : base(null) { }
         
@@ -34,9 +34,9 @@ namespace Hocon
             throw new HoconException($"Can not add new values to {nameof(HoconEmptyValue)}");
         }
 
-        public override HoconObject GetObject()
+        public override InternalHoconObject GetObject()
         {
-            return new HoconObject(Parent);
+            return new InternalHoconObject(Parent);
         }
 
         public override string GetString()

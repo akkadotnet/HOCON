@@ -26,6 +26,7 @@ namespace Hocon.Tests.Performance
         public void Setup(BenchmarkContext context)
         {
             _throughputCounter = context.GetCounter(ConfigLookupName);
+            System.GC.Collect();
         }
 
         [PerfBenchmark(
