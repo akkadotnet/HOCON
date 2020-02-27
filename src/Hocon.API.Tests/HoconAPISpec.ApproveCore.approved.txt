@@ -407,6 +407,7 @@ namespace Hocon
         public override Hocon.HoconType Type { get; }
         public System.Collections.Generic.IDictionary<string, object> Unwrapped { get; }
         public System.Collections.Generic.IEnumerable<Hocon.HoconElement> Values { get; }
+        [System.ObsoleteAttribute("Only used by Hyperion deserializer", true)]
         public void Add(string key, Hocon.HoconElement value) { }
         public void Add(System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement> item) { }
         public virtual System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> AsEnumerable() { }
