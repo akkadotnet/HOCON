@@ -50,7 +50,6 @@ namespace Hocon
             {
                 Root = cfg.Root;
                 _fallbacks = cfg._fallbacks.ToList();
-                _cache = cfg._cache;
             }  
             else 
             {
@@ -58,7 +57,6 @@ namespace Hocon
             }
         }
 
-        private ConcurrentDictionary<string, HoconElement> _cache = new ConcurrentDictionary<string, HoconElement>();
         protected List<HoconObject> _fallbacks { get; } = new List<HoconObject>();
         public virtual IReadOnlyList<HoconObject> Fallbacks => _fallbacks.ToList().AsReadOnly();
 
@@ -101,42 +99,24 @@ namespace Hocon
 
         public override HoconElement GetValue(HoconPath path)
         {
-            if (_cache.TryGetValue(path.ToString(), out var result))
+            if (base.TryGetValue(path, out var result))
                 return result;
-
-            if (base.TryGetValue(path, out result))
-            {
-                _cache[path.ToString()] = result;
-                return result;
-            }
 
             foreach (var fallback in _fallbacks)
                 if (fallback.TryGetValue(path, out result))
-                {
-                    _cache[path.ToString()] = result;
                     return result;
-                }
 
             throw new HoconException($"Could not find path '{path}'.");
         }
 
         public override bool TryGetValue(HoconPath path, out HoconElement result)
         {
-            if (_cache.TryGetValue(path.ToString(), out result))
-                return true;
-
             if (base.TryGetValue(path, out result))
-            {
-                _cache[path.ToString()] = result;
                 return true;
-            }
 
             foreach (var fallback in _fallbacks)
                 if (fallback.TryGetValue(path, out result))
-                {
-                    _cache[path.ToString()] = result;
                     return true;
-                }
 
             return false;
         }
