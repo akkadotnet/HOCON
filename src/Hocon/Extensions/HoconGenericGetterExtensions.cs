@@ -10,7 +10,7 @@ using System.Numerics;
 
 namespace Hocon
 {
-    public static class GenericGetterExtensions
+    public static class HoconGenericGetterExtensions
     {
         private static readonly Dictionary<Type, Func<HoconElement, object>> PrimitiveConverters =
             new Dictionary<Type, Func<HoconElement, object>>

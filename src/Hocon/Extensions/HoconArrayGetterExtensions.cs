@@ -11,7 +11,7 @@ using System.Numerics;
 
 namespace Hocon
 {
-    public static class ArrayGetterExtensions
+    public static class HoconArrayGetterExtensions
     {
         public static T[] ToArray<T>(this HoconElement element)
         {

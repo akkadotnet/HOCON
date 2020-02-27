@@ -6,7 +6,7 @@
 
 namespace Hocon
 {
-    public static class TypeConverterExtensions
+    public static class HoconTypeConverterExtensions
     {
         public static HoconObject ToObject(this HoconElement element)
         {

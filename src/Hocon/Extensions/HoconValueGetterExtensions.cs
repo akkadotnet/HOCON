@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace Hocon
 {
-    public static class ValueGetterExtensions
+    public static class HoconValueGetterExtensions
     {
         #region Value Getter
         public static string GetString(this HoconElement element)
