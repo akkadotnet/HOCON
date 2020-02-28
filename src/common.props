@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Copyright>Copyright © 2014-2020 Akka.NET Team</Copyright>
     <Authors>Akka.NET Team</Authors>
-    <VersionPrefix>2.0.1</VersionPrefix>
+    <VersionPrefix>2.0.3</VersionPrefix>
     <PackageReleaseNotes>Bugfixes and improvements made to HOCON 2.0.0
 [Bugfix: HoconValue.TryGetObject can throw System.ArgumentNullException](https://github.com/akkadotnet/HOCON/issues/233)
 [Bugfix: System.InvalidOperationException : Collection was modified; enumeration operation may not execute](https://github.com/akkadotnet/HOCON/issues/234)
