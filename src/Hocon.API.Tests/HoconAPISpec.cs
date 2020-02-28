@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 using Hocon.Extensions.Configuration;
+using Hocon.Immutable;
 using ApprovalTests;
 using Xunit;
 using static PublicApiGenerator.ApiGenerator;
@@ -20,7 +21,7 @@ namespace Hocon.API.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void ApproveCore()
         {
-            var publicApi = Filter(GeneratePublicApi(typeof(HoconObject).Assembly));
+            var publicApi = Filter(GeneratePublicApi(typeof(HoconRoot).Assembly));
             Approvals.Verify(publicApi);
         }
 
@@ -37,6 +38,14 @@ namespace Hocon.API.Tests
         public void ApproveExtensionConfiguration()
         {
             var publicApi = Filter(GeneratePublicApi(typeof(HoconConfigurationSource).Assembly));
+            Approvals.Verify(publicApi);
+        }
+
+        [Fact]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public void ApproveImmutable()
+        {
+            var publicApi = Filter(GeneratePublicApi(typeof(HoconImmutableObject).Assembly));
             Approvals.Verify(publicApi);
         }
 

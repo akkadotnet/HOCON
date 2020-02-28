@@ -20,8 +20,7 @@ namespace Hocon
     /// </summary>
     public static class HoconConfigurationFactory
     {
-        private static readonly string[] DefaultHoconFileNames = {"application", "app"};
-        private static readonly string[] DefaultHoconFileExtensions = { "conf", "hocon", "properties" };
+        private static readonly string[] DefaultHoconFilePaths = {"app.conf", "app.hocon"};
 
         /// <summary>
         ///     Generates an empty configuration.
@@ -37,7 +36,8 @@ namespace Hocon
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
         public static Config ParseString(string hocon, HoconIncludeCallbackAsync includeCallback)
         {
-            return Config.Create(HoconParser.Parse(hocon, includeCallback));
+            HoconRoot res = HoconParser.Parse(hocon, includeCallback);
+            return new Config(res);
         }
 
         /// <summary>
@@ -59,29 +59,10 @@ namespace Hocon
         ///     The configuration defined in the configuration file. If the section
         ///     "akka" is not found, this returns an empty Config.
         /// </returns>
+        [Obsolete("Call the ConfigurationFactory.Default method instead.")]
         public static Config Load()
         {
-            // attempt to load .hocon files first
-            foreach (var name in DefaultHoconFileNames)
-            {
-                foreach (var extension in DefaultHoconFileExtensions)
-                {
-                    var path = $"{name}.{extension}";
-                    if (File.Exists(path))
-                        return FromFile(path);
-                }
-            }
-
-            // if we made it this far: no default HOCON files found. Check app.config
-            var def = Load("hocon"); // new default
-            if (!def.IsNullOrEmpty())
-                return def;
-
-            def = Load("akka"); // old Akka.NET-specific default
-            if (!def.IsNullOrEmpty())
-                return def;
-
-            return Config.Empty;
+            return Default();
         }
 
         /// <summary>
@@ -104,24 +85,13 @@ namespace Hocon
 
         /// <summary>
         ///     Parses a HOCON file from the filesystem.
-        ///     If no file extension is provided, the function will try to load
-        ///     the file in these default extensions .conf, .hocon, .properties
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
         /// <returns>A parsed HOCON configuration object.</returns>
         /// <throws>ConfigurationException, when the supplied filePath can't be found.</throws>
         public static Config FromFile(string filePath)
         {
-            if(Path.GetExtension(filePath) == string.Empty)
-            {
-                foreach(var extension in DefaultHoconFileExtensions)
-                {
-                    var path = $"{filePath}.{extension}";
-                    if (File.Exists(path)) 
-                        return ParseString(File.ReadAllText(path));
-                }
-            } else
-                if (File.Exists(filePath)) return ParseString(File.ReadAllText(filePath));
+            if (File.Exists(filePath)) return ParseString(File.ReadAllText(filePath));
 
             throw new ConfigurationException($"No HOCON file at {filePath} could be found.");
         }
@@ -133,8 +103,24 @@ namespace Hocon
         /// <returns>The configuration that contains default values for all options.</returns>
         public static Config Default()
         {
-            if(File.Exists("reference.conf"))
-                return FromFile("reference.conf");
+            // attempt to load .hocon files first
+            foreach (var path in DefaultHoconFilePaths.Where(x => File.Exists(x)))
+                return FromFile(path);
+
+            // if we made it this far: no default HOCON files found. Check app.config
+            try
+            {
+                var def = Load("hocon"); // new default
+                if (!def.IsNullOrEmpty())
+                    return def;
+
+                def = Load("akka"); // old Akka.NET-specific default
+                if (!def.IsNullOrEmpty())
+                    return def;
+            }
+            catch
+            {
+            }
 
             return Config.Empty;
         }

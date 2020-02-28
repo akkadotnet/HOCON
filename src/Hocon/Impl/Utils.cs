@@ -6,11 +6,6 @@
 
 using System.Diagnostics;
 using System.Linq;
-using System;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Globalization;
 
 namespace Hocon
 {
@@ -82,12 +77,12 @@ namespace Hocon
                     return v.Any(n => n.IsSubstitution());
                 case HoconField f:
                     return f.Value.Any(n => n.IsSubstitution());
-                case InternalHoconObject o:
+                case HoconObject o:
                     foreach (var f in o.Values)
                         if (f.Value.Any(n => n.IsSubstitution()))
                             return true;
                     return false;
-                case InternalHoconArray a:
+                case HoconArray a:
                     foreach (var v in a)
                         if (v.Any(n => n.IsSubstitution()))
                             return true;
@@ -179,10 +174,6 @@ namespace Hocon
 
     public static class StringUtil
     {
-        private static readonly Regex TimeSpanRegex = new Regex(
-            @"^(?<value>([0-9]+(\.[0-9]+)?))\s*(?<unit>(nanoseconds|nanosecond|nanos|nano|ns|microseconds|microsecond|micros|micro|us|milliseconds|millisecond|millis|milli|ms|seconds|second|s|minutes|minute|m|hours|hour|h|days|day|d))$",
-            RegexOptions.Compiled);
-
         public static bool NeedQuotes(this string s)
         {
             foreach (var c in s)
@@ -196,78 +187,12 @@ namespace Hocon
             return s.NeedQuotes() && s.Contains(Utils.NewLine);
         }
 
-        public static string AddTripleQuotes(this string s)
-        {
-            return $"\"\"\"{s}\"\"\"";
-        }
-
         public static string AddQuotes(this string s)
         {
-            return $"\"{s.Replace("\"", "\\\"")}\"";
-        }
+            if (s.Contains('"'))
+                return "\"" + s.Replace("\"", "\\\"") + "\"";
 
-        internal static bool TryMatchTimeSpan(this string value, out TimeSpan result)
-        {
-            result = default;
-
-            var match = TimeSpanRegex.Match(value);
-            if (!match.Success)
-                return false;
-
-            var u = match.Groups["unit"].Value;
-            if (!double.TryParse(
-                    match.Groups["value"].Value,
-                    NumberStyles.Float | NumberStyles.AllowThousands,
-                    NumberFormatInfo.InvariantInfo,
-                    out var v))
-                return false;
-
-            if (v < 0) return false;
-
-            switch (u)
-            {
-                case "nanoseconds":
-                case "nanosecond":
-                case "nanos":
-                case "nano":
-                case "ns":
-                    result = TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000000.0));
-                    return true;
-                case "microseconds":
-                case "microsecond":
-                case "micros":
-                case "micro":
-                    result = TimeSpan.FromTicks((long)Math.Round(TimeSpan.TicksPerMillisecond * v / 1000.0));
-                    return true;
-                case "milliseconds":
-                case "millisecond":
-                case "millis":
-                case "milli":
-                case "ms":
-                    result = TimeSpan.FromMilliseconds(v);
-                    return true;
-                case "seconds":
-                case "second":
-                case "s":
-                    result = TimeSpan.FromSeconds(v);
-                    return true;
-                case "minutes":
-                case "minute":
-                case "m":
-                    result = TimeSpan.FromMinutes(v);
-                    return true;
-                case "hours":
-                case "hour":
-                case "h":
-                    result = TimeSpan.FromHours(v);
-                    return true;
-                case "days":
-                case "day":
-                case "d":
-                    result = TimeSpan.FromDays(v);
-                    return true;
-            }
-            return false;
+            return "\"" + s + "\"";
         }
     }
 }
