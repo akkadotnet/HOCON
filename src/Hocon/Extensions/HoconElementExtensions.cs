@@ -4,17 +4,19 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Hocon
+namespace Hocon.Extensions
 {
     /// <summary>
     ///     HoconElementExtensions
     /// </summary>
-    internal static class HoconElementExtensions
+    public static class HoconElementExtensions
     {
-        internal static bool IsLiteral(this HoconType hoconType)
+        public static bool IsLiteral(this HoconType hoconType)
         {
             switch (hoconType)
             {
+                case HoconType.Boolean:
+                case HoconType.Number:
                 case HoconType.String:
                     return true;
                 default:
@@ -22,12 +24,12 @@ namespace Hocon
             }
         }
 
-        internal static bool IsMergeable(this HoconType t1, HoconType t2)
+        public static bool IsMergeable(this HoconType t1, HoconType t2)
         {
             return t1 == t2 || t1.IsLiteral() && t2.IsLiteral();
         }
 
-        internal static bool IsMergeable(this IHoconElement e1, IHoconElement e2)
+        public static bool IsMergeable(this IHoconElement e1, IHoconElement e2)
         {
             return e1.Type.IsMergeable(e2.Type);
         }

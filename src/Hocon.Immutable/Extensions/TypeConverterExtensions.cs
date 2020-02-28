@@ -4,33 +4,33 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Hocon
+namespace Hocon.Immutable.Extensions
 {
-    public static class HoconTypeConverterExtensions
+    public static class TypeConverterExtensions
     {
-        public static HoconObject ToObject(this HoconElement element)
+        public static HoconImmutableObject ToObject(this HoconImmutableElement element)
         {
-            if (element is HoconObject obj)
+            if (element is HoconImmutableObject obj)
                 return obj;
             return null;
         }
 
-        public static HoconArray ToArray(this HoconElement element)
+        public static HoconImmutableArray ToArray(this HoconImmutableElement element)
         {
             switch (element)
             {
-                case HoconObject obj:
+                case HoconImmutableObject obj:
                     return obj.ToArray();
-                case HoconArray arr:
+                case HoconImmutableArray arr:
                     return arr;
                 default:
                     return null;
             }
         }
 
-        public static HoconLiteral ToLiteral(this HoconElement element)
+        public static HoconImmutableLiteral ToLiteral(this HoconImmutableElement element)
         {
-            if (element is HoconLiteral lit)
+            if (element is HoconImmutableLiteral lit)
                 return lit;
             return null;
         }

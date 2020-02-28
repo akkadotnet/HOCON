@@ -13,7 +13,7 @@ namespace Hocon
     ///     This interface defines the contract needed to implement
     ///     a HOCON (Human-Optimized Config Object Notation) element.
     /// </summary>
-    internal interface IHoconElement : IEquatable<IHoconElement>
+    public interface IHoconElement : IEquatable<IHoconElement>
     {
         IHoconElement Parent { get; }
 
@@ -25,7 +25,7 @@ namespace Hocon
         ///     Retrieves the HOCON object representation of this element.
         /// </summary>
         /// <returns>The HOCON object representation of this element.</returns>
-        InternalHoconObject GetObject();
+        HoconObject GetObject();
 
         /// <summary>
         ///     Retrieves the string representation of this element.

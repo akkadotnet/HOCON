@@ -24,7 +24,7 @@ namespace Hocon.Tests.Extensions
             }
         ";
 
-        public HoconObject TestHocon => HoconParser.Parse(RawTestHocon);
+        public HoconRoot TestHocon => HoconParser.Parse(RawTestHocon);
 
         [Fact]
         public void IsString_should_detect_String_literals()

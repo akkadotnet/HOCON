@@ -23,7 +23,7 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    internal sealed class HoconSubstitution : IHoconElement, IHoconLineInfo
+    public sealed class HoconSubstitution : IHoconElement, IHoconLineInfo
     {
         private HoconValue _resolvedValue;
 
@@ -109,7 +109,7 @@ namespace Hocon
         }
 
         /// <inheritdoc />
-        public InternalHoconObject GetObject()
+        public HoconObject GetObject()
         {
             return ResolvedValue?.GetObject();
         }
