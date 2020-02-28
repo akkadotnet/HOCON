@@ -301,10 +301,9 @@ namespace Hocon
             return true;
         }
 
-        [Obsolete("Only used by Hyperion deserializer", true)]
         public void Add(string key, HoconElement value)
         {
-            Fields = Fields.Add(key, value);
+            throw new InvalidOperationException("HoconObject is a read only Dictionary.");
         }
 
         public bool Remove(string key)
