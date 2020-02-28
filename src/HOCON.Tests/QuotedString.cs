@@ -26,11 +26,11 @@ namespace Hocon.Tests
             ";
 
             var parsed = HoconParser.Parse(hocon);
-            var unwrapped = parsed.GetObject("adapters").Unwrapped;
+            var unwrapped = parsed.GetObject("adapters").ToDictionary(x => x.Key, v => v.Value.GetString());
 
             // check to make sure these strings aren't quoted
-            unwrapped["gremlin"].Should().Equals("Akka.Remote.Transport.FailureInjectorProvider,Akka.Remote");
-            unwrapped["trttl"].Should().Equals("Akka.Remote.Transport.ThrottlerProvider,Akka.Remote");
+            unwrapped["gremlin"].Should().Be("Akka.Remote.Transport.FailureInjectorProvider,Akka.Remote");
+            unwrapped["trttl"].Should().Be("Akka.Remote.Transport.ThrottlerProvider,Akka.Remote");
         }
     }
 }
