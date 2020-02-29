@@ -288,8 +288,8 @@ namespace Hocon
         public override bool Equals(HoconElement other)
         {
             if (ReferenceEquals(this, other)) return true;
-            if (!(other is HoconObject otherObject))
-                return false;
+            if (!(other is HoconObject otherObject)) return false;
+            if (Count != otherObject.Count) return false;
 
             foreach (var kvp in otherObject)
             {
@@ -299,6 +299,22 @@ namespace Hocon
                     return false;
             }
             return true;
+        }
+
+        public static bool operator ==(HoconObject left, HoconElement right)
+        {
+            if (ReferenceEquals(left, right)) return true;
+            if (!(right is HoconObject o)) return false;
+
+            return left.Equals(o);
+        }
+
+        public static bool operator !=(HoconObject left, HoconElement right)
+        {
+            if (ReferenceEquals(left, right)) return false;
+            if (!(right is HoconObject o)) return false;
+
+            return !left.Equals(o);
         }
 
         [Obsolete("Only used by Hyperion deserializer", true)]

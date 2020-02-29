@@ -65,7 +65,18 @@ namespace Hocon
         /// </summary>
         public virtual bool IsEmpty => Count == 0 && _fallbacks.Count == 0;
 
-        public HoconObject Root { get; private set; }
+        private HoconObject _root;
+        public HoconObject Root 
+        {
+            get => _root;
+            private set
+            {
+                if (!(value is Config))
+                    _root = value;
+
+                _root = new HoconObjectBuilder(value).Build();
+            }
+        }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -157,6 +168,12 @@ namespace Hocon
 
         private void InsertFallbackValue(HoconObject value)
         {
+            if(value is Config config)
+                value = new HoconObjectBuilder(config).Build();
+
+            if (value.Equals(this))
+                return;
+
             foreach(var fallbackValue in _fallbacks)
             {
                 if(fallbackValue == value)
@@ -209,23 +226,27 @@ namespace Hocon
             }
         }
 
+        public override bool Equals(HoconElement other)
+        {
+            if (ReferenceEquals(this, other)) return true;
+            if (!(other is Config config)) return false;
+            return Equals(config);
+        }
+
         public virtual bool Equals(Config other)
         {
             if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
 
             if (IsEmpty && other.IsEmpty) return true;
-            if (Root == other.Root) return true;
-            return false;
-        }
+            if (!base.Equals(other)) return false;
+            if (_fallbacks.Count != other._fallbacks.Count) return false;
 
-        public override bool Equals(object obj)
-        {
-            if (obj == null) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj is Config cfg)
-                return Equals(cfg);
-            return false;
+            for (var i = 0; i < _fallbacks.Count; ++i)
+                if (_fallbacks[i] != other._fallbacks[i])
+                    return false;
+
+            return true;
         }
 
         public string Serialize()
@@ -281,10 +302,8 @@ namespace Hocon
         public static Config SafeWithFallback(this Config config, Config fallback)
         {
             return config.IsNullOrEmpty()
-                ? fallback
-                : config == fallback
-                    ? config
-                    : config.WithFallback(fallback);
+                ? fallback.IsNullOrEmpty() ? Config.Empty : fallback
+                : ReferenceEquals(config, fallback) ? config : config.WithFallback(fallback);
         }
 
         /// <summary>

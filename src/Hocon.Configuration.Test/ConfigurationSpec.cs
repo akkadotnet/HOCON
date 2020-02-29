@@ -623,6 +623,37 @@ dedicated-thread-pool.substring = substring
             combined.GetString("dedicated-thread-pool.substring").Should().Be("substring");
         }
 
+        [Fact]
+        public void Equality_should_work()
+        {
+            var hocon1 = @"a.b = 1";
+            var hocon2 = @"a.c = 2";
+            var hocon3 = @"
+a.a = 2,
+a.b = 4";
+            var hocon4 = @"b.a = 10";
+            var expected = @"
+a.a = 2,
+a.b = 1,
+a.c = 2,
+b.a = 10
+";
+            Config userConfig = hocon1;
+            Config fallbackConfig = ((Config)hocon2).WithFallback(hocon3);
+            Config config = userConfig.SafeWithFallback(fallbackConfig);
+            Config topConfig = hocon4;
+
+            InjectTopLevelFallback(ref config, ref userConfig, ref topConfig, ref fallbackConfig);
+            InjectTopLevelFallback(ref config, ref userConfig, ref topConfig, ref fallbackConfig);
+            InjectTopLevelFallback(ref config, ref userConfig, ref topConfig, ref fallbackConfig);
+
+            Config expectedConfig = expected;
+            Assert.False(expectedConfig == config);
+            Assert.NotEqual(expectedConfig, config);
+            Assert.Equal(expectedConfig.Root, config.Root);
+            Assert.True(expectedConfig.Root == config.Root);
+        }
+
         /// <summary>
         /// Source issue: https://github.com/akkadotnet/HOCON/issues/175
         /// </summary>
@@ -646,7 +677,13 @@ dedicated-thread-pool.substring = substring
             var restored = JsonConvert.DeserializeObject<Config>(json, settings);
             restored.IsEmpty.Should().BeTrue();
         }
-        
+
+        private void InjectTopLevelFallback(ref Config config, ref Config userConfig, ref Config topFallback, ref Config fallbackConfig)
+        {
+            fallbackConfig = topFallback.SafeWithFallback(fallbackConfig);
+            config = userConfig.SafeWithFallback(fallbackConfig);
+        }
+
         internal class AkkaContractResolver : DefaultContractResolver
         {
             protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)

@@ -20,8 +20,8 @@ namespace Hocon
         public override System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconElement>> AsEnumerable() { }
         public static Hocon.Config Create(Hocon.HoconElement root) { }
         public static Hocon.Config Deserialize(string raw) { }
+        public override bool Equals(Hocon.HoconElement other) { }
         public virtual bool Equals(Hocon.Config other) { }
-        public override bool Equals(object obj) { }
         public virtual Hocon.Config GetConfig(string path) { }
         public virtual Hocon.Config GetConfig(Hocon.HoconPath path) { }
         [System.ObsoleteAttribute("Used for serialization only", true)]

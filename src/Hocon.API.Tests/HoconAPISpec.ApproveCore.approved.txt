@@ -435,6 +435,7 @@ namespace Hocon
         public bool TryGetArray(out Hocon.HoconArray result) { }
         public virtual bool TryGetValue(string path, out Hocon.HoconElement result) { }
         public virtual bool TryGetValue(Hocon.HoconPath path, out Hocon.HoconElement result) { }
+        public static bool ==(Hocon.HoconObject left, Hocon.HoconElement right) { }
         public static bool[] op_Implicit(Hocon.HoconObject obj) { }
         public static sbyte[] op_Implicit(Hocon.HoconObject obj) { }
         public static byte[] op_Implicit(Hocon.HoconObject obj) { }
@@ -451,6 +452,7 @@ namespace Hocon
         public static System.TimeSpan[] op_Implicit(Hocon.HoconObject obj) { }
         public static string[] op_Implicit(Hocon.HoconObject obj) { }
         public static char[] op_Implicit(Hocon.HoconObject obj) { }
+        public static bool !=(Hocon.HoconObject left, Hocon.HoconElement right) { }
     }
     public sealed class HoconObjectBuilder : System.Collections.Generic.SortedDictionary<string, Hocon.HoconElement>
     {
@@ -460,7 +462,6 @@ namespace Hocon
         public Hocon.HoconObjectBuilder Add(string key, Hocon.HoconElement value) { }
         public Hocon.HoconObject Build() { }
         public Hocon.HoconObjectBuilder Clear() { }
-        public Hocon.HoconObjectBuilder FallbackMerge(Hocon.HoconObject @object) { }
         public Hocon.HoconObjectBuilder Merge(Hocon.HoconObject other) { }
         public Hocon.HoconObjectBuilder Merge(System.Collections.Generic.Dictionary<string, Hocon.HoconElement> fields) { }
         public Hocon.HoconObjectBuilder Merge(System.Collections.Generic.IReadOnlyDictionary<string, Hocon.HoconElement> fields) { }

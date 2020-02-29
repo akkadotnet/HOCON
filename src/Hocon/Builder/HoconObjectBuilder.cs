@@ -54,14 +54,6 @@ namespace Hocon
             return InternalMerge(fields.GetEnumerator());
         }
 
-        public HoconObjectBuilder FallbackMerge(HoconObject @object)
-        {
-            if (@object == null)
-                throw new ArgumentNullException(nameof(@object));
-
-            return new HoconObjectBuilder(@object).InternalMerge(GetEnumerator());
-        }
-
         private HoconObjectBuilder InternalMerge(IEnumerator<KeyValuePair<string, HoconElement>> kvps)
         {
             while(kvps.MoveNext())
