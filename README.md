@@ -1113,3 +1113,18 @@ way to get rid of default fallback values they don't want.
 
 Config keys are encouraged to be `hyphen-separated` rather than
 `camelCase`.
+
+# Hocon.Extensions.Configuration
+`Hocon.Extensions.Configuration` is an extension of HOCON that
+allows HOCON configuration files to be read and loaded into `Microsoft.Extensions.Configuration`
+
+## Installation
+To install [`Microsoft.Extensions.Configuration` via NuGet](https://www.nuget.org/packages/Hocon.Extensions.Configuration/):
+
+```
+PS> Install-Package Hocon.Extensions.Configuration
+```
+
+## Examples
+An example project on how to use `Hocon.Extensions.Configuration` with ASP.NET Core
+Web Application can be seen [in the examples folder](https://github.com/akkadotnet/HOCON/tree/dev/src/examples/AspNetWebApp)
