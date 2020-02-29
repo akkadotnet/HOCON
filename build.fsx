@@ -202,6 +202,7 @@ let overrideVersionSuffix (project:string) =
     | _ -> versionSuffix // add additional matches to publish different versions for different projects in solution
 Target "CreateNuget" (fun _ ->    
     let projects = !! "src/**/*.csproj" 
+                   -- "src/examples/**/*" // Don't publish any examples
                    -- "src/**/*Tests.csproj" // Don't publish unit tests
                    -- "src/**/*Tests*.csproj"
 
@@ -328,6 +329,5 @@ Target "LocalNuget" DoNothing
 "RunTests" ==> "All"
 "NBench" ==> "All"
 "Nuget" ==> "All"
-"LocalNuget" ==> "All"
 
 RunTargetOrDefault "Help"
