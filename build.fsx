@@ -236,6 +236,19 @@ Target "PublishNuget" (fun _ ->
         projects |> Seq.iter (runSingleProject)
 )
 
+Target "PublishLocalNuget" (fun _ ->
+    let projects = !! "./bin/nuget/*.nupkg" 
+    let source = getBuildParamOrDefault "nugetpublishurl" ""
+
+    if (not (source = "")) then
+        let runSingleProject project =
+            Shell.Exec
+                (toolsDir @@ "nuget", sprintf "add %s -source %s" project source)
+                |> ignore
+
+        projects |> Seq.iter (runSingleProject) 
+)
+
 //--------------------------------------------------------------------------------
 // Documentation 
 //--------------------------------------------------------------------------------  
@@ -293,6 +306,7 @@ Target "Help" <| fun _ ->
 Target "BuildRelease" DoNothing
 Target "All" DoNothing
 Target "Nuget" DoNothing
+Target "LocalNuget" DoNothing
 
 // build dependencies
 "Clean" ==> "AssemblyInfo" ==> "Build" ==> "BuildRelease"
@@ -304,6 +318,7 @@ Target "Nuget" DoNothing
 // nuget dependencies
 "Clean" ==> "Build" ==> "CreateNuget"
 "CreateNuget" ==> "SignPackages" ==> "PublishNuget" ==> "Nuget"
+"CreateNuget" ==> "PublishLocalNuget" ==> "LocalNuget"
 
 // docs
 "Clean" ==> "BuildRelease" ==> "Docfx"
@@ -313,5 +328,6 @@ Target "Nuget" DoNothing
 "RunTests" ==> "All"
 "NBench" ==> "All"
 "Nuget" ==> "All"
+"LocalNuget" ==> "All"
 
 RunTargetOrDefault "Help"
