@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Hocon.Extensions;
 
 namespace Hocon
 {
@@ -20,11 +21,11 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    internal sealed class InternalHoconArray : List<HoconValue>, IHoconElement
+    public sealed class HoconArray : List<HoconValue>, IHoconElement
     {
         private HoconType _arrayType = HoconType.Empty;
 
-        public InternalHoconArray(IHoconElement parent)
+        public HoconArray(IHoconElement parent)
         {
             Parent = parent;
         }
@@ -32,7 +33,7 @@ namespace Hocon
         public IHoconElement Parent { get; }
         public HoconType Type => HoconType.Array;
 
-        public InternalHoconObject GetObject()
+        public HoconObject GetObject()
         {
             throw new HoconException("Can not convert Hocon array into an object.");
         }
@@ -63,7 +64,7 @@ namespace Hocon
 
         public IHoconElement Clone(IHoconElement newParent)
         {
-            var newArray = new InternalHoconArray(newParent);
+            var newArray = new HoconArray(newParent);
             foreach (var value in this) newArray.Add(value.Clone(newArray) as HoconValue);
             return newArray;
         }
@@ -73,7 +74,7 @@ namespace Hocon
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
             if (other.Type != HoconType.Array) return false;
-            if (other is InternalHoconArray array) return Equals(array);
+            if (other is HoconArray array) return Equals(array);
             return this.SequenceEqual(other.GetArray());
         }
 
@@ -116,7 +117,7 @@ namespace Hocon
             return ToString(0, 2);
         }
 
-        private bool Equals(InternalHoconArray other)
+        private bool Equals(HoconArray other)
         {
             if (Count != other.Count) return false;
             for (var i = 0; i < Count; ++i)
@@ -143,12 +144,12 @@ namespace Hocon
             }
         }
 
-        public static bool operator ==(InternalHoconArray left, InternalHoconArray right)
+        public static bool operator ==(HoconArray left, HoconArray right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(InternalHoconArray left, InternalHoconArray right)
+        public static bool operator !=(HoconArray left, HoconArray right)
         {
             return !Equals(left, right);
         }

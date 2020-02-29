@@ -45,6 +45,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Hocon.Configuration\Hocon.Configuration.csproj" />
     <ProjectReference Include="..\Hocon.Extensions.Configuration\Hocon.Extensions.Configuration.csproj" />
+    <ProjectReference Include="..\Hocon.Immutable\Hocon.Immutable.csproj" />
     <ProjectReference Include="..\Hocon\Hocon.csproj" />
   </ItemGroup>
 

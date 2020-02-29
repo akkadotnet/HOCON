@@ -17,13 +17,6 @@ namespace Hocon
             FailPath = failPath;
         }
 
-        /// <inheritdoc />
-        public HoconValueException(string message, HoconPath failPath, Exception innerException)
-            : base(message + $" at path [{failPath}]", innerException)
-        {
-            FailPath = failPath.ToString();
-        }
-
         /// <summary>
         ///     Gets HOCON path of the value which caused failure
         /// </summary>

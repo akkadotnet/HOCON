@@ -1,4 +1,4 @@
-### 2.0.1 February 25 2020 ####
+### 2.0.3 February 28 2020 ####
 Bugfixes and improvements made to HOCON 2.0.0
 
 * [Bugfix: HoconValue.TryGetObject can throw System.ArgumentNullException](https://github.com/akkadotnet/HOCON/issues/233)
