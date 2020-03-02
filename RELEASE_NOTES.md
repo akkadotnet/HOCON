@@ -1,9 +1,10 @@
-### 2.0.3 February 28 2020 ####
-Bugfixes and improvements made to HOCON 2.0.0
+### 3.0.0 March 02 2020 ####
+Major changes on the HOCON surface API
 
-* [Bugfix: HoconValue.TryGetObject can throw System.ArgumentNullException](https://github.com/akkadotnet/HOCON/issues/233)
-* [Bugfix: System.InvalidOperationException : Collection was modified; enumeration operation may not execute](https://github.com/akkadotnet/HOCON/issues/234)
-* [Bugfix: unquoted key error during serialization](https://github.com/akkadotnet/HOCON/pull/223)
-* [Fixed NuGet symbol package publication](https://github.com/akkadotnet/HOCON/issues/222)
-
-For more details, please [see the issues in the HOCON v2.0.1 milestone here](https://github.com/akkadotnet/HOCON/milestone/7).
+* Major restructure of HOCON public class and API to conform to HOCON immutability 
+* Most of the API are backward compatible with HOCON 2.0 with the following exceptions:
+  * All access APIs are declared in static extension classes, in order to access the values
+    inside a `Config` or `HoconObject`, you will need to declare `using Hocon` in your .cs file.
+  * The class structure of the public HOCON classes havee beeen simplified and a few have been
+    removed. If you referenced the `HoconValue` or `HoconField` classes in your code, you will
+    have to change your code to conform to the new API.
