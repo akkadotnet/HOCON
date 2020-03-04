@@ -63,27 +63,7 @@ namespace Hocon
         [Obsolete("Call the ConfigurationFactory.Default method instead.")]
         public static Config Load()
         {
-            // attempt to load .hocon files first
-            foreach (var name in DefaultHoconFileNames)
-            {
-                foreach (var extension in DefaultHoconFileExtensions)
-                {
-                    var path = $"{name}.{extension}";
-                    if (File.Exists(path))
-                        return FromFile(path);
-                }
-            }
-
-            // if we made it this far: no default HOCON files found. Check app.config
-            var def = Load("hocon"); // new default
-            if (!def.IsNullOrEmpty())
-                return def;
-
-            def = Load("akka"); // old Akka.NET-specific default
-            if (!def.IsNullOrEmpty())
-                return def;
-
-            return Config.Empty;
+            return Default();
         }
 
         /// <summary>
@@ -135,24 +115,25 @@ namespace Hocon
         /// <returns>The configuration that contains default values for all options.</returns>
         public static Config Default()
         {
-            // attempt to load .hocon files first
-            foreach (var path in DefaultHoconFilePaths.Where(x => File.Exists(x)))
-                return FromFile(path);
+            // attempt to load default hocon files first
+            foreach (var name in DefaultHoconFileNames)
+            {
+                foreach (var extension in DefaultHoconFileExtensions)
+                {
+                    var path = $"{name}.{extension}";
+                    if (File.Exists(path))
+                        return FromFile(path);
+                }
+            }
 
             // if we made it this far: no default HOCON files found. Check app.config
-            try
-            {
-                var def = Load("hocon"); // new default
-                if (!def.IsNullOrEmpty())
-                    return def;
+            var def = Load("hocon"); // new default
+            if (!def.IsNullOrEmpty())
+                return def;
 
-                def = Load("akka"); // old Akka.NET-specific default
-                if (!def.IsNullOrEmpty())
-                    return def;
-            }
-            catch
-            {
-            }
+            def = Load("akka"); // old Akka.NET-specific default
+            if (!def.IsNullOrEmpty())
+                return def;
 
             return Config.Empty;
         }
