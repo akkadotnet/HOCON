@@ -20,7 +20,8 @@ namespace Hocon
     /// </summary>
     public static class HoconConfigurationFactory
     {
-        private static readonly string[] DefaultHoconFilePaths = {"app.conf", "app.hocon"};
+        private static readonly string[] DefaultHoconFileNames = {"application", "app"};
+        private static readonly string[] DefaultHoconFileExtensions = { "conf", "hocon", "properties" };
 
         /// <summary>
         ///     Generates an empty configuration.
@@ -62,7 +63,27 @@ namespace Hocon
         [Obsolete("Call the ConfigurationFactory.Default method instead.")]
         public static Config Load()
         {
-            return Default();
+            // attempt to load .hocon files first
+            foreach (var name in DefaultHoconFileNames)
+            {
+                foreach (var extension in DefaultHoconFileExtensions)
+                {
+                    var path = $"{name}.{extension}";
+                    if (File.Exists(path))
+                        return FromFile(path);
+                }
+            }
+
+            // if we made it this far: no default HOCON files found. Check app.config
+            var def = Load("hocon"); // new default
+            if (!def.IsNullOrEmpty())
+                return def;
+
+            def = Load("akka"); // old Akka.NET-specific default
+            if (!def.IsNullOrEmpty())
+                return def;
+
+            return Config.Empty;
         }
 
         /// <summary>
@@ -85,13 +106,24 @@ namespace Hocon
 
         /// <summary>
         ///     Parses a HOCON file from the filesystem.
+        ///     If no file extension is provided, the function will try to load
+        ///     the file in these default extensions .conf, .hocon, .properties
         /// </summary>
         /// <param name="filePath">The path to the file.</param>
         /// <returns>A parsed HOCON configuration object.</returns>
         /// <throws>ConfigurationException, when the supplied filePath can't be found.</throws>
         public static Config FromFile(string filePath)
         {
-            if (File.Exists(filePath)) return ParseString(File.ReadAllText(filePath));
+            if(Path.GetExtension(filePath) == string.Empty)
+            {
+                foreach(var extension in DefaultHoconFileExtensions)
+                {
+                    var path = $"{filePath}.{extension}";
+                    if (File.Exists(path)) 
+                        return ParseString(File.ReadAllText(path));
+                }
+            } else
+                if (File.Exists(filePath)) return ParseString(File.ReadAllText(filePath));
 
             throw new ConfigurationException($"No HOCON file at {filePath} could be found.");
         }
