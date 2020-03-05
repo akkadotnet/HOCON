@@ -29,7 +29,7 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : Dictionary<string, HoconField>, IHoconElement
+    public class HoconObject : SortedDictionary<string, HoconField>, IHoconElement
     {
         private static readonly HoconObject _empty;
         public static HoconObject Empty => _empty;

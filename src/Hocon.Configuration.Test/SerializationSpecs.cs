@@ -73,7 +73,7 @@ namespace Hocon.Configuration.Tests
 
             Assert.True(config.GetBoolean("this.\"should[]\".work"));
             Assert.True(deserialized.GetBoolean("this.\"should[]\".work"));
-            Assert.Equal(config, deserialized);
+            Assert.Equal(config.ToString(), deserialized.ToString());
         }
 
     }

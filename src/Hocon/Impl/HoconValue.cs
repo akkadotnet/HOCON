@@ -42,6 +42,8 @@ namespace Hocon
 
         public virtual HoconType Type { get; private set; } = HoconType.Empty;
 
+        public bool IsEmpty => Type == HoconType.Empty;
+
         /// <inheritdoc />
         public virtual HoconObject GetObject()
         {

@@ -1,0 +1,494 @@
+﻿[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6.1", FrameworkDisplayName=".NET Framework 4.6.1")]
+namespace Hocon.Extensions
+{
+    public class static HoconElementExtensions
+    {
+        public static bool IsLiteral(this Hocon.HoconType hoconType) { }
+        public static bool IsMergeable(this Hocon.HoconType t1, Hocon.HoconType t2) { }
+        public static bool IsMergeable(this Hocon.IHoconElement e1, Hocon.IHoconElement e2) { }
+    }
+}
+namespace Hocon
+{
+    public sealed class HoconArray : System.Collections.Generic.List<Hocon.HoconValue>, Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    {
+        public HoconArray(Hocon.IHoconElement parent) { }
+        public Hocon.IHoconElement Parent { get; }
+        public string Raw { get; }
+        public Hocon.HoconType Type { get; }
+        public void Add(Hocon.HoconValue value) { }
+        public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public bool Equals(Hocon.IHoconElement other) { }
+        public override bool Equals(object obj) { }
+        public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public override int GetHashCode() { }
+        public Hocon.HoconObject GetObject() { }
+        public string GetString() { }
+        public string ToString(int indent, int indentSize) { }
+        public override string ToString() { }
+        public static bool ==(Hocon.HoconArray left, Hocon.HoconArray right) { }
+        public static bool !=(Hocon.HoconArray left, Hocon.HoconArray right) { }
+    }
+    public sealed class HoconBool : Hocon.HoconLiteral
+    {
+        public HoconBool(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public enum HoconCallbackType
+    {
+        File = 0,
+        Url = 1,
+        Resource = 2,
+    }
+    public sealed class HoconDouble : Hocon.HoconLiteral
+    {
+        public HoconDouble(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public sealed class HoconEmptyValue : Hocon.HoconValue
+    {
+        public HoconEmptyValue() { }
+        public HoconEmptyValue(Hocon.IHoconElement parent) { }
+        public override string Raw { get; }
+        public override Hocon.HoconType Type { get; }
+        public override void Add(Hocon.IHoconElement value) { }
+        public override void AddRange(System.Collections.Generic.IEnumerable<Hocon.IHoconElement> values) { }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public override bool Equals(Hocon.IHoconElement other) { }
+        public override System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public override int GetHashCode() { }
+        public override Hocon.HoconObject GetObject() { }
+        public override string GetString() { }
+    }
+    public class HoconException : System.Exception
+    {
+        public HoconException(string message) { }
+        public HoconException(string message, System.Exception innerException) { }
+    }
+    public sealed class HoconField : Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    {
+        public HoconField(string key, Hocon.HoconObject parent) { }
+        public string Key { get; }
+        public Hocon.IHoconElement Parent { get; }
+        public Hocon.HoconPath Path { get; }
+        public string Raw { get; }
+        public Hocon.HoconType Type { get; }
+        public Hocon.HoconValue Value { get; }
+        public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public bool Equals(Hocon.IHoconElement other) { }
+        public override bool Equals(object obj) { }
+        public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public override int GetHashCode() { }
+        public Hocon.HoconObject GetObject() { }
+        public string GetString() { }
+        public string ToString(int indent, int indentSize) { }
+        public override string ToString() { }
+        public static bool ==(Hocon.HoconField left, Hocon.HoconField right) { }
+        public static bool !=(Hocon.HoconField left, Hocon.HoconField right) { }
+    }
+    public sealed class HoconHex : Hocon.HoconLiteral
+    {
+        public HoconHex(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public delegate System.Threading.Tasks.Task<string> HoconIncludeCallbackAsync(Hocon.HoconCallbackType callbackType, string value);
+    public abstract class HoconLiteral : Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    {
+        protected HoconLiteral(Hocon.IHoconElement parent, string value) { }
+        public abstract Hocon.HoconLiteralType LiteralType { get; }
+        public Hocon.IHoconElement Parent { get; }
+        public virtual string Raw { get; }
+        public abstract Hocon.HoconType Type { get; }
+        public virtual string Value { get; }
+        public abstract Hocon.IHoconElement Clone(Hocon.IHoconElement newParent);
+        public bool Equals(Hocon.IHoconElement other) { }
+        public override bool Equals(object obj) { }
+        public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public override int GetHashCode() { }
+        public Hocon.HoconObject GetObject() { }
+        public string GetString() { }
+        public string ToString(int indent, int indentSize) { }
+        public override string ToString() { }
+        public static bool ==(Hocon.HoconLiteral left, Hocon.HoconLiteral right) { }
+        public static bool !=(Hocon.HoconLiteral left, Hocon.HoconLiteral right) { }
+    }
+    public enum HoconLiteralType
+    {
+        Null = 0,
+        Whitespace = 1,
+        UnquotedString = 2,
+        QuotedString = 3,
+        TripleQuotedString = 4,
+        Bool = 5,
+        Long = 6,
+        Hex = 7,
+        Octal = 8,
+        Double = 9,
+    }
+    public sealed class HoconLong : Hocon.HoconLiteral
+    {
+        public HoconLong(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public sealed class HoconMergedObject : Hocon.HoconObject
+    {
+        public HoconMergedObject(Hocon.IHoconElement parent, System.Collections.Generic.List<Hocon.HoconObject> objects) { }
+        public System.Collections.Generic.List<Hocon.HoconObject> Objects { get; }
+        public override void Merge(Hocon.HoconObject other) { }
+    }
+    public sealed class HoconNull : Hocon.HoconLiteral
+    {
+        public HoconNull(Hocon.IHoconElement parent) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override string Raw { get; }
+        public override Hocon.HoconType Type { get; }
+        public override string Value { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public class HoconObject : System.Collections.Generic.SortedDictionary<string, Hocon.HoconField>, Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    {
+        public HoconObject(Hocon.IHoconElement parent) { }
+        public static Hocon.HoconObject Empty { get; }
+        public bool IsEmpty { get; }
+        public Hocon.HoconField this[string key] { get; }
+        public Hocon.HoconField this[Hocon.HoconPath path] { get; }
+        public Hocon.IHoconElement Parent { get; }
+        public Hocon.HoconPath Path { get; }
+        public string Raw { get; }
+        public Hocon.HoconType Type { get; }
+        public System.Collections.Generic.IDictionary<string, object> Unwrapped { get; }
+        public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public bool Equals(Hocon.IHoconElement other) { }
+        public override bool Equals(object obj) { }
+        public void FallbackMerge(Hocon.HoconObject other) { }
+        public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public Hocon.HoconField GetField(string key) { }
+        public Hocon.HoconField GetField(Hocon.HoconPath path) { }
+        public override int GetHashCode() { }
+        public Hocon.HoconObject GetObject() { }
+        public Hocon.HoconObject GetObject(string key) { }
+        public string GetString() { }
+        public Hocon.HoconValue GetValue(Hocon.HoconPath path) { }
+        public virtual void Merge(Hocon.HoconObject other) { }
+        public string ToString(int indent, int indentSize) { }
+        public override string ToString() { }
+        public bool TryGetArray(out System.Collections.Generic.List<Hocon.HoconValue> result) { }
+        public bool TryGetField(string key, out Hocon.HoconField result) { }
+        public bool TryGetField(Hocon.HoconPath path, out Hocon.HoconField result) { }
+        public bool TryGetObject(string key, out Hocon.HoconObject result) { }
+        public bool TryGetValue(Hocon.HoconPath path, out Hocon.HoconValue result) { }
+        public static bool ==(Hocon.HoconObject left, Hocon.HoconObject right) { }
+        public static bool !=(Hocon.HoconObject left, Hocon.HoconObject right) { }
+    }
+    public sealed class HoconOctal : Hocon.HoconLiteral
+    {
+        public HoconOctal(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public sealed class HoconParser
+    {
+        public HoconParser() { }
+        public static Hocon.HoconRoot Parse(string text, Hocon.HoconIncludeCallbackAsync includeCallback = null) { }
+    }
+    public sealed class HoconParserException : System.Exception
+    {
+        public HoconParserException() { }
+        public HoconParserException(string message) { }
+        public HoconParserException(string message, System.Exception innerException) { }
+        public int LineNumber { get; }
+        public int LinePosition { get; }
+    }
+    public sealed class HoconPath : System.Collections.Generic.List<string>, System.IEquatable<Hocon.HoconPath>
+    {
+        public static readonly Hocon.HoconPath Empty;
+        public HoconPath(System.Collections.Generic.IEnumerable<string> path) { }
+        public bool IsEmpty { get; }
+        public string Key { get; }
+        public string Value { get; }
+        public bool Equals(Hocon.HoconPath other) { }
+        public override bool Equals(object obj) { }
+        public override int GetHashCode() { }
+        public static Hocon.HoconPath Parse(string path) { }
+        public Hocon.HoconPath SubPath(int length) { }
+        public Hocon.HoconPath SubPath(int index, int count) { }
+        public override string ToString() { }
+        public static bool TryParse(string path, out Hocon.HoconPath result) { }
+        public static bool ==(Hocon.HoconPath left, Hocon.HoconPath right) { }
+        public static bool !=(Hocon.HoconPath left, Hocon.HoconPath right) { }
+    }
+    public sealed class HoconQuotedString : Hocon.HoconLiteral
+    {
+        public HoconQuotedString(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override string Raw { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public class HoconRoot : System.IEquatable<Hocon.HoconRoot>
+    {
+        protected Hocon.HoconValue _internalValue;
+        protected HoconRoot() { }
+        public HoconRoot(Hocon.HoconValue value) { }
+        public HoconRoot(Hocon.HoconValue value, System.Collections.Generic.IEnumerable<Hocon.HoconSubstitution> substitutions) { }
+        public System.Collections.Generic.IEnumerable<Hocon.HoconSubstitution> Substitutions { get; }
+        public virtual Hocon.HoconValue Value { get; set; }
+        public virtual System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconField>> AsEnumerable() { }
+        public bool Equals(Hocon.HoconRoot other) { }
+        public override bool Equals(object obj) { }
+        public virtual bool GetBoolean(string path) { }
+        public virtual bool GetBoolean(Hocon.HoconPath path) { }
+        public virtual bool GetBoolean(string path, bool @default) { }
+        public virtual bool GetBoolean(Hocon.HoconPath path, bool @default) { }
+        public virtual System.Collections.Generic.IList<bool> GetBooleanList(string path) { }
+        public virtual System.Collections.Generic.IList<bool> GetBooleanList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<bool> GetBooleanList(string path, System.Collections.Generic.IList<bool> @default) { }
+        public virtual System.Collections.Generic.IList<bool> GetBooleanList(Hocon.HoconPath path, System.Collections.Generic.IList<bool> @default) { }
+        public virtual byte GetByte(string path) { }
+        public virtual byte GetByte(Hocon.HoconPath path) { }
+        public virtual byte GetByte(string path, byte @default) { }
+        public virtual byte GetByte(Hocon.HoconPath path, byte default = 0) { }
+        public virtual System.Collections.Generic.IList<byte> GetByteList(string path) { }
+        public virtual System.Collections.Generic.IList<byte> GetByteList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<byte> GetByteList(string path, System.Collections.Generic.IList<byte> @default) { }
+        public virtual System.Collections.Generic.IList<byte> GetByteList(Hocon.HoconPath path, System.Collections.Generic.IList<byte> @default) { }
+        public virtual System.Nullable<long> GetByteSize(string path) { }
+        public virtual System.Nullable<long> GetByteSize(Hocon.HoconPath path) { }
+        public virtual System.Nullable<long> GetByteSize(string path, System.Nullable<long> @default) { }
+        public virtual System.Nullable<long> GetByteSize(Hocon.HoconPath path, System.Nullable<long> @default) { }
+        public virtual decimal GetDecimal(string path) { }
+        public virtual decimal GetDecimal(Hocon.HoconPath path) { }
+        public virtual decimal GetDecimal(string path, decimal @default) { }
+        public virtual decimal GetDecimal(Hocon.HoconPath path, decimal @default) { }
+        public virtual System.Collections.Generic.IList<decimal> GetDecimalList(string path) { }
+        public virtual System.Collections.Generic.IList<decimal> GetDecimalList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<decimal> GetDecimalList(string path, System.Collections.Generic.IList<decimal> @default) { }
+        public virtual System.Collections.Generic.IList<decimal> GetDecimalList(Hocon.HoconPath path, System.Collections.Generic.IList<decimal> @default) { }
+        public virtual double GetDouble(string path) { }
+        public virtual double GetDouble(Hocon.HoconPath path) { }
+        public virtual double GetDouble(string path, double @default) { }
+        public virtual double GetDouble(Hocon.HoconPath path, double @default) { }
+        public virtual System.Collections.Generic.IList<double> GetDoubleList(string path) { }
+        public virtual System.Collections.Generic.IList<double> GetDoubleList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<double> GetDoubleList(string path, System.Collections.Generic.IList<double> @default) { }
+        public virtual System.Collections.Generic.IList<double> GetDoubleList(Hocon.HoconPath path, System.Collections.Generic.IList<double> @default) { }
+        public virtual float GetFloat(string path) { }
+        public virtual float GetFloat(Hocon.HoconPath path) { }
+        public virtual float GetFloat(string path, float @default) { }
+        public virtual float GetFloat(Hocon.HoconPath path, float default = 0) { }
+        public virtual System.Collections.Generic.IList<float> GetFloatList(string path) { }
+        public virtual System.Collections.Generic.IList<float> GetFloatList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<float> GetFloatList(string path, System.Collections.Generic.IList<float> @default) { }
+        public virtual System.Collections.Generic.IList<float> GetFloatList(Hocon.HoconPath path, System.Collections.Generic.IList<float> @default) { }
+        public virtual int GetInt(string path) { }
+        public virtual int GetInt(Hocon.HoconPath path) { }
+        public virtual int GetInt(string path, int @default) { }
+        public virtual int GetInt(Hocon.HoconPath path, int @default) { }
+        public virtual System.Collections.Generic.IList<int> GetIntList(string path) { }
+        public virtual System.Collections.Generic.IList<int> GetIntList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<int> GetIntList(string path, System.Collections.Generic.IList<int> @default) { }
+        public virtual System.Collections.Generic.IList<int> GetIntList(Hocon.HoconPath path, System.Collections.Generic.IList<int> @default) { }
+        public virtual long GetLong(string path) { }
+        public virtual long GetLong(Hocon.HoconPath path) { }
+        public virtual long GetLong(string path, long @default) { }
+        public virtual long GetLong(Hocon.HoconPath path, long default = 0) { }
+        public virtual System.Collections.Generic.IList<long> GetLongList(string path) { }
+        public virtual System.Collections.Generic.IList<long> GetLongList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<long> GetLongList(string path, System.Collections.Generic.IList<long> @default) { }
+        public virtual System.Collections.Generic.IList<long> GetLongList(Hocon.HoconPath path, System.Collections.Generic.IList<long> @default) { }
+        [System.ObsoleteAttribute("Use GetTimeSpan instead")]
+        public System.TimeSpan GetMillisDuration(string path, System.Nullable<System.TimeSpan> default = null, bool allowInfinite = True) { }
+        [System.ObsoleteAttribute("Use GetTimeSpan instead")]
+        public System.TimeSpan GetMillisDuration(Hocon.HoconPath path, System.Nullable<System.TimeSpan> default = null, bool allowInfinite = True) { }
+        protected virtual Hocon.HoconValue GetNode(string path) { }
+        protected virtual Hocon.HoconValue GetNode(Hocon.HoconPath path) { }
+        public virtual Hocon.HoconObject GetObject(string path) { }
+        public virtual Hocon.HoconObject GetObject(Hocon.HoconPath path) { }
+        public virtual Hocon.HoconObject GetObject(string path, Hocon.HoconObject @default) { }
+        public virtual Hocon.HoconObject GetObject(Hocon.HoconPath path, Hocon.HoconObject default = null) { }
+        public virtual System.Collections.Generic.IList<Hocon.HoconObject> GetObjectList(string path) { }
+        public virtual System.Collections.Generic.IList<Hocon.HoconObject> GetObjectList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<Hocon.HoconObject> GetObjectList(string path, System.Collections.Generic.IList<Hocon.HoconObject> @default) { }
+        public virtual System.Collections.Generic.IList<Hocon.HoconObject> GetObjectList(Hocon.HoconPath path, System.Collections.Generic.IList<Hocon.HoconObject> default = null) { }
+        public virtual string GetString(string path) { }
+        public virtual string GetString(Hocon.HoconPath path) { }
+        public virtual string GetString(string path, string @default) { }
+        public virtual string GetString(Hocon.HoconPath path, string @default) { }
+        public virtual System.Collections.Generic.IList<string> GetStringList(string path) { }
+        public virtual System.Collections.Generic.IList<string> GetStringList(Hocon.HoconPath path) { }
+        public virtual System.Collections.Generic.IList<string> GetStringList(string path, System.Collections.Generic.IList<string> @default) { }
+        public virtual System.Collections.Generic.IList<string> GetStringList(Hocon.HoconPath path, System.Collections.Generic.IList<string> @default) { }
+        public virtual System.TimeSpan GetTimeSpan(string path, bool allowInfinite = True) { }
+        public virtual System.TimeSpan GetTimeSpan(Hocon.HoconPath path, bool allowInfinite = True) { }
+        public virtual System.TimeSpan GetTimeSpan(string path, System.Nullable<System.TimeSpan> @default, bool allowInfinite = True) { }
+        public virtual System.TimeSpan GetTimeSpan(Hocon.HoconPath path, System.Nullable<System.TimeSpan> @default, bool allowInfinite = True) { }
+        public virtual Hocon.HoconValue GetValue(string path) { }
+        public virtual Hocon.HoconValue GetValue(Hocon.HoconPath path) { }
+        public virtual bool HasPath(string path) { }
+        public virtual bool HasPath(Hocon.HoconPath path) { }
+        public Hocon.HoconRoot Normalize() { }
+        public string PrettyPrint(int indentSize) { }
+        public override string ToString() { }
+        protected virtual bool TryGetNode(string path, out Hocon.HoconValue result) { }
+        protected virtual bool TryGetNode(Hocon.HoconPath path, out Hocon.HoconValue result) { }
+        public virtual bool TryGetValue(string path, out Hocon.HoconValue result) { }
+        public virtual bool TryGetValue(Hocon.HoconPath path, out Hocon.HoconValue result) { }
+        protected T WrapWithValueException<T>(string path, System.Func<T> func) { }
+        protected T WrapWithValueException<T>(Hocon.HoconPath path, System.Func<T> func) { }
+    }
+    public sealed class HoconSubstitution : Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    {
+        public int LineNumber { get; }
+        public int LinePosition { get; }
+        public Hocon.IHoconElement Parent { get; }
+        public Hocon.HoconPath Path { get; }
+        public string Raw { get; }
+        public bool Required { get; }
+        public Hocon.HoconValue ResolvedValue { get; }
+        public Hocon.HoconType Type { get; }
+        public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public bool Equals(Hocon.IHoconElement other) { }
+        public override bool Equals(object obj) { }
+        public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public override int GetHashCode() { }
+        public Hocon.HoconObject GetObject() { }
+        public string GetString() { }
+        public string ToString(int indent, int indentSize) { }
+        public override string ToString() { }
+        public static bool ==(Hocon.HoconSubstitution left, Hocon.HoconSubstitution right) { }
+        public static bool !=(Hocon.HoconSubstitution left, Hocon.HoconSubstitution right) { }
+    }
+    public sealed class HoconTokenizerException : System.Exception
+    {
+        public int LineNumber { get; }
+        public int LinePosition { get; }
+        public string Value { get; }
+    }
+    public sealed class HoconTripleQuotedString : Hocon.HoconLiteral
+    {
+        public HoconTripleQuotedString(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override string Raw { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public enum HoconType
+    {
+        Empty = 0,
+        Array = 1,
+        Object = 2,
+        Number = 3,
+        Boolean = 4,
+        String = 5,
+    }
+    public sealed class HoconUnquotedString : Hocon.HoconLiteral
+    {
+        public HoconUnquotedString(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public class HoconValue : System.Collections.Generic.List<Hocon.IHoconElement>, Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    {
+        public HoconValue(Hocon.IHoconElement parent) { }
+        public System.Collections.ObjectModel.ReadOnlyCollection<Hocon.IHoconElement> Children { get; }
+        public bool IsEmpty { get; }
+        public Hocon.IHoconElement Parent { get; }
+        public virtual string Raw { get; }
+        public Hocon.HoconType Type { get; }
+        public virtual void Add(Hocon.IHoconElement value) { }
+        public virtual void AddRange(System.Collections.Generic.IEnumerable<Hocon.IHoconElement> values) { }
+        public Hocon.HoconRoot AtKey(string key) { }
+        public new void Clear() { }
+        public virtual Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public virtual bool Equals(Hocon.IHoconElement other) { }
+        public override bool Equals(object obj) { }
+        public virtual System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
+        public bool GetBoolean() { }
+        public System.Collections.Generic.IList<bool> GetBooleanList() { }
+        public byte GetByte() { }
+        public System.Collections.Generic.IList<byte> GetByteList() { }
+        public System.Nullable<long> GetByteSize() { }
+        public decimal GetDecimal() { }
+        public System.Collections.Generic.IList<decimal> GetDecimalList() { }
+        public double GetDouble() { }
+        public System.Collections.Generic.IList<double> GetDoubleList() { }
+        public float GetFloat() { }
+        public System.Collections.Generic.IList<float> GetFloatList() { }
+        public override int GetHashCode() { }
+        public int GetInt() { }
+        public System.Collections.Generic.IList<int> GetIntList() { }
+        public long GetLong() { }
+        public System.Collections.Generic.IList<long> GetLongList() { }
+        [System.ObsoleteAttribute("Use GetTimeSpan instead")]
+        public System.TimeSpan GetMillisDuration(bool allowInfinite = True) { }
+        public virtual Hocon.HoconObject GetObject() { }
+        public System.Collections.Generic.IList<Hocon.HoconObject> GetObjectList() { }
+        public virtual string GetString() { }
+        public System.Collections.Generic.IList<string> GetStringList() { }
+        public System.TimeSpan GetTimeSpan(bool allowInfinite = True) { }
+        public virtual string ToString(int indent, int indentSize) { }
+        public override string ToString() { }
+        public virtual bool TryGetArray(out System.Collections.Generic.List<Hocon.HoconValue> result) { }
+        public bool TryGetBoolean(out bool result) { }
+        public bool TryGetBooleanList(out System.Collections.Generic.IList<bool> result) { }
+        public bool TryGetByte(out byte result) { }
+        public bool TryGetByteList(out System.Collections.Generic.IList<byte> result) { }
+        public bool TryGetByteSize(out System.Nullable<long> result) { }
+        public bool TryGetDecimal(out decimal result) { }
+        public bool TryGetDecimalList(out System.Collections.Generic.IList<decimal> result) { }
+        public bool TryGetDouble(out double result) { }
+        public bool TryGetDoubleList(out System.Collections.Generic.IList<double> result) { }
+        public bool TryGetFloat(out float result) { }
+        public bool TryGetFloatList(out System.Collections.Generic.IList<float> result) { }
+        public bool TryGetInt(out int result) { }
+        public bool TryGetIntList(out System.Collections.Generic.IList<int> result) { }
+        public bool TryGetLong(out long result) { }
+        public bool TryGetLongList(out System.Collections.Generic.IList<long> result) { }
+        public virtual bool TryGetObject(out Hocon.HoconObject result) { }
+        public bool TryGetObjectList(out System.Collections.Generic.IList<Hocon.HoconObject> result) { }
+        public virtual bool TryGetString(out string result) { }
+        public bool TryGetStringList(out System.Collections.Generic.IList<string> result) { }
+        public bool TryGetTimeSpan(out System.TimeSpan result, bool allowInfinite = True) { }
+        public static bool ==(Hocon.HoconValue left, Hocon.HoconValue right) { }
+        public static bool !=(Hocon.HoconValue left, Hocon.HoconValue right) { }
+    }
+    public class HoconValueException : Hocon.HoconException
+    {
+        public HoconValueException(string message, string failPath, System.Exception innerException) { }
+        public string FailPath { get; }
+    }
+    public sealed class HoconWhitespace : Hocon.HoconLiteral
+    {
+        public HoconWhitespace(Hocon.IHoconElement parent, string value) { }
+        public override Hocon.HoconLiteralType LiteralType { get; }
+        public override Hocon.HoconType Type { get; }
+        public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+    }
+    public interface IHoconElement : System.IEquatable<Hocon.IHoconElement>
+    {
+        Hocon.IHoconElement Parent { get; }
+        string Raw { get; }
+        Hocon.HoconType Type { get; }
+        Hocon.IHoconElement Clone(Hocon.IHoconElement newParent);
+        System.Collections.Generic.IList<Hocon.HoconValue> GetArray();
+        Hocon.HoconObject GetObject();
+        string GetString();
+        string ToString(int indent, int indentSize);
+    }
+    public class static StringUtil
+    {
+        public static string AddQuotes(this string s) { }
+        public static bool NeedQuotes(this string s) { }
+        public static bool NeedTripleQuotes(this string s) { }
+    }
+}
