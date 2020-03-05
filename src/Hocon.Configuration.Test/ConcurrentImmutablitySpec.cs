@@ -40,6 +40,18 @@ namespace Hocon.Configuration.Tests
             }
         }");
 
+        private static Config fb4 = HoconConfigurationFactory.ParseString(@"akka.actor{
+            deployment{
+                /harmless{
+                    throughput = 12
+                }
+            }
+            dispatchers{
+                foo3.test = boz
+                foo4.test = bez
+            }
+        }");
+
         private Config C { get; set; } = fb1;
 
         [Fact]
@@ -60,6 +72,16 @@ namespace Hocon.Configuration.Tests
                 {
                     C = C.SafeWithFallback(fb3);
                 }
+                else if (i % 3 == 0)
+                {
+                    C = fb2.WithFallback(fb1);
+                }
+                else
+                {
+                    C = C.SafeWithFallback(fb4);
+                }
+
+                var dispatchersConfigs = C.GetObject("akka.actor.dispatchers").Select(x => x.Key).ToList();
 
                 var actorConfig = C.GetConfig("akka.actor.deployment./foo");
                 var dispatcherName = actorConfig.GetString("dispatcher");
