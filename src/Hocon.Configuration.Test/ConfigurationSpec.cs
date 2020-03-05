@@ -59,6 +59,65 @@ a {
             Assert.Equal("some quoted, key", enumerable.Select(kvp => kvp.Key).First());
         }
 
+        [Fact]
+        public void CanParseDuplicateKeys()
+        {
+            var hocon = @"
+               akka{
+                    loglevel=INFO
+	                loggers=[""Akka.Logger.Serilog.SerilogLogger, Akka.Logger.Serilog""]
+
+                    remote {
+		                log-remote-lifecycle-events = DEBUG
+		                dot-netty.tcp {
+			                port = 0
+			                hostname = localhost
+			                send-buffer-size =  60000000b        
+			                receive-buffer-size =  60000000b
+			                maximum-frame-size = 30000000b
+		                }
+	                }
+
+                    actor.provider = cluster
+
+                    # duplicate
+                    remote {
+		                log-remote-lifecycle-events = DEBUG
+		                dot-netty.tcp {
+			                port = 0
+			                hostname = localhost
+			                send-buffer-size =  60000000b        
+			                receive-buffer-size =  60000000b
+			                maximum-frame-size = 30000000b
+		                }
+	                }
+
+                    cluster {
+		                allow-weakly-up-members = on
+		                seed-nodes = [""akka.tcp://ClusterSys@localhost:3881""]
+		                roles = [pubsub,webapi]
+
+		                failure-detector {
+			                acceptable-heartbeat-pause=8s
+		                }
+
+		                pub-sub {
+			                role = pubsub
+		                }
+		                downing-provider-class = ""Akka.Cluster.SplitBrainResolver, Akka.Cluster""
+		                split-brain-resolver {
+			                active-strategy = keep-majority
+			                stable-after = 30s 
+		                }
+		                down-removal-margin = 30s
+	                }
+                }
+            ";
+            var config = HoconConfigurationFactory.ParseString(hocon);
+            var config2 = config.GetConfig("akka.remote");
+            config2.GetString("dot-netty.tcp.hostname").Should().Be("localhost");
+        }
+
         /// <summary>
         ///     Should follow the load order rules specified in https://github.com/akkadotnet/HOCON/issues/151
         /// </summary>
