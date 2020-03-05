@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿// -----------------------------------------------------------------------
+// <copyright file="ConfigFallbackLookupSpecs.cs" company="Akka.NET Project">
+//      Copyright (C) 2013 - 2020 .NET Foundation <https://github.com/akkadotnet/hocon>
+// </copyright>
+// -----------------------------------------------------------------------
+
 using NBench;
 
 namespace Hocon.Tests.Performance
 {
-    public class ConfigFallbackSpecs
+    public class ConfigFallbackLookupSpecs
     {
-        private const string CreateFallbackCounterName = "CreateFallbackOp";
+        private const string LookupFallbackCounterName = "LookupFallbackOp";
 
-        private Counter _createFallbackCounter;
+        private Counter _lookupFallbackOp;
 
         public static readonly Config C1 = @"
             akka{
@@ -38,33 +41,33 @@ namespace Hocon.Tests.Performance
         [PerfSetup]
         public void Setup(BenchmarkContext context)
         {
-            _createFallbackCounter = context.GetCounter(CreateFallbackCounterName);
+            _lookupFallbackOp = context.GetCounter(LookupFallbackCounterName);
         }
 
         [PerfBenchmark(
-            Description = "Tests how quickly Config can add a single fallback",
+            Description = "Tests how quickly Config can be looked up from the second fallback",
             RunMode = RunMode.Throughput, NumberOfIterations = 13, RunTimeMilliseconds = 1000,
             TestMode = TestMode.Measurement)]
-        [CounterMeasurement(CreateFallbackCounterName)]
+        [CounterMeasurement(LookupFallbackCounterName)]
         [GcMeasurement(GcMetric.TotalCollections, GcGeneration.AllGc)]
         [MemoryMeasurement(MemoryMetric.TotalBytesAllocated)]
-        public void Create_Config_Fallback_1_Deep(BenchmarkContext context)
+        public void Lookup_Config_Fallback_2_Deep(BenchmarkContext context)
         {
-            var newConfig = C1.WithFallback(C2);
-            _createFallbackCounter.Increment();
+            L1.GetString("akka.loglevel");
+            _lookupFallbackOp.Increment();
         }
 
         [PerfBenchmark(
-            Description = "Tests how quickly Config can add a two fallbacks",
+            Description = "Tests how quickly Config can be looked up from the third  fallback",
             RunMode = RunMode.Throughput, NumberOfIterations = 13, RunTimeMilliseconds = 1000,
             TestMode = TestMode.Measurement)]
-        [CounterMeasurement(CreateFallbackCounterName)]
+        [CounterMeasurement(LookupFallbackCounterName)]
         [GcMeasurement(GcMetric.TotalCollections, GcGeneration.AllGc)]
         [MemoryMeasurement(MemoryMetric.TotalBytesAllocated)]
-        public void Create_Config_Fallback_2_Deep(BenchmarkContext context)
+        public void Lookup_Config_Fallback_3_Deep(BenchmarkContext context)
         {
-            var newConfig = C1.WithFallback(C2).WithFallback(C3);
-            _createFallbackCounter.Increment();
+            L2.GetString("akka.remote.dot-netty.tcp.public-hostname");
+            _lookupFallbackOp.Increment();
         }
     }
 }
