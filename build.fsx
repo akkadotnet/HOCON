@@ -202,6 +202,7 @@ let overrideVersionSuffix (project:string) =
     | _ -> versionSuffix // add additional matches to publish different versions for different projects in solution
 Target "CreateNuget" (fun _ ->    
     let projects = !! "src/**/*.csproj" 
+                   -- "src/examples/**/*" // Don't publish any examples
                    -- "src/**/*Tests.csproj" // Don't publish unit tests
                    -- "src/**/*Tests*.csproj"
 
@@ -234,6 +235,19 @@ Target "PublishNuget" (fun _ ->
                 (sprintf "nuget push %s --api-key %s --source %s" project apiKey source)
 
         projects |> Seq.iter (runSingleProject)
+)
+
+Target "PublishLocalNuget" (fun _ ->
+    let projects = !! "./bin/nuget/*.nupkg" 
+    let source = getBuildParamOrDefault "nugetpublishurl" ""
+
+    if (not (source = "")) then
+        let runSingleProject project =
+            Shell.Exec
+                (toolsDir @@ "nuget", sprintf "add %s -source %s" project source)
+                |> ignore
+
+        projects |> Seq.iter (runSingleProject) 
 )
 
 //--------------------------------------------------------------------------------
@@ -293,6 +307,7 @@ Target "Help" <| fun _ ->
 Target "BuildRelease" DoNothing
 Target "All" DoNothing
 Target "Nuget" DoNothing
+Target "LocalNuget" DoNothing
 
 // build dependencies
 "Clean" ==> "AssemblyInfo" ==> "Build" ==> "BuildRelease"
@@ -304,6 +319,7 @@ Target "Nuget" DoNothing
 // nuget dependencies
 "Clean" ==> "Build" ==> "CreateNuget"
 "CreateNuget" ==> "SignPackages" ==> "PublishNuget" ==> "Nuget"
+"CreateNuget" ==> "PublishLocalNuget" ==> "LocalNuget"
 
 // docs
 "Clean" ==> "BuildRelease" ==> "Docfx"
