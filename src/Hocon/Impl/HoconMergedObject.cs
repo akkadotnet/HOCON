@@ -9,15 +9,15 @@ using System.Linq;
 
 namespace Hocon
 {
-    public sealed class HoconMergedObject : HoconObject
+    internal sealed class HoconMergedObject : InternalHoconObject
     {
-        public HoconMergedObject(IHoconElement parent, List<HoconObject> objects) : base(parent)
+        public HoconMergedObject(IHoconElement parent, List<InternalHoconObject> objects) : base(parent)
         {
             Objects = objects;
             foreach (var obj in Objects) base.Merge(obj);
         }
 
-        public List<HoconObject> Objects { get; }
+        public List<InternalHoconObject> Objects { get; }
 
         internal override HoconField TraversePath(HoconPath relativePath)
         {
@@ -43,7 +43,7 @@ namespace Hocon
             base.SetField(key, value);
         }
 
-        public override void Merge(HoconObject other)
+        public override void Merge(InternalHoconObject other)
         {
             var parent = (HoconValue) Parent;
             parent.Add(other);

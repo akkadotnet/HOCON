@@ -18,8 +18,6 @@ namespace Hocon
         Empty,
         Array,
         Object,
-        Number,
-        Boolean,
         String
     }
 

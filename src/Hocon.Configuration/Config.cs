@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -18,82 +20,63 @@ namespace Hocon
     ///     configuration string.
     /// </summary>
     [Serializable]
-    public class Config : HoconRoot, ISerializable, IEquatable<Config>
+    public class Config : HoconObject, ISerializable, IEquatable<Config>
     {
-        private static readonly HoconValue EmptyValue;
-
-        private const string SerializedPropertyName = "_data";
-
-        static Config()
-        {
-            EmptyValue = new HoconValue(null);
-            EmptyValue.Add(new HoconObject(EmptyValue));
-        }
-
-        [Obsolete("For json serialization/deserialization only", true)]
-        protected Config()
-        {
-        }
-
-        /// <inheritdoc />
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="Config" /> class.
-        /// </summary>
-        protected Config(HoconValue value)
-        {
-            Value = (HoconValue)value.Clone(null);
-            Root = (HoconValue)value.Clone(null);
-        }
-
-        /// <inheritdoc cref="Config(HoconValue)" />
-        protected Config(HoconValue value, Config fallback) : this(value)
-        {
-            MergeConfig(fallback);
-        }
-
-        /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="root">The root node to base this configuration.</param>
-        /// <exception cref="T:System.ArgumentNullException">"The root value cannot be null."</exception>
-        public Config(HoconRoot root)
-        {
-            Value = (HoconValue)root.Value.Clone(null);
-            Root = (HoconValue)root.Value.Clone(null);
-
-            if (!(root is Config cfg))
-                return;
-
-            foreach(var value in cfg._fallbacks)
-            {
-                InsertFallbackValue(value);
-            }
-        }
-
-        /// <inheritdoc cref="Config(HoconValue)" />
-        /// <param name="root">The configuration to use as the primary source.</param>
-        /// <param name="fallback">The configuration to use as a secondary source.</param>
-        /// <exception cref="ArgumentNullException">The source configuration cannot be null.</exception>
-        public Config(HoconRoot root, Config fallback) : this(root)
-        {
-            MergeConfig(fallback);
-        }
-
         /// <summary>
         ///     Identical to <see cref="HoconConfigurationFactory.Empty" />.
         /// </summary>
         /// <remarks>
         ///     Added for brevity and API backwards-compatibility with Akka.Hocon.
         /// </remarks>
-        public static Config Empty => CreateEmpty();
+        public new static Config Empty { get; } = new Config();
 
-        protected List<HoconValue> _fallbacks { get; } = new List<HoconValue>();
-        public virtual IReadOnlyList<HoconValue> Fallbacks => _fallbacks.ToList().AsReadOnly();
+        public static Config Create(HoconElement root)
+        {
+            return new Config(root);
+        }
+
+        private Config()
+        {
+            Root = this;
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="Config" /> class.
+        /// </summary>
+        public Config(HoconElement root):base(root)
+        {
+            if(root is Config cfg)
+            {
+                Root = cfg.Root;
+                _fallbacks = cfg._fallbacks.ToList();
+            }  
+            else 
+            {
+                Root = this;
+            }
+        }
+
+        protected List<HoconObject> _fallbacks { get; } = new List<HoconObject>();
+        public virtual IReadOnlyList<HoconObject> Fallbacks => _fallbacks.ToList().AsReadOnly();
 
         /// <summary>
         ///     Determines if this root node contains any values
         /// </summary>
-        public virtual bool IsEmpty => Value == EmptyValue && _fallbacks.Count == 0;
+        public virtual bool IsEmpty => Count == 0 && _fallbacks.Count == 0;
 
-        public HoconValue Root { get; }
+        private HoconObject _root;
+        public HoconObject Root 
+        {
+            get => _root;
+            private set
+            {
+                if (!(value is Config))
+                    _root = value;
+
+                _root = new HoconObjectBuilder(value).Build();
+            }
+        }
 
         /// <summary>
         ///     Returns string representation of <see cref="Config" />, allowing to include fallback values
@@ -102,46 +85,9 @@ namespace Hocon
         public string ToString(bool useFallbackValues)
         {
             if (!useFallbackValues)
-                return Value.ToString();
+                return ToString();
 
             return Root.ToString();
-        }
-
-        protected override bool TryGetNode(HoconPath path, out HoconValue result)
-        {
-            result = null;
-            var currentObject = Value.GetObject();
-            if (currentObject == null)
-                return false;
-            if (currentObject.TryGetValue(path, out result))
-                return true;
-
-            foreach (var value in _fallbacks)
-            {
-                currentObject = value.GetObject();
-                if (currentObject == null)
-                    return false;
-                if (currentObject.TryGetValue(path, out result))
-                    return true;
-            }
-
-            return false;
-        }
-
-        protected override HoconValue GetNode(HoconPath path)
-        {
-            var currentObject = Value.GetObject();
-            if (currentObject.TryGetValue(path, out var returnValue))
-                return returnValue;
-
-            foreach(var value in _fallbacks)
-            {
-                currentObject = value.GetObject();
-                if (currentObject.TryGetValue(path, out returnValue))
-                    return returnValue;
-            }
-
-            throw new HoconException($"Could not find accessible field at path `{path}` in all fallbacks.");
         }
 
         /// <summary>
@@ -157,9 +103,33 @@ namespace Hocon
 
         public virtual Config GetConfig(HoconPath path)
         {
-            if(Root.GetObject().TryGetValue(path, out var result))
+            if (Root.TryGetValue(path, out var result))
                 return new Config(result);
             return Empty;
+        }
+
+        public override HoconElement GetValue(HoconPath path)
+        {
+            if (base.TryGetValue(path, out var result))
+                return result;
+
+            foreach (var fallback in _fallbacks)
+                if (fallback.TryGetValue(path, out result))
+                    return result;
+
+            throw new HoconException($"Could not find path '{path}'.");
+        }
+
+        public override bool TryGetValue(HoconPath path, out HoconElement result)
+        {
+            if (base.TryGetValue(path, out result))
+                return true;
+
+            foreach (var fallback in _fallbacks)
+                if (fallback.TryGetValue(path, out result))
+                    return true;
+
+            return false;
         }
 
         /// <summary>
@@ -173,7 +143,7 @@ namespace Hocon
         public virtual Config WithFallback(Config fallback)
         {
             if (ReferenceEquals(fallback, this))
-                throw new ArgumentException("Config can not have itself as fallback", nameof(fallback));
+                return this; // no-op
 
             if (fallback.IsNullOrEmpty())
                 return this; // no-op
@@ -181,35 +151,38 @@ namespace Hocon
             if (IsEmpty)
                 return fallback;
 
-            return new Config(this, fallback);
+            var result = new Config(this);
+            result.MergeConfig(fallback);
+
+            return result;
         }
 
         private void MergeConfig(Config other)
         {
-            InsertFallbackValue(other.Value);
+            InsertFallbackValue(other);
             foreach (var fallbackValue in other.Fallbacks)
             {
                 InsertFallbackValue(fallbackValue);
             }
         }
 
-        private void InsertFallbackValue(HoconValue value)
+        private void InsertFallbackValue(HoconObject value)
         {
-            HoconValue duplicateValue = null;
+            if(value is Config config)
+                value = new HoconObjectBuilder(config).Build();
+
+            if (value.Equals(this))
+                return;
+
             foreach(var fallbackValue in _fallbacks)
             {
                 if(fallbackValue == value)
                 {
-                    duplicateValue = fallbackValue;
-                    break;
+                    return;
                 }
             }
-            if (duplicateValue == null)
-            {
-                var clone = (HoconValue)value.Clone(null);
-                _fallbacks.Add(clone);
-                Root.GetObject().FallbackMerge(clone.GetObject());
-            }
+            _fallbacks.Add(value);
+            Root = value.Merge(Root);
         }
 
         /// <summary>
@@ -245,50 +218,72 @@ namespace Hocon
         }
 
         /// <inheritdoc />
-        public override IEnumerable<KeyValuePair<string, HoconField>> AsEnumerable()
+        public override IEnumerable<KeyValuePair<string, HoconElement>> AsEnumerable()
         {
-            foreach (var kvp in Root.GetObject())
+            foreach (var kvp in Root)
             {
                 yield return kvp;
             }
         }
 
-        private static Config CreateEmpty()
+        public override bool Equals(HoconElement other)
         {
-            var value = new HoconValue(null);
-            value.Add(new HoconObject(value));
-            return new Config(value);
-        }
-
-        /// <inheritdoc />
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue(SerializedPropertyName, ToString(useFallbackValues: true), typeof(string));
+            if (ReferenceEquals(this, other)) return true;
+            if (!(other is Config config)) return false;
+            return Equals(config);
         }
 
         public virtual bool Equals(Config other)
         {
+            if (other == null) return false;
+            if (ReferenceEquals(this, other)) return true;
+
             if (IsEmpty && other.IsEmpty) return true;
-            if (Value == other.Value) return true;
-            return false;
+            if (!base.Equals(other)) return false;
+            if (_fallbacks.Count != other._fallbacks.Count) return false;
+
+            for (var i = 0; i < _fallbacks.Count; ++i)
+                if (_fallbacks[i] != other._fallbacks[i])
+                    return false;
+
+            return true;
         }
 
-        public override bool Equals(object obj)
+        public string Serialize()
         {
-            if (obj == null) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj is Config cfg)
-                return Equals(cfg);
-            return false;
+            return new HoconObjectBuilder()
+                .Add("$root", this)
+                .Add("$fallbacks", new HoconArrayBuilder(_fallbacks).Build())
+                .Build().Raw;
+        }
+
+        private void InternalDeserialize(string raw)
+        {
+            var config = HoconConfigurationFactory.ParseString(raw);
+            Fields = config["\"$root\""].ToObject().ToImmutableSortedDictionary();
+            foreach (var element in config["\"$fallbacks\""].GetArray())
+            {
+                InsertFallbackValue(element.ToObject());
+            }
+        }
+
+        public static Config Deserialize(string raw)
+        {
+            var result = new Config();
+            result.InternalDeserialize(raw);
+            return result;
         }
 
         [Obsolete("Used for serialization only", true)]
-        public Config(SerializationInfo info, StreamingContext context):base(null)
+        public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            var config = HoconConfigurationFactory.ParseString(info.GetValue(SerializedPropertyName, typeof(string)) as string);
-            
-            Value = config.Value;
-            _fallbacks.AddRange(config._fallbacks);
+           info.AddValue("$config", Serialize(), typeof(string));
+        }
+
+        [Obsolete("Used for serialization only", true)]
+        protected Config(SerializationInfo info, StreamingContext context)
+        {
+            InternalDeserialize((string)info.GetValue("$config", typeof(string)));
         }
     }
 
@@ -307,10 +302,8 @@ namespace Hocon
         public static Config SafeWithFallback(this Config config, Config fallback)
         {
             return config.IsNullOrEmpty()
-                ? fallback
-                : config == fallback
-                    ? config
-                    : config.WithFallback(fallback);
+                ? fallback.IsNullOrEmpty() ? Config.Empty : fallback
+                : ReferenceEquals(config, fallback) ? config : config.WithFallback(fallback);
         }
 
         /// <summary>

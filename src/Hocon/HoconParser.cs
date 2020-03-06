@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Hocon.Extensions;
 
 namespace Hocon
 {
@@ -38,9 +37,9 @@ namespace Hocon
         ///     This exception is thrown when an unresolved substitution is encountered.
         ///     It also occurs when any error is encountered while tokenizing or parsing the configuration string.
         /// </exception>
-        public static HoconRoot Parse(string text, HoconIncludeCallbackAsync includeCallback = null)
+        public static HoconObject Parse(string text, HoconIncludeCallbackAsync includeCallback = null)
         {
-            return new HoconParser().ParseText(text, true, includeCallback).Normalize();
+            return new HoconParser().ParseText(text, true, includeCallback).ToHoconImmutable(); //.Normalize();
         }
 
         private HoconRoot ParseText(string text, bool resolveSubstitutions, HoconIncludeCallbackAsync includeCallback)
@@ -147,7 +146,7 @@ namespace Hocon
                     parent = parent.Parent;
 
                 // Fail case
-                if (parent is HoconArray)
+                if (parent is InternalHoconArray)
                     throw new HoconException("Self-referencing substitution may not be declared within an array.");
 
                 // try to resolve substitution by looking backward in the field assignment stack
@@ -207,10 +206,10 @@ namespace Hocon
                     foreach (var value in currentValue)
                         switch (value)
                         {
-                            case HoconLiteral _:
+                            case InternalHoconLiteral _:
                                 break;
 
-                            case HoconObject o:
+                            case InternalHoconObject o:
                                 foreach (var f in o.Values)
                                 {
                                     if (visitedFields.Contains(f))
@@ -222,7 +221,7 @@ namespace Hocon
 
                                 break;
 
-                            case HoconArray a:
+                            case InternalHoconArray a:
                                 foreach (var item in a.GetArray()) pendingValues.Push(item);
                                 break;
 
@@ -453,7 +452,7 @@ namespace Hocon
             var hoconObject = owner.GetObject();
             if (hoconObject == null)
             {
-                hoconObject = new HoconObject(owner);
+                hoconObject = new InternalHoconObject(owner);
                 owner.Add(hoconObject);
             }
 
@@ -548,7 +547,7 @@ namespace Hocon
             return HoconPath.FromTokens(keyTokens);
         }
 
-        private void ParseField(HoconObject owner)
+        private void ParseField(InternalHoconObject owner)
         {
             // sanity check
             if (_tokens.Current.IsNonSignificant() || _tokens.Current.Type != TokenType.LiteralValue)
@@ -584,7 +583,7 @@ namespace Hocon
 
         private HoconValue GetHoconValueFromParentElement(IHoconElement parentElement, TokenType type)
         {
-            if (parentElement is HoconArray arr)
+            if (parentElement is InternalHoconArray arr)
                 return new HoconValue(arr);
 
             if (!(parentElement is HoconField hf))
@@ -661,7 +660,7 @@ namespace Hocon
 
                         while (_tokens.Current.Type == TokenType.LiteralValue)
                         {
-                            value.Add(HoconLiteral.Create(value, _tokens.Current));
+                            value.Add(InternalHoconLiteral.Create(value, _tokens.Current));
                             _tokens.Next();
                         }
 
@@ -747,7 +746,7 @@ namespace Hocon
             return value;
         }
 
-        private HoconArray ParsePlusEqualAssignArray(IHoconElement owner)
+        private InternalHoconArray ParsePlusEqualAssignArray(IHoconElement owner)
         {
             // sanity check
             if (_tokens.Current.Type != TokenType.PlusEqualAssign)
@@ -755,7 +754,7 @@ namespace Hocon
                     "Failed to parse Hocon field with += operator. " +
                     $"Expected {TokenType.PlusEqualAssign}, found {_tokens.Current.Type} instead.");
 
-            var currentArray = new HoconArray(owner);
+            var currentArray = new InternalHoconArray(owner);
 
             // consume += operator token
             _tokens.ToNextSignificant();
@@ -812,7 +811,7 @@ namespace Hocon
         ///     Retrieves the next array token from the tokenizer.
         /// </summary>
         /// <returns>An array of elements retrieved from the token.</returns>
-        private HoconArray ParseArray(IHoconElement owner)
+        private InternalHoconArray ParseArray(IHoconElement owner)
         {
             // sanity check
             if (_tokens.Current.Type != TokenType.StartOfArray)
@@ -820,7 +819,7 @@ namespace Hocon
                     "Failed to parse Hocon array. " +
                     $"Expected {TokenType.StartOfArray}, found {_tokens.Current.Type} instead.");
 
-            var currentArray = new HoconArray(owner);
+            var currentArray = new InternalHoconArray(owner);
 
             // consume start of array token
             _tokens.ToNextSignificant();

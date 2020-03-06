@@ -124,7 +124,7 @@ namespace Hocon.Tests
         public void CanCreateObjectArray(string hocon)
         {
             var config = HoconParser.Parse(hocon);
-            var value = config.GetValue("a")[0].GetArray();
+            var value = config.GetValue("a").GetArray();
 
             var obj = value[0].GetObject();
             Assert.Equal(1, obj["a"].Value.GetInt());

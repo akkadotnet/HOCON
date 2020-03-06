@@ -37,8 +37,7 @@ namespace Hocon
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
         public static Config ParseString(string hocon, HoconIncludeCallbackAsync includeCallback)
         {
-            HoconRoot res = HoconParser.Parse(hocon, includeCallback);
-            return new Config(res);
+            return Config.Create(HoconParser.Parse(hocon, includeCallback));
         }
 
         /// <summary>
@@ -60,10 +59,29 @@ namespace Hocon
         ///     The configuration defined in the configuration file. If the section
         ///     "akka" is not found, this returns an empty Config.
         /// </returns>
-        [Obsolete("Call the ConfigurationFactory.Default method instead.")]
         public static Config Load()
         {
-            return Default();
+            // attempt to load .hocon files first
+            foreach (var name in DefaultHoconFileNames)
+            {
+                foreach (var extension in DefaultHoconFileExtensions)
+                {
+                    var path = $"{name}.{extension}";
+                    if (File.Exists(path))
+                        return FromFile(path);
+                }
+            }
+
+            // if we made it this far: no default HOCON files found. Check app.config
+            var def = Load("hocon"); // new default
+            if (!def.IsNullOrEmpty())
+                return def;
+
+            def = Load("akka"); // old Akka.NET-specific default
+            if (!def.IsNullOrEmpty())
+                return def;
+
+            return Config.Empty;
         }
 
         /// <summary>

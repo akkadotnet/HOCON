@@ -329,5 +329,6 @@ Target "LocalNuget" DoNothing
 "RunTests" ==> "All"
 "NBench" ==> "All"
 "Nuget" ==> "All"
+"LocalNuget" ==> "All"
 
 RunTargetOrDefault "Help"

@@ -4,8 +4,14 @@
 
   <PropertyGroup>
     <TargetFrameworks>net461;netstandard1.3</TargetFrameworks>
+    <LangVersion>7.2</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>$(HoconPackageTags)</PackageTags>
     <Description>HOCON (Human-Optimized Config Object Notation) core API implementation. For full access inside your application, install the Hocon.Configuration package.</Description>
   </PropertyGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+  </ItemGroup>
 </Project>
