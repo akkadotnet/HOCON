@@ -133,8 +133,25 @@ namespace Hocon
         /// <returns>The configuration that contains default values for all options.</returns>
         public static Config Default()
         {
-            if(File.Exists("reference.conf"))
-                return FromFile("reference.conf");
+            // attempt to load default hocon files first
+            foreach (var name in DefaultHoconFileNames)
+            {
+                foreach (var extension in DefaultHoconFileExtensions)
+                {
+                    var path = $"{name}.{extension}";
+                    if (File.Exists(path))
+                        return FromFile(path);
+                }
+            }
+
+            // if we made it this far: no default HOCON files found. Check app.config
+            var def = Load("hocon"); // new default
+            if (!def.IsNullOrEmpty())
+                return def;
+
+            def = Load("akka"); // old Akka.NET-specific default
+            if (!def.IsNullOrEmpty())
+                return def;
 
             return Config.Empty;
         }
