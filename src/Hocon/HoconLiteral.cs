@@ -5,9 +5,10 @@
 // -----------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -92,26 +93,59 @@ namespace Hocon
 
         #endregion
 
-        #region Casting operators
+        #region Value getters
 
-        public static implicit operator char(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the long value, optionally suffixed with a 'b', from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The long value represented by this <see cref="HoconValue" />.</returns>
+        public override long? GetByteSize()
         {
-            return lit.Value?[0] ?? '\0';
+            if (!(this is HoconLiteral lit))
+                throw new HoconException(
+                    $"Value getter functions can only work on {nameof(HoconLiteral)} type. {GetType()} found instead.");
+
+            var res = lit.Value;
+            if (string.IsNullOrEmpty(res))
+                return null;
+            res = res.Trim();
+            var index = res.LastIndexOfAny(Digits);
+            if (index == -1 || index + 1 >= res.Length)
+                return long.Parse(res);
+
+            var value = res.Substring(0, index + 1);
+            var unit = res.Substring(index + 1).Trim();
+
+            foreach (var byteSize in ByteSizes)
+                if (byteSize.Suffixes.Any(suffix => string.Equals(unit, suffix, StringComparison.Ordinal)))
+                    return (long)(byteSize.Factor * double.Parse(value));
+
+            throw new FormatException($"{unit} is not a valid byte size suffix");
         }
 
-        public static implicit operator char[](HoconLiteral lit)
+        public override char GetChar()
         {
-            return lit.Value?.ToCharArray() ?? new char[] { };
+            return Value?[0] ?? '\0';
         }
 
-        public static implicit operator string(HoconLiteral lit)
+        //public static implicit operator char[](HoconLiteral lit)
+        public override IList<char> GetCharList()
         {
-            return lit.Value;
+            return Value?.ToCharArray() ?? new char[] { };
         }
 
-        public static implicit operator bool(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the boolean value from this <see cref="HoconElement" />.
+        /// </summary>
+        /// <returns>The boolean value represented by this <see cref="HoconElement" />.</returns>
+        /// <exception cref="System.NotSupportedException">
+        ///     This exception occurs when the <see cref="HoconElement" /> is not a <see cref="HoconLiteral" />
+        ///     and it doesn't
+        ///     conform to the standard boolean values: "on", "off", "yes", "no", "true", or "false"
+        /// </exception>
+        public override bool GetBoolean()
         {
-            switch (lit.Value)
+            switch (Value)
             {
                 case "on":
                 case "true":
@@ -123,178 +157,200 @@ namespace Hocon
                 case null:
                     return false;
                 default:
-                    throw new HoconException($"Unknown boolean format: {lit.Value}");
+                    throw new HoconException($"Unknown boolean format: {Value}");
             }
         }
 
-        public static implicit operator sbyte(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the signed byte value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The signed byte value represented by this <see cref="HoconValue" />.</returns>
+        public override sbyte GetSByte()
         {
-            var value = lit.Value;
-            if (value.StartsWith("0x"))
+            if (Value.StartsWith("0x"))
                 try
                 {
-                    return Convert.ToSByte(value, 16);
+                    return Convert.ToSByte(Value, 16);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{value}` to sbyte.", e);
+                    throw new HoconException($"Could not convert hex value `{Value}` to sbyte.", e);
                 }
 
-            if (value.StartsWith("0"))
+            if (Value.StartsWith("0"))
                 try
                 {
-                    return Convert.ToSByte(value, 8);
+                    return Convert.ToSByte(Value, 8);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{value}` to sbyte.", e);
+                    throw new HoconException($"Could not convert octal value `{Value}` to sbyte.", e);
                 }
 
             try
             {
-                return sbyte.Parse(value, NumberStyles.Integer);
+                return sbyte.Parse(Value, NumberStyles.Integer);
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{value}` to sbyte.", e);
+                throw new HoconException($"Could not convert `{Value}` to sbyte.", e);
             }
         }
 
-        public static implicit operator byte(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the byte value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The byte value represented by this <see cref="HoconValue" />.</returns>
+        public override byte GetByte()
         {
-            var value = lit.Value;
-            if (value.StartsWith("0x"))
+            if (Value.StartsWith("0x"))
                 try
                 {
-                    return Convert.ToByte(value, 16);
+                    return Convert.ToByte(Value, 16);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{value}` to byte.", e);
+                    throw new HoconException($"Could not convert hex value `{Value}` to byte.", e);
                 }
 
-            if (value.StartsWith("0"))
+            if (Value.StartsWith("0"))
                 try
                 {
-                    return Convert.ToByte(value, 8);
+                    return Convert.ToByte(Value, 8);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{value}` to byte.", e);
+                    throw new HoconException($"Could not convert octal value `{Value}` to byte.", e);
                 }
 
             try
             {
-                return byte.Parse(value, NumberStyles.Integer);
+                return byte.Parse(Value, NumberStyles.Integer);
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{value}` to byte.", e);
+                throw new HoconException($"Could not convert `{Value}` to byte.", e);
             }
         }
 
-        public static implicit operator short(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the short value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The short value represented by this <see cref="HoconValue" />.</returns>
+        public override short GetShort()
         {
-            var value = lit.Value;
-            if (value.StartsWith("0x"))
+            //var value = lit.Value;
+            if (Value.StartsWith("0x"))
                 try
                 {
-                    return Convert.ToInt16(value, 16);
+                    return Convert.ToInt16(Value, 16);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{value}` to short.", e);
+                    throw new HoconException($"Could not convert hex value `{Value}` to short.", e);
                 }
 
-            if (value.StartsWith("0"))
+            if (Value.StartsWith("0"))
                 try
                 {
-                    return Convert.ToInt16(value, 8);
+                    return Convert.ToInt16(Value, 8);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{value}` to short.", e);
+                    throw new HoconException($"Could not convert octal value `{Value}` to short.", e);
                 }
 
             try
             {
-                return short.Parse(value, NumberStyles.Integer);
+                return short.Parse(Value, NumberStyles.Integer);
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{value}` to short.", e);
+                throw new HoconException($"Could not convert `{Value}` to short.", e);
             }
         }
 
-        public static implicit operator ushort(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the unsigned short value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The unsigned short value represented by this <see cref="HoconValue" />.</returns>
+        public override ushort GetUShort()
         {
-            var value = lit.Value;
-            if (value.StartsWith("0x"))
+            //var value = lit.Value;
+            if (Value.StartsWith("0x"))
                 try
                 {
-                    return Convert.ToUInt16(value, 16);
+                    return Convert.ToUInt16(Value, 16);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{value}` to ushort.", e);
+                    throw new HoconException($"Could not convert hex value `{Value}` to ushort.", e);
                 }
 
-            if (value.StartsWith("0"))
+            if (Value.StartsWith("0"))
                 try
                 {
-                    return Convert.ToUInt16(value, 8);
+                    return Convert.ToUInt16(Value, 8);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{value}` to ushort.", e);
+                    throw new HoconException($"Could not convert octal value `{Value}` to ushort.", e);
                 }
 
             try
             {
-                return ushort.Parse(value, NumberStyles.Integer);
+                return ushort.Parse(Value, NumberStyles.Integer);
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{value}` to ushort.", e);
+                throw new HoconException($"Could not convert `{Value}` to ushort.", e);
             }
         }
 
-        public static implicit operator int(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the integer value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The integer value represented by this <see cref="HoconValue" />.</returns>
+        public override int GetInt()
         {
-            var value = lit.Value;
-            if (value.StartsWith("0x"))
+            //var value = lit.Value;
+            if (Value.StartsWith("0x"))
                 try
                 {
-                    return Convert.ToInt32(value, 16);
+                    return Convert.ToInt32(Value, 16);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert hex value `{value}` to int.", e);
+                    throw new HoconException($"Could not convert hex value `{Value}` to int.", e);
                 }
 
-            if (value.StartsWith("0"))
+            if (Value.StartsWith("0"))
                 try
                 {
-                    return Convert.ToInt32(value, 8);
+                    return Convert.ToInt32(Value, 8);
                 }
                 catch (Exception e)
                 {
-                    throw new HoconException($"Could not convert octal value `{value}` to int.", e);
+                    throw new HoconException($"Could not convert octal value `{Value}` to int.", e);
                 }
 
             try
             {
-                return int.Parse(value, NumberStyles.Integer);
+                return int.Parse(Value, NumberStyles.Integer);
             }
             catch (Exception e)
             {
-                throw new HoconException($"Could not convert `{value}` to int.", e);
+                throw new HoconException($"Could not convert `{Value}` to int.", e);
             }
         }
 
-        public static implicit operator uint(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the unsigned integer value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The unsigned integer value represented by this <see cref="HoconValue" />.</returns>
+        public override uint GetUInt()
         {
-            var value = lit.Value;
+            var value = Value;
             if (value.StartsWith("0x"))
                 try
                 {
@@ -325,9 +381,13 @@ namespace Hocon
             }
         }
 
-        public static implicit operator long(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the long value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The long value represented by this <see cref="HoconValue" />.</returns>
+        public override long GetLong()
         {
-            var value = lit.Value;
+            var value = Value;
             if (value.StartsWith("0x"))
                 try
                 {
@@ -358,9 +418,13 @@ namespace Hocon
             }
         }
 
-        public static implicit operator ulong(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the unsigned long value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The unsigned long value represented by this <see cref="HoconValue" />.</returns>
+        public override ulong GetULong()
         {
-            var value = lit.Value;
+            var value = Value;
             if (value.StartsWith("0x"))
                 try
                 {
@@ -391,9 +455,10 @@ namespace Hocon
             }
         }
 
-        public static implicit operator BigInteger(HoconLiteral lit)
+        //public static implicit operator BigInteger(HoconLiteral lit)
+        public override BigInteger GetBigInteger()
         {
-            var value = lit.Value;
+            var value = Value;
             if (value.StartsWith("0x"))
                 try
                 {
@@ -424,9 +489,13 @@ namespace Hocon
             }
         }
 
-        public static implicit operator float(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the float value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The float value represented by this <see cref="HoconValue" />.</returns>
+        public override float GetFloat()
         {
-            var value = lit.Value;
+            var value = Value;
             switch (value)
             {
                 case "+Infinity":
@@ -448,9 +517,13 @@ namespace Hocon
             }
         }
 
-        public static implicit operator double(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the double value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The double value represented by this <see cref="HoconValue" />.</returns>
+        public override double GetDouble()
         {
-            var value = lit.Value;
+            var value = Value;
             switch (value)
             {
                 case "+Infinity":
@@ -472,9 +545,13 @@ namespace Hocon
             }
         }
 
-        public static implicit operator decimal(HoconLiteral lit)
+        /// <summary>
+        ///     Retrieves the decimal value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The decimal value represented by this <see cref="HoconValue" />.</returns>
+        public override decimal GetDecimal()
         {
-            var value = lit.Value;
+            var value = Value;
             switch (value)
             {
                 case "+Infinity":
@@ -495,26 +572,89 @@ namespace Hocon
             }
         }
 
-        public static implicit operator TimeSpan(HoconLiteral lit)
+        public override string GetString()
         {
-            if (lit.Value.TryMatchTimeSpan(out var result))
+            return Value;
+        }
+
+        /// <summary>
+        ///     Retrieves the time span value from this <see cref="HoconValue" />.
+        /// </summary>
+        /// <returns>The time span value represented by this <see cref="HoconValue" />.</returns>
+        public override TimeSpan GetTimeSpan(bool allowInfinite = true)
+        {
+            if (Value.TryMatchTimeSpan(out var result))
                 return result;
+
+            if (allowInfinite && Value.Equals("infinite", StringComparison.OrdinalIgnoreCase)) //Not in Hocon spec
+                return Timeout.InfiniteTimeSpan;
 
             double value;
             try
             {
-                value = double.Parse(lit.Value, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo);
+                value = double.Parse(Value, NumberStyles.Float | NumberStyles.AllowThousands, NumberFormatInfo.InvariantInfo);
             }
             catch (Exception e)
             {
-                throw new HoconException($"Failed to parse TimeSpan value from '{lit.Value}'.", e);
+                throw new HoconException($"Failed to parse TimeSpan value from '{Value}'", e);
             }
 
             if (value < 0)
-                throw new HoconException($"Failed to parse TimeSpan value, expected a positive value instead of {value}.");
+                throw new HoconException("Expected a positive value instead of " + value);
 
             return TimeSpan.FromMilliseconds(value);
         }
+
+        #endregion
+
+        #region Helpers
+        private struct ByteSize
+        {
+            public long Factor { get; set; }
+            public string[] Suffixes { get; set; }
+        }
+
+        // ReSharper disable StringLiteralTypo
+        private static ByteSize[] ByteSizes { get; } =
+        {
+            new ByteSize
+            {
+                Factor = 1000L * 1000L * 1000L * 1000L * 1000L * 1000L, Suffixes = new[] {"EB", "exabyte", "exabytes"}
+            },
+            new ByteSize
+            {
+                Factor = 1024L * 1024L * 1024L * 1024L * 1024L * 1024L,
+                Suffixes = new[] {"E", "e", "Ei", "EiB", "exbibyte", "exbibytes"}
+            },
+            new ByteSize
+            {
+                Factor = 1000L * 1000L * 1000L * 1000L * 1000L * 1000L, Suffixes = new[] {"EB", "exabyte", "exabytes"}
+            },
+            new ByteSize
+            {
+                Factor = 1024L * 1024L * 1024L * 1024L * 1024L,
+                Suffixes = new[] {"P", "p", "Pi", "PiB", "pebibyte", "pebibytes"}
+            },
+            new ByteSize
+                {Factor = 1000L * 1000L * 1000L * 1000L * 1000L, Suffixes = new[] {"PB", "petabyte", "petabytes"}},
+            new ByteSize
+            {
+                Factor = 1024L * 1024L * 1024L * 1024L,
+                Suffixes = new[] {"T", "t", "Ti", "TiB", "tebibyte", "tebibytes"}
+            },
+            new ByteSize {Factor = 1000L * 1000L * 1000L * 1000L, Suffixes = new[] {"TB", "terabyte", "terabytes"}},
+            new ByteSize
+                {Factor = 1024L * 1024L * 1024L, Suffixes = new[] {"G", "g", "Gi", "GiB", "gibibyte", "gibibytes"}},
+            new ByteSize {Factor = 1000L * 1000L * 1000L, Suffixes = new[] {"GB", "gigabyte", "gigabytes"}},
+            new ByteSize {Factor = 1024L * 1024L, Suffixes = new[] {"M", "m", "Mi", "MiB", "mebibyte", "mebibytes"}},
+            new ByteSize {Factor = 1000L * 1000L, Suffixes = new[] {"MB", "megabyte", "megabytes"}},
+            new ByteSize {Factor = 1024L, Suffixes = new[] {"K", "k", "Ki", "KiB", "kibibyte", "kibibytes"}},
+            new ByteSize {Factor = 1000L, Suffixes = new[] {"kB", "kilobyte", "kilobytes"}},
+            new ByteSize {Factor = 1, Suffixes = new[] {"b", "B", "byte", "bytes"}}
+        };
+        // ReSharper restore StringLiteralTypo
+
+        private static char[] Digits { get; } = "0123456789".ToCharArray();
 
         #endregion
     }

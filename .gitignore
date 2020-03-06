@@ -301,3 +301,4 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 PerfResults/
+src/Hocon.API.Tests/HoconAPISpec.ApproveCore.received.txt

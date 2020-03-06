@@ -190,86 +190,348 @@ namespace Hocon
 
         #region Casting operators
 
-        public static implicit operator bool[](HoconArray arr)
+        public override IList<bool> GetBooleanList()
         {
-            return arr.Select(v => (bool) v).ToArray();
+            return this.Select(v => v.GetBoolean()).ToArray();
         }
 
-        public static implicit operator sbyte[](HoconArray arr)
+        public override bool TryGetBooleanList(out IList<bool> result)
         {
-            return arr.Select(v => (sbyte) v).ToArray();
+            result = default;
+            var list = new List<bool>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetBoolean(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
-        public static implicit operator byte[](HoconArray arr)
+        public override IList<sbyte> GetSByteList()
         {
-            return arr.Select(v => (byte) v).ToArray();
+            return this.Select(v => v.GetSByte()).ToArray();
         }
 
-        public static implicit operator short[](HoconArray arr)
+        public override bool TryGetSByteList(out IList<sbyte> result)
         {
-            return arr.Select(v => (short) v).ToArray();
+            result = default;
+            var list = new List<sbyte>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetSByte(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
-        public static implicit operator ushort[](HoconArray arr)
+        public override IList<byte> GetByteList()
         {
-            return arr.Select(v => (ushort) v).ToArray();
+            return this.Select(v => v.GetByte()).ToArray();
         }
 
-        public static implicit operator int[](HoconArray arr)
+        public override bool TryGetByteList(out IList<byte> result)
         {
-            return arr.Select(v => (int) v).ToArray();
+            result = default;
+
+            var list = new List<byte>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetByte(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
-        public static implicit operator uint[](HoconArray arr)
+        public override IList<short> GetShortList()
         {
-            return arr.Select(v => (uint) v).ToArray();
+            return this.Select(v => v.GetShort()).ToArray();
         }
 
-        public static implicit operator long[](HoconArray arr)
+        public override bool TryGetShortList(out IList<short> result)
         {
-            return arr.Select(v => (long) v).ToArray();
+            result = default;
+
+            var list = new List<short>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetShort(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
-        public static implicit operator ulong[](HoconArray arr)
+        public override IList<ushort> GetUShortList()
         {
-            return arr.Select(v => (ulong) v).ToArray();
+            return this.Select(v => v.GetUShort()).ToArray();
         }
 
-        public static implicit operator BigInteger[](HoconArray arr)
+        public override bool TryGetUShortList(out IList<ushort> result)
         {
-            return arr.Select(v => (BigInteger) v).ToArray();
+            result = default;
+
+            var list = new List<ushort>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetUShort(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+
         }
 
-        public static implicit operator float[](HoconArray arr)
+        public override IList<int> GetIntList()
         {
-            return arr.Select(v => (float) v).ToArray();
+            return this.Select(v => v.GetInt()).ToArray();
         }
 
-        public static implicit operator double[](HoconArray arr)
+        public override bool TryGetIntList(out IList<int> result)
         {
-            return arr.Select(v => (double) v).ToArray();
+            result = default;
+
+            var list = new List<int>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetInt(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
-        public static implicit operator decimal[](HoconArray arr)
+        public override IList<uint> GetUIntList()
         {
-            return arr.Select(v => (decimal) v).ToArray();
+            return this.Select(v => v.GetUInt()).ToArray();
         }
 
-        public static implicit operator TimeSpan[](HoconArray arr)
+        public override bool TryGetUIntList(out IList<uint> result)
         {
-            return arr.Select(v => (TimeSpan) v).ToArray();
+            result = default;
+
+            var list = new List<uint>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetUInt(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
-        public static implicit operator string[](HoconArray arr)
+        public override IList<long> GetLongList()
         {
-            return arr.Select(v => (string) v).ToArray();
+            return this.Select(v => v.GetLong()).ToArray();
         }
 
-        public static implicit operator char[](HoconArray arr)
+        public override bool TryGetLongList(out IList<long> result)
         {
-            return arr.SelectMany(v => ((string) v).ToCharArray()).ToArray();
+            result = default;
+
+            var list = new List<long>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetLong(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
         }
 
+        public override IList<ulong> GetULongList()
+        {
+            return this.Select(v => v.GetULong()).ToArray();
+        }
+
+        public override bool TryGetULongList(out IList<ulong> result)
+        {
+            result = default;
+
+            var list = new List<ulong>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetULong(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+        }
+
+        public override IList<BigInteger> GetBigIntegerList()
+        {
+            return this.Select(v => v.GetBigInteger()).ToArray();
+        }
+
+        public override bool TryGetBigIntegerList(out IList<BigInteger> result)
+        {
+            result = default;
+
+            var list = new List<BigInteger>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetBigInteger(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+        }
+
+        public override IList<float> GetFloatList()
+        {
+            return this.Select(v => v.GetFloat()).ToArray();
+        }
+
+        public override bool TryGetFloatList(out IList<float> result)
+        {
+            result = default;
+
+            var list = new List<float>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetFloat(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+
+        }
+
+        public override IList<double> GetDoubleList()
+        {
+            return this.Select(v => v.GetDouble()).ToArray();
+        }
+
+        public override bool TryGetDoubleList(out IList<double> result)
+        {
+            result = default;
+
+            var list = new List<double>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetDouble(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+
+        }
+
+        public override IList<decimal> GetDecimalList()
+        {
+            return this.Select(v => v.GetDecimal()).ToArray();
+        }
+
+        public override bool TryGetDecimalList(out IList<decimal> result)
+        {
+            result = default;
+
+            var list = new List<decimal>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetDecimal(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+
+        }
+
+        public override IList<TimeSpan> GetTimeSpanList(bool allowInfinite = true)
+        {
+            return this.Select(v => v.GetTimeSpan(allowInfinite)).ToArray();
+        }
+
+        public override bool TryGetTimeSpanList(out IList<TimeSpan> result, bool allowInfinite = true)
+        {
+            result = default;
+
+            var list = new List<TimeSpan>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetTimeSpan(out var res, allowInfinite))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+        }
+
+        public override IList<string> GetStringList()
+        {
+            return this.Select(v => v.GetString()).ToArray();
+        }
+
+        public override bool TryGetStringList(out IList<string> result)
+        {
+            result = default;
+
+            var list = new List<string>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetString(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+        }
+
+        public override IList<char> GetCharList()
+        {
+            return this.SelectMany(v => v.ToString().ToCharArray()).ToArray();
+        }
+
+        public override bool TryGetCharList(out IList<char> result)
+        {
+            result = default;
+
+            var list = new List<char>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetChar(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+        }
+
+        public override IList<HoconObject> GetObjectList()
+        {
+            return this.Select(v => v.ToObject()).ToArray();
+        }
+
+        public override bool TryGetObjectList(out IList<HoconObject> result)
+        {
+            result = default;
+
+            var list = new List<HoconObject>();
+            foreach (var val in this)
+            {
+                if (!val.TryGetObject(out var res))
+                    return false;
+                list.Add(res);
+            }
+            result = list;
+            return true;
+
+        }
         #endregion
     }
 }

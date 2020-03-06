@@ -203,12 +203,12 @@ namespace Hocon
             return GetValue(path);
         }
 
-        public virtual HoconElement GetValue(string path)
+        public override HoconElement GetValue(string path)
         {
             return GetValue(HoconPath.Parse(path));
         }
 
-        public virtual HoconElement GetValue(HoconPath path)
+        public override HoconElement GetValue(HoconPath path)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -238,13 +238,13 @@ namespace Hocon
             }
         }
 
-        public virtual bool TryGetValue(string path, out HoconElement result)
+        public override bool TryGetValue(string path, out HoconElement result)
         {
             result = null;
             return !string.IsNullOrWhiteSpace(path) && TryGetValue(HoconPath.Parse(path), out result);
         }
 
-        public virtual bool TryGetValue(HoconPath path, out HoconElement result)
+        public override bool TryGetValue(HoconPath path, out HoconElement result)
         {
             result = null;
             if (path == null || path.Count == 0)
@@ -359,88 +359,5 @@ namespace Hocon
 
         #endregion
 
-        #region Casting operators
-
-        public static implicit operator bool[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator sbyte[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator byte[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator short[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator ushort[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator int[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator uint[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator long[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator ulong[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator BigInteger[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator float[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator double[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator decimal[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator TimeSpan[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator string[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        public static implicit operator char[](HoconObject obj)
-        {
-            return obj.ToArray();
-        }
-
-        #endregion
     }
 }
