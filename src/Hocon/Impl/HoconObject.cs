@@ -186,6 +186,14 @@ namespace Hocon
             return clone;
         }
 
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            var copy = new HoconObject(newParent);
+            foreach (var kvp in this) copy.SetField(kvp.Key, kvp.Value);
+            return copy;
+        }
+
         /// <summary>
         ///     Retrieves the <see cref="HoconField" /> field associated with the supplied <see cref="string" /> key.
         /// </summary>

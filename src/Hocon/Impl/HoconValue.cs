@@ -199,6 +199,14 @@ namespace Hocon
             return clone;
         }
 
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            var copy = new HoconValue(newParent);
+            copy.AddRange(this);
+            return copy;
+        }
+
         public new void Clear()
         {
             Type = HoconType.Empty;

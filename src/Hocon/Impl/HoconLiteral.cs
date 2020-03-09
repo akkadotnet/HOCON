@@ -149,6 +149,12 @@ namespace Hocon
             return Value?.GetHashCode() ?? 0;
         }
 
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            return Clone(newParent);
+        }
+
         public static bool operator ==(HoconLiteral left, HoconLiteral right)
         {
             return Equals(left, right);

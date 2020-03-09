@@ -69,6 +69,14 @@ namespace Hocon
             return newArray;
         }
 
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            var newArray = new HoconArray(newParent);
+            newArray.AddRange(this);
+            return newArray;
+        }
+
         public bool Equals(IHoconElement other)
         {
             if (other is null) return false;

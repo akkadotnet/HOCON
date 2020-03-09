@@ -54,7 +54,7 @@ namespace Hocon
 
             Value = root.Value;
             Substitutions = root.Substitutions;
-            Root = (HoconValue)root.Value.Clone(null);
+            Root = (HoconValue)root.Value.Copy(null);
         }
 
         /// <summary>
