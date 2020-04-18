@@ -135,6 +135,7 @@ namespace Hocon
                     foreach (var sub in subs.Except(preservedSub)) sub.Removed = true;
                 }
 
+            _internalValues.RemoveAll(v => ReferenceEquals(v, value));
             _internalValues.Add(value);
         }
 
