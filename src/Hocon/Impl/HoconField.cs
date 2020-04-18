@@ -127,6 +127,9 @@ namespace Hocon
             if (value == null)
                 return;
 
+            if (_internalValues.Any(v => ReferenceEquals(v, value)))
+                return;
+
             if (value.Type != HoconType.Object)
                 foreach (var item in _internalValues)
                 {
@@ -135,7 +138,6 @@ namespace Hocon
                     foreach (var sub in subs.Except(preservedSub)) sub.Removed = true;
                 }
 
-            _internalValues.RemoveAll(v => ReferenceEquals(v, value));
             _internalValues.Add(value);
         }
 
