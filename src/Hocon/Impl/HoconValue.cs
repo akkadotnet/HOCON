@@ -36,6 +36,12 @@ namespace Hocon
             Parent = parent;
         }
 
+        internal HoconValue(IHoconElement parent, IList<HoconValue> values):this(parent)
+        {
+            foreach (var value in values)
+                AddRange(value);
+        }
+
         public ReadOnlyCollection<IHoconElement> Children => AsReadOnly();
 
         public IHoconElement Parent { get; }
