@@ -84,7 +84,7 @@ namespace Hocon
             {
                 if (_arrayType == HoconType.Empty)
                     _arrayType = value.Type;
-                else if (!value.Type.IsMergeable(_arrayType))
+                else if (value.Type != HoconType.Array && !value.Type.IsMergeable(_arrayType))
                     throw new HoconException(
                         $"Array value must match the rest of the array type or empty. Array value type: {_arrayType}, inserted type: {value.Type}");
             }
