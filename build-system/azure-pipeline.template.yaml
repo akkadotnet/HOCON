@@ -20,16 +20,6 @@ jobs:
         submodules: recursive  # set to 'true' for a single level of submodules or 'recursive' to get submodules of submodules
         persistCredentials: true
       # Linux or macOS
-      - task: UseDotNet@2
-        displayName: 'Use .NET Core sdk'
-        inputs:
-          packageType: sdk
-          version: 3.1.x
-      - task: UseDotNet@2
-        displayName: 'Use .NET Core sdk'
-        inputs:
-          packageType: sdk
-          version: 2.1.x
       - task: Bash@3 
         displayName: Linux / OSX Build
         inputs:
