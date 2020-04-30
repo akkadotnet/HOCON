@@ -18,7 +18,7 @@ jobs:
   parameters:
     name: 'nuget_pack'
     displayName: 'NuGet Pack'
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
     scriptFileName: ./build.cmd
     scriptArgs: nuget
     outputDirectory: 'bin/nuget'
@@ -27,7 +27,7 @@ jobs:
   parameters:
     name: 'windows_tests'
     displayName: 'Windows Tests'
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
     scriptFileName: build.cmd
     scriptArgs: runtests
     outputDirectory: 'TestResults'
@@ -36,7 +36,7 @@ jobs:
   parameters:
     name: 'windows_perf_tests'
     displayName: 'Windows Performance Tests'
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
     scriptFileName: build.cmd
     scriptArgs: nbench
     outputDirectory: 'PerfResults'
