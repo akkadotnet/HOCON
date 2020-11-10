@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="3.1.4" />
-    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="3.1.4" />
   </ItemGroup>
 
