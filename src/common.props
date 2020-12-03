@@ -18,7 +18,7 @@ For more details, please [see the issues in the HOCON v2.0.1 milestone here](htt
   <PropertyGroup>
     <XunitVersion>2.4.1</XunitVersion>
     <XunitCliVersion>2.3.1</XunitCliVersion>
-    <TestSdkVersion>16.7.1</TestSdkVersion>
+    <TestSdkVersion>16.8.3</TestSdkVersion>
     <NetCoreVersion>netcoreapp2.1</NetCoreVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
