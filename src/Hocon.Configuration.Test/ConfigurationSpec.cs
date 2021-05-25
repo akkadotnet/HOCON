@@ -305,7 +305,7 @@ foo {
                     }
 	            }");
             
-            var merged = config1.WithFallback(config2).Value.GetObject(); // Perform values loading
+            var merged = config1.WithFallback(config2).Root.GetObject(); // Perform values loading
             
             config1.GetInt("a.b.c").Should().Be(5);
             config1.GetInt("a.b.e").Should().Be(7);
@@ -515,9 +515,9 @@ foo {
 
             // normal fallback
             var f1 = c1.WithFallback(c2).WithFallback(Config.Empty);
-            c1.Fallbacks.Count.Should().Be(0); // original copy should not have been modified.
+            c1.Fallback.Should().BeNull(); // original copy should not have been modified.
 
-            // someone adds the same fallback again with realizing it
+            // someone adds the same fallback again without realizing it
             f1.WithFallback(Config.Empty).GetString("bar.biz").Should().Be("fuber"); // shouldn't throw
             
             var final = f1.WithFallback(c2);
@@ -539,7 +539,7 @@ foo {
                 }
             ");
 
-            var megred = config2.WithFallback(config1).Value;
+            var megred = config2.WithFallback(config1).Root;
             // Is throwing at "/weird/*" key parsing
             megred.Invoking(r => r.GetObject()).Should().NotThrow();
         }
@@ -560,7 +560,7 @@ foo {
                 }"
             );
 
-            var megred = config2.WithFallback(config1).Value;
+            var megred = config2.WithFallback(config1).Root;
             // Is throwing at "System.Byte[]" key parsing
             megred.Invoking(r => r.GetObject()).Should().NotThrow();
         }
@@ -585,7 +585,7 @@ foo {
             var configWithFallback = config1.WithFallback(config2);
             
             var config = configWithFallback.GetConfig("akka.actor.deployment");
-            var rootObj = config.Value.GetObject();
+            var rootObj = config.Root.GetObject();
             rootObj.Unwrapped.Should().ContainKeys("/worker1", "/worker2");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
             rootObj["/worker1.router"].Raw.Should().Be("round-robin-group1");
@@ -652,7 +652,7 @@ foo {
             a.WithFallback(b);
             a.WithFallback(b);
 
-            a.Fallbacks.Count.Should().Be(0);
+            a.Fallback.Should().BeNull();
             a.GetString("akka.other-key", null).Should().BeNull();
             ReferenceEquals(oldA, a).Should().BeTrue();
             oldAContent.Should().Equals(a);
@@ -687,8 +687,8 @@ dedicated-thread-pool.thread-count = 4
 dedicated-thread-pool.substring = substring
 ");
 
-            var result = combined.Root.ToString(1, 2);
-            var expected = expectedConfig.Root.ToString(1, 2);
+            var result = combined.DumpConfig(false);
+            var expected = expectedConfig.DumpConfig(false);
 
             expected.Should().BeEquivalentTo(result);
             combined.GetInt("dedicated-thread-pool.thread-count").Should().Be(4);

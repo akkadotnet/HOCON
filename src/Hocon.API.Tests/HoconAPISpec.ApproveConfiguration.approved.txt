@@ -7,30 +7,47 @@ namespace Hocon
         protected CDataConfigurationElement() { }
         protected override void DeserializeElement(System.Xml.XmlReader reader, bool serializeCollectionKey) { }
     }
-    public class Config : Hocon.HoconRoot, System.IEquatable<Hocon.Config>, System.Runtime.Serialization.ISerializable
+    public class Config : System.Runtime.Serialization.ISerializable
     {
-        [System.ObsoleteAttribute("For json serialization/deserialization only", true)]
-        protected Config() { }
-        protected Config(Hocon.HoconValue value) { }
-        protected Config(Hocon.HoconValue value, Hocon.Config fallback) { }
+        public static readonly Hocon.Config Empty;
         public Config(Hocon.HoconRoot root) { }
-        public Config(Hocon.HoconRoot root, Hocon.Config fallback) { }
+        public Config(Hocon.Config source) { }
+        public Config(Hocon.Config source, Hocon.Config fallback) { }
         [System.ObsoleteAttribute("Used for serialization only", true)]
-        public Config(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
-        public static Hocon.Config Empty { get; }
-        public virtual System.Collections.Generic.IReadOnlyList<Hocon.HoconValue> Fallbacks { get; }
+        protected Config(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
+        public Hocon.Config Fallback { get; }
         public virtual bool IsEmpty { get; }
         public Hocon.HoconValue Root { get; }
-        protected System.Collections.Generic.List<Hocon.HoconValue> _fallbacks { get; }
-        public override System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconField>> AsEnumerable() { }
-        public virtual bool Equals(Hocon.Config other) { }
-        public override bool Equals(object obj) { }
+        public System.Collections.Generic.IEnumerable<Hocon.HoconSubstitution> Substitutions { get; set; }
+        public Hocon.HoconValue Value { get; }
+        public virtual System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Hocon.HoconValue>> AsEnumerable() { }
+        protected Hocon.Config Copy(Hocon.Config fallback = null) { }
+        public virtual bool GetBoolean(string path, bool default = False) { }
+        public virtual System.Collections.Generic.IList<bool> GetBooleanList(string path) { }
+        public virtual System.Collections.Generic.IList<byte> GetByteList(string path) { }
+        public virtual System.Nullable<long> GetByteSize(string path) { }
         public virtual Hocon.Config GetConfig(string path) { }
-        public virtual Hocon.Config GetConfig(Hocon.HoconPath path) { }
-        protected override Hocon.HoconValue GetNode(Hocon.HoconPath path) { }
+        public virtual decimal GetDecimal(string path, [System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 0u, 0u, 0u)] decimal @default) { }
+        public virtual System.Collections.Generic.IList<decimal> GetDecimalList(string path) { }
+        public virtual double GetDouble(string path, double default = 0) { }
+        public virtual System.Collections.Generic.IList<double> GetDoubleList(string path) { }
+        public virtual float GetFloat(string path, float default = 0) { }
+        public virtual System.Collections.Generic.IList<float> GetFloatList(string path) { }
+        public virtual int GetInt(string path, int default = 0) { }
+        public virtual System.Collections.Generic.IList<int> GetIntList(string path) { }
+        public virtual long GetLong(string path, long default = 0) { }
+        public virtual System.Collections.Generic.IList<long> GetLongList(string path) { }
         public void GetObjectData(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) { }
-        public string ToString(bool useFallbackValues) { }
-        protected override bool TryGetNode(Hocon.HoconPath path, out Hocon.HoconValue result) { }
+        public virtual string GetString(string path, string default = null) { }
+        public virtual string GetString(Hocon.HoconPath path, string default = null) { }
+        public virtual System.Collections.Generic.IList<string> GetStringList(string path) { }
+        public virtual System.Collections.Generic.IList<string> GetStringList(Hocon.HoconPath path) { }
+        public virtual System.TimeSpan GetTimeSpan(string path, System.Nullable<System.TimeSpan> default = null, bool allowInfinite = True) { }
+        public Hocon.HoconValue GetValue(string path) { }
+        public virtual bool HasPath(string path) { }
+        public string PrettyPrint(int indentSize) { }
+        public override string ToString() { }
+        public string ToString(bool includeFallback) { }
         public virtual Hocon.Config WithFallback(Hocon.Config fallback) { }
         public static Hocon.Config +(Hocon.Config config, string fallback) { }
         public static Hocon.Config +(string configHocon, Hocon.Config fallbackConfig) { }
