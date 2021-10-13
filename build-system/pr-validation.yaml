@@ -45,7 +45,7 @@ jobs:
   parameters:
     name: 'linux_tests'
     displayName: 'Linux Tests'
-    vmImage: 'ubuntu-16.04'
+    vmImage: 'ubuntu-20.04'
     scriptFileName: build.sh
     scriptArgs: runtests
     outputDirectory: 'TestResults'
@@ -54,7 +54,7 @@ jobs:
   parameters:
     name: 'linux_perf_tests'
     displayName: 'Linux Performance Tests'
-    vmImage: 'ubuntu-16.04'
+    vmImage: 'ubuntu-20.04'
     scriptFileName: build.sh
     scriptArgs: nbench
     outputDirectory: 'PerfResults'

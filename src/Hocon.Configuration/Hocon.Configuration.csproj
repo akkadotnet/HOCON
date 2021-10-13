@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <Import Project="..\common.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkVersion);$(NetStandardLibVersion)</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Hocon</RootNamespace>
     <PackageTags>$(HoconPackageTags)</PackageTags>
@@ -14,14 +13,12 @@
     <ProjectReference Include="..\Hocon\Hocon.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == '$(NetFrameworkVersion)' ">
     <Reference Include="System.Configuration" />
   </ItemGroup>
   
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Configuration.ConfigurationManager">
-      <Version>4.7.0</Version>
-    </PackageReference>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardLibVersion)'">
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0"/>
   </ItemGroup>
 
 </Project>

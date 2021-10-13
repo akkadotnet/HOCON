@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\common.props" />
   <PropertyGroup>
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkVersion);$(NetStandardLibVersion)</TargetFrameworks>
     <LangVersion>7.2</LangVersion>
-    <DefineConstants Condition="'$(TargetFramework)' == 'netstandard2.1'">NS2_1</DefineConstants>
     <PackageTags>$(HoconPackageTags)</PackageTags>
     <Description>HOCON (Human-Optimized Config Object Notation) Experimental Immutable Support</Description>
   </PropertyGroup>
@@ -14,12 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Hocon\Hocon.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.Memory">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\system.memory\4.5.1\ref\netstandard2.0\System.Memory.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
