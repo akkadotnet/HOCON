@@ -15,6 +15,10 @@ jobs:
     pool:
       vmImage: ${{ parameters.vmImage }}
     steps:
+      - task: UseDotNet@2
+        displayName: 'Use .NET Core SDK 3.1.10'
+        inputs:
+          version: 3.1.10
       - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
         clean: false  # whether to fetch clean each time
         submodules: recursive  # set to 'true' for a single level of submodules or 'recursive' to get submodules of submodules
