@@ -277,7 +277,7 @@ namespace Hocon
                 return null;
 
             var sb = new StringBuilder();
-            foreach (var s in array) sb.Append(s);
+            foreach (var s in array) sb.Append(s.Replace(@"\",@"\\"));
 
             return sb.ToString();
         }
