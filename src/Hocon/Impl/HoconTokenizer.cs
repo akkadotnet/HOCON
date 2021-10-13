@@ -894,8 +894,8 @@ namespace Hocon
                 return false;
 
             var sb = new StringBuilder();
-            Take();
-            while (!EoF && !Matches('\"', '\''))
+            var startChar = TakeWithResult(1)[0];
+            while (!EoF && !Matches(startChar))
                 if (Matches("\\"))
                     sb.Append(PullEscapeSequence());
                 else
@@ -920,8 +920,8 @@ namespace Hocon
                 return false;
 
             var sb = new StringBuilder();
-            Take(3);
-            while (!EoF && !Matches("\"\"\"", "'''"))
+            var startString = TakeWithResult(3);
+            while (!EoF && !Matches(startString))
                 if (Matches("\\"))
                     sb.Append(PullEscapeSequence());
                 else

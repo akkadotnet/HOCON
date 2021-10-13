@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Hocon.Extensions.Configuration;
 
@@ -19,33 +20,35 @@ namespace AspNetWebApp
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .ConfigureAppConfiguration((hostingContext, config) =>
+        public static IHostBuilder CreateWebHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    // We inject the HOCON configuration file using this function call,
-                    // the rest of the code are there to make sure that the final configuration
-                    // conforms to the Microsoft standard on loading a full configuration stack.
-                    var env = hostingContext.HostingEnvironment;
-                    config.AddHoconFile("appsettings.conf", optional: false, reloadOnChange: true)
-                        .AddHoconFile($"appsettings.{env.EnvironmentName}.conf", optional: true, reloadOnChange: true);
+                    webBuilder.UseStartup<Startup>();
+                    webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
+                   {
+                       // We inject the HOCON configuration file using this function call,
+                       // the rest of the code are there to make sure that the final configuration
+                       // conforms to the Microsoft standard on loading a full configuration stack.
+                       var env = hostingContext.HostingEnvironment;
+                       config.AddHoconFile("appsettings.conf", optional: false, reloadOnChange: true)
+                           .AddHoconFile($"appsettings.{env.EnvironmentName}.conf", optional: true, reloadOnChange: true);
+                       if (env.EnvironmentName == "Development")
+                       {
+                           var appAssembly = Assembly.Load(new AssemblyName(env.ApplicationName));
+                           if (appAssembly != null)
+                           {
+                               config.AddUserSecrets(appAssembly, optional: true);
+                           }
+                       }
 
-                    if (env.IsDevelopment())
-                    {
-                        var appAssembly = Assembly.Load(new AssemblyName(env.ApplicationName));
-                        if (appAssembly != null)
-                        {
-                            config.AddUserSecrets(appAssembly, optional: true);
-                        }
-                    }
+                       config.AddEnvironmentVariables();
 
-                    config.AddEnvironmentVariables();
-
-                    if (args != null)
-                    {
-                        config.AddCommandLine(args);
-                    }
+                       if (args != null)
+                       {
+                           config.AddCommandLine(args);
+                       }
+                   });
                 });
     }
 }

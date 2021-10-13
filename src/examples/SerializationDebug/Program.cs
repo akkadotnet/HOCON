@@ -13,6 +13,7 @@ namespace SerializationDebug
                     foo{
                       bar.biz = 12
                       baz = ""quoted""
+                      some.string: ""with a backslash (\\) in it""
                     }";
 
             ShouldSerializeHocon(hocon1, string.Empty, string.Empty);
@@ -32,7 +33,7 @@ namespace SerializationDebug
         public static void VerifySerialization(Config config)
         {
             var serialized = JsonConvert.SerializeObject(config);
-            var deserialized = (Config)JsonConvert.DeserializeObject(serialized);
+            var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
             config.DumpConfig().Should().Be(deserialized.DumpConfig());
         }
     }

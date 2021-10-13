@@ -45,9 +45,12 @@ namespace Hocon
         {
             get
             {
+                if (_internalValues.Count == 1)
+                    return _internalValues[0];
+
                 var lastValue = _internalValues.LastOrDefault();
 
-                if (lastValue == null)
+                if (lastValue is null)
                     return null;
 
                 if (lastValue.Type != HoconType.Object)
@@ -60,9 +63,7 @@ namespace Hocon
                     else
                         filteredValues.Add(value);
 
-                var returnValue = new HoconValue(this);
-                foreach (var value in filteredValues)
-                    returnValue.AddRange(value);
+                var returnValue = new HoconValue(this, filteredValues);
                 return returnValue;
             }
         }
@@ -127,6 +128,9 @@ namespace Hocon
             if (value == null)
                 return;
 
+            if (_internalValues.Any(v => ReferenceEquals(v, value)))
+                return;
+
             if (value.Type != HoconType.Object)
                 foreach (var item in _internalValues)
                 {
@@ -135,6 +139,13 @@ namespace Hocon
                     foreach (var sub in subs.Except(preservedSub)) sub.Removed = true;
                 }
 
+            _internalValues.Add(value);
+        }
+
+        internal void Flatten()
+        {
+            var value = Value;
+            _internalValues.Clear();
             _internalValues.Add(value);
         }
 

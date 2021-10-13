@@ -140,8 +140,12 @@ namespace Hocon
 
                     v.Clear();
                     v.Add(o);
-                    foreach (var item in o.Values)
-                        Flatten(item);
+                    foreach (var field in o.Values)
+                    {
+                        field.Flatten();
+                        var values = field.Value;
+                        Flatten(values);
+                    }
                     break;
 
                 case HoconType.Array:
@@ -169,7 +173,7 @@ namespace Hocon
                         v.Add(new HoconTripleQuotedString(v, value));
                     else if (value.NeedQuotes())
                         v.Add(new HoconQuotedString(v, value));
-                    else
+                    else if(!(v is HoconEmptyValue))
                         v.Add(new HoconUnquotedString(v, value));
                     break;
             }
