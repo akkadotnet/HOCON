@@ -140,8 +140,9 @@ namespace Hocon.Tests
         }
 
         // Undefined behavior in spec.
-        // In this implementation, mixed value types in an array will throw an exception.
-        [Theory]
+        // In Hocon Playground, this does NOT throw an exception.
+        // In this implementation, should mixed value types in an array throw an exception?
+        [Theory(Skip = "Following Hocon Playground, this does not throw anymore.")]
         [InlineData("b = [{a = 1}, test]")]
         [InlineData("b = [test, {a = 1}]")]
         [InlineData("b = [foo, [bar]]")]
