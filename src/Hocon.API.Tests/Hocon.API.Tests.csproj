@@ -1,13 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\common.props" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
-
+    <TargetFramework>$(NetFrameworkTestVersion)</TargetFramework>
     <IsPackable>false</IsPackable>
-
-    <RootNamespace>Hocon.API.Tests</RootNamespace>
-
-    <AssemblyName>Hocon.API.Tests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,10 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="1.7.0" />
     <PackageReference Include="ApiApprover" Version="9.3.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
+    <PackageReference Include="xunit" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
