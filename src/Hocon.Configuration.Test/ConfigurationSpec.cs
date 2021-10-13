@@ -38,6 +38,7 @@ namespace Hocon.Configuration.Tests
                 foo{
                   bar.biz = 12
                   baz = ""quoted""
+                  some.string: ""with a backslash (\\) in it""
                 }");
             var serialized = JsonConvert.SerializeObject(config);
             var deserialized = JsonConvert.DeserializeObject<Config>(serialized);
