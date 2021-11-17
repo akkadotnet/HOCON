@@ -18,7 +18,7 @@ For more details, please [see the issues in the HOCON v2.0.1 milestone here](htt
   <PropertyGroup>
     <XunitVersion>2.4.1</XunitVersion>
     <XunitCliVersion>2.3.1</XunitCliVersion>
-    <TestSdkVersion>16.11.0</TestSdkVersion>
+    <TestSdkVersion>17.0.0</TestSdkVersion>
     <NetCoreVersion>netcoreapp2.1</NetCoreVersion>
     <NetCoreTestVersion>netcoreapp3.1</NetCoreTestVersion>
     <NetTestVersion>net5.0</NetTestVersion>
