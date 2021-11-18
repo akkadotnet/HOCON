@@ -26,7 +26,7 @@ For more details, please [see the issues in the HOCON v2.0.1 milestone here](htt
     <NetFrameworkTestVersion>net471</NetFrameworkTestVersion>
     <NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
     <FluentAssertionsVersion>6.2.0</FluentAssertionsVersion>
-    <NewtonsoftVersion>12.0.3</NewtonsoftVersion>
+    <NewtonsoftVersion>13.0.1</NewtonsoftVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
