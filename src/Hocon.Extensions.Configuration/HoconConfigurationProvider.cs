@@ -17,12 +17,15 @@ namespace Hocon.Extensions.Configuration
     /// </summary>
     public class HoconConfigurationProvider : FileConfigurationProvider
     {
+        private readonly HoconConfigurationSource _source;
+
         /// <summary>
         ///     Initializes a new instance with the specified source.
         /// </summary>
         /// <param name="source">The source settings.</param>
         public HoconConfigurationProvider(HoconConfigurationSource source) : base(source)
         {
+            _source = source ?? throw new ArgumentNullException(nameof(source));
         }
 
         /// <summary>
@@ -31,7 +34,7 @@ namespace Hocon.Extensions.Configuration
         /// <param name="stream">The stream to read.</param>
         public override void Load(Stream stream)
         {
-            var parser = new HoconConfigurationFileParser();
+            var parser = new HoconConfigurationFileParser(_source.IncludeCallback);
             try
             {
                 Data = parser.Parse(stream);
