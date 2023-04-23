@@ -101,6 +101,14 @@ namespace Hocon
             return newField;
         }
 
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            var newField = new HoconField(Key, (HoconObject)newParent);
+            newField._internalValues.AddRange(_internalValues);
+            return newField;
+        }
+
         public string ToString(int indent, int indentSize)
         {
             return Value.ToString(indent, indentSize);

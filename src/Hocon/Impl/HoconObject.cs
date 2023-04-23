@@ -29,7 +29,7 @@ namespace Hocon
     /// }
     /// </code>
     /// </summary>
-    public class HoconObject : Dictionary<string, HoconField>, IHoconElement
+    public class HoconObject : SortedDictionary<string, HoconField>, IHoconElement
     {
         private static readonly HoconObject _empty;
         public static HoconObject Empty => _empty;
@@ -184,6 +184,14 @@ namespace Hocon
             var clone = new HoconObject(newParent);
             foreach (var kvp in this) clone.SetField(kvp.Key, kvp.Value.Clone(clone) as HoconField);
             return clone;
+        }
+
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            var copy = new HoconObject(newParent);
+            foreach (var kvp in this) copy.SetField(kvp.Key, kvp.Value);
+            return copy;
         }
 
         /// <summary>
