@@ -2,70 +2,92 @@ parameters:
   name: ''
   displayName: ''
   vmImage: ''
-  scriptFileName: ''
-  scriptArgs: 'all'
-  artifactName: 'akkaBuild'
   outputDirectory: ''
+  artifactName: ''
   timeoutInMinutes: 120
 
 jobs:
   - job: ${{ parameters.name }}
     displayName: ${{ parameters.displayName }}
     timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+
     pool:
       vmImage: ${{ parameters.vmImage }}
+
     steps:
-      - task: UseDotNet@2
-        displayName: 'Use .NET 5 SDK 5.0'
-        inputs:
-          version: 5.0.x
-      - task: UseDotNet@2
-        displayName: 'Use .NET Core Runtime 3.1'
-        inputs:
-          packageType: runtime
-          version: 3.1.x
-      - task: UseDotNet@2
-        displayName: 'Use .NET Core Runtime 2.1'
-        inputs:
-          packageType: runtime
-          version: 2.1.x
       - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
         clean: false  # whether to fetch clean each time
         submodules: recursive  # set to 'true' for a single level of submodules or 'recursive' to get submodules of submodules
         persistCredentials: true
-      # Linux or macOS
-      - task: Bash@3 
-        displayName: Linux / OSX Build
+
+      - task: UseDotNet@2
+        displayName: 'Use .NET'
         inputs:
-          filePath: ${{ parameters.scriptFileName }}
-          arguments: ${{ parameters.scriptArgs }}
-        continueOnError: true
-        condition: in( variables['Agent.OS'], 'Linux', 'Darwin' )
-      # Windows
-      - task: BatchScript@1
-        displayName: Windows Build
-        inputs:
-          filename: ${{ parameters.scriptFileName }}
-          arguments: ${{ parameters.scriptArgs }}
-        continueOnError: true
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
+          packageType: 'sdk'
+          useGlobalJson: true
+          
+      - script: dotnet tool restore
+        displayName: 'Restore dotnet tools'
+
+      - pwsh: |
+          .\build.ps1
+        displayName: 'Update Release Notes'
+        continueOnError: false
+
+      - script: dotnet build -c Release
+        displayName: 'dotnet build'
+        continueOnError: false
+
+      - script: dotnet test -c Release --no-build --logger:trx --collect:"XPlat Code Coverage" --results-directory TestResults --settings coverlet.runsettings
+        displayName: 'Run tests'
+        continueOnError: true # Allow continuation even if tests fail
+
       - task: PublishTestResults@2
         inputs:
-          testRunner: VSTest
+          testResultsFormat: VSTest
           testResultsFiles: '**/*.trx' #TestResults folder usually
           testRunTitle: ${{ parameters.name }}
           mergeTestResults: true
-      - task: CopyFiles@2
-        displayName: 'Copy Build Output'
+          failTaskOnFailedTests: false
+          publishRunAttachments: true
+          
+      - pwsh: |
+          $coverageFiles = Get-ChildItem -Path "$(Build.SourcesDirectory)/TestResults" -Filter "*.cobertura.xml" -Recurse
+          $hasCoverageFiles = $coverageFiles.Count -gt 0
+          Write-Host "##vso[task.setvariable variable=HasCoverageFiles]$hasCoverageFiles"
+        displayName: 'Check for Coverage Files'
+        condition: always()
+        continueOnError: true
+
+      - task: reportgenerator@5
+        displayName: ReportGenerator
+        # Only run if coverage files exist
+        condition: and(always(), eq(variables['HasCoverageFiles'], 'True'))
+        continueOnError: true
         inputs:
-          sourceFolder: ${{ parameters.outputDirectory }}
-          contents: '**\*'
-          targetFolder: $(Build.ArtifactStagingDirectory)
-          continueOnError: boolean  # 'true' if future steps should run even if this step fails; defaults to 'false'
+          reports: '$(Build.SourcesDirectory)/TestResults/**/*.cobertura.xml'
+          targetdir: '$(Build.SourcesDirectory)/coveragereport'
+          reporttypes: 'HtmlInline_AzurePipelines;Cobertura;Badges'
+          assemblyfilters: '-xunit*'
+          publishCodeCoverageResults: true
+
+      - publish: $(Build.SourcesDirectory)/coveragereport
+        displayName: 'Publish Coverage Report'
+        # Only run if coverage files exist
+        condition: and(always(), eq(variables['HasCoverageFiles'], 'True'))
+        continueOnError: true
+        artifact: 'CoverageReports-$(Agent.OS)-$(Build.BuildId)'
+          
+      - script: dotnet pack -c Release --no-build -o $(Build.ArtifactStagingDirectory)/nuget
+        displayName: 'Create packages'
+          
       - task: PublishBuildArtifacts@1
+        displayName: 'Publish artifacts'
         inputs:
-          pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          artifactName: ${{ parameters.artifactName }}
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)/nuget'
+          ArtifactName: 'nuget'
+          publishLocation: 'Container'
+
       - script: 'echo 1>&2'
         failOnStderr: true
         displayName: 'If above is partially succeeded, then fail'

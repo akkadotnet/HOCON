@@ -41,6 +41,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hocon.Tests.Performance", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetWebApp", "src\examples\AspNetWebApp\AspNetWebApp.csproj", "{181D6251-3B11-4F2D-92E5-631C99D9F791}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build-system", "build-system", "{499EFC59-EF9F-44F1-B5DA-5C23D94D5FC5}"
+	ProjectSection(SolutionItems) = preProject
+		build-system\azure-pipeline.template.yaml = build-system\azure-pipeline.template.yaml
+		build-system\nightly-builds.yaml = build-system\nightly-builds.yaml
+		build-system\pr-validation.yaml = build-system\pr-validation.yaml
+		build-system\windows-release.yaml = build-system\windows-release.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{04AE6399-C6DA-42D2-B013-F8DFFD986618}"
+	ProjectSection(SolutionItems) = preProject
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+		README.md = README.md
+		Directory.Packages.props = Directory.Packages.props
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

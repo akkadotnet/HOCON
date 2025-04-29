@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
-
   <PropertyGroup>
-    <TargetFramework>$(NetFrameworkTestVersion)</TargetFramework>
+    <TargetFrameworks>$(NetFrameworkTestVersion);$(NetFrameworkTestVersion)</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -29,11 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DiffPlex" Version="1.7.0" />
-    <PackageReference Include="ApiApprover" Version="9.3.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
-    <PackageReference Include="xunit" Version="$(XunitVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)">
+    <PackageReference Include="DiffPlex" />
+    <PackageReference Include="ApiApprover" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" >
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

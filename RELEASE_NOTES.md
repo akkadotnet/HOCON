@@ -1,4 +1,4 @@
-### 2.0.4 October 14 2021 ####
+#### 2.0.4 October 14 2021 ####
 * [Change config file load priority](https://github.com/akkadotnet/HOCON/issues/260)
 * [Bugfix: Performance issue reported in #276](https://github.com/akkadotnet/HOCON/issues/277)
 * [Bugfix: Quoted string should be closed by the same starting token](https://github.com/akkadotnet/HOCON/issues/278)
@@ -15,7 +15,7 @@
 
 - If `HoconConfigurationFactory.FromFile()` is called without any file extensions, it will try to load the file using these extensions: .conf, .hocon, and finally .properties 
 
-### 2.0.3 February 28 2020 ####
+#### 2.0.3 February 28 2020 ####
 Bugfixes and improvements made to HOCON 2.0.0
 
 * [Bugfix: HoconValue.TryGetObject can throw System.ArgumentNullException](https://github.com/akkadotnet/HOCON/issues/233)

@@ -1021,7 +1021,6 @@ namespace Hocon
         ///     Retrieves a <see cref="TimeSpan" /> value from the specified path in the configuration.
         /// </summary>
         /// <param name="path">The path that contains the value to retrieve.</param>
-        /// <param name="default">The default value to return if the value doesn't exist.</param>
         /// <param name="allowInfinite"><c>true</c> if infinite timespans are allowed; otherwise <c>false</c>.</param>
         /// <returns>The <see cref="TimeSpan" /> value defined in the specified path.</returns>
         public virtual TimeSpan GetTimeSpan(string path, bool allowInfinite = true)

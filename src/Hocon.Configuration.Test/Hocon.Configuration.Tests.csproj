@@ -1,17 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
-
   <PropertyGroup>
-    <TargetFrameworks>$(NetFrameworkTestVersion);$(NetCoreTestVersion)</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkTestVersion);$(NetTestVersion)</TargetFrameworks>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="$(FluentAssertionsVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(TestSdkVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftVersion)" />
-    <PackageReference Include="xunit" Version="$(XunitVersion)" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="xunit" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="$(XunitCliVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)">
+    <PackageReference Include="xunit.runner.visualstudio">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

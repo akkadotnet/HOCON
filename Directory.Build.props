@@ -1,0 +1,57 @@
+<Project>
+  <PropertyGroup>
+    <Copyright>Copyright © 2014-2020 Akka.NET Team</Copyright>
+    <Authors>Akka.NET Team</Authors>
+    <VersionPrefix>2.0.4</VersionPrefix>
+    <PackageReleaseNotes>* [Change config file load priority](https://github.com/akkadotnet/HOCON/issues/260)
+* [Bugfix: Performance issue reported in #276](https://github.com/akkadotnet/HOCON/issues/277)
+* [Bugfix: Quoted string should be closed by the same starting token](https://github.com/akkadotnet/HOCON/issues/278)
+* [Bugfix: Flatten did not flatten all the way down](https://github.com/akkadotnet/HOCON/issues/280)
+* [Bugfix: Escape backslash when serializing](https://github.com/akkadotnet/HOCON/issues/351)
+
+- `HoconConfigurationFactory.Default()` will try and load HOCON configuration from default named files based on this priority:
+  1. application.conf
+  2. application.hocon
+  3. application.properties
+  4. app.conf
+  5. app.hocon
+  6. app.properties
+
+- If `HoconConfigurationFactory.FromFile()` is called without any file extensions, it will try to load the file using these extensions: .conf, .hocon, and finally .properties</PackageReleaseNotes>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <LangVersion>11</LangVersion>
+    <PackageTags>akka;actors;hocon;configuration;config</PackageTags>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NetTestVersion>net6.0</NetTestVersion>
+    <NetFrameworkVersion>net461</NetFrameworkVersion>
+    <NetFrameworkTestVersion>net48</NetFrameworkTestVersion>
+    <NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+    <DefineConstants>$(DefineConstants);NETCORE</DefineConstants>
+  </PropertyGroup>
+  <!-- GitHub SourceLink -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+  </ItemGroup>
+  <!-- NuGet package properties -->
+  <PropertyGroup>
+    <!-- Optional: Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Optional: Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- Optional: Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageProjectUrl>https://github.com/akkadotnet/HOCON</PackageProjectUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>akka;actors;hocon;configuration;config</PackageTags>
+    <PackageIcon>akkalogo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+    <None Include="../../akkalogo.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

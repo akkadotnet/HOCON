@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
-
   <PropertyGroup>
-    <TargetFramework>$(NetCoreTestVersion)</TargetFramework>
+    <TargetFramework>$(NetTestVersion)</TargetFramework>
     <IsPackable>false</IsPackable>
     <OutputType>Exe</OutputType>
     <StartupObject>Hocon.Tests.Performance.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBench" Version="2.0.1" />
+    <PackageReference Include="NBench" />
   </ItemGroup>
 
   <ItemGroup>

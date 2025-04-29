@@ -1,0 +1,48 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <AkkaVersion>1.5.13</AkkaVersion>
+    <XunitCliVersion>2.3.1</XunitCliVersion>
+  </PropertyGroup>
+  
+  <!-- App dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.4" />
+    <PackageVersion Include="System.Collections.Immutable" Version="1.7.1" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardLibVersion)'">
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="4.7.0"/>
+  </ItemGroup>
+  
+  <!-- Test dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="DiffPlex" Version="1.7.0" />
+    <PackageVersion Include="ApiApprover" Version="9.3.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+    <PackageVersion Include="xunit" Version="2.4.1" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageVersion Include="FluentAssertions" Version="6.2.0" />
+    <PackageVersion Include="Akka.TestKit.Xunit2" Version="$(AkkaVersion)" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
+
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.4" />
+    <PackageVersion Include="NBench" Version="2.0.1" />
+  </ItemGroup>
+  <!-- SourceLink support for all Akka.NET projects -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
+  </ItemGroup>
+
+  <!-- Example projects dependencies -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.FileProviders.Abstractions" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.FileProviders.Physical" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Primitives" Version="3.1.4" />
+  </ItemGroup>
+  
+</Project>
