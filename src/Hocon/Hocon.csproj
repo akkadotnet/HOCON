@@ -1,10 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\common.props" />
-
   <PropertyGroup>
-    <TargetFrameworks>net461;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>$(NetFrameworkVersion);$(NetStandardLibVersion)</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>$(HoconPackageTags)</PackageTags>
     <Description>HOCON (Human-Optimized Config Object Notation) core API implementation. For full access inside your application, install the Hocon.Configuration package.</Description>
   </PropertyGroup>
 </Project>
