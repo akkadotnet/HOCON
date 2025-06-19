@@ -469,6 +469,7 @@ namespace Hocon
                                 $"found `{_tokens.Current.Type}` instead.");
 
                         owner.ReParent(ParseInclude());
+                        hoconObject = owner.GetObject();
                         valueWasParsed = true;
                         break;
 
