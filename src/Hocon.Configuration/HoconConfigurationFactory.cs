@@ -45,6 +45,19 @@ namespace Hocon
         ///     Generates a configuration defined in the supplied
         ///     HOCON (Human-Optimized Config Object Notation) string.
         /// </summary>
+        /// <param name="document">A document that contains configuration options to use.</param>
+        /// <param name="includeCallback">callback used to resolve includes</param>
+        /// <returns>The configuration defined in the supplied HOCON string.</returns>
+        public static Config ParseDocument(HoconDocument document, HoconIncludeDocumentCallbackAsync includeCallback)
+        {
+            HoconRoot res = HoconParser.Parse(document, includeCallback);
+            return new Config(res);
+        }
+
+        /// <summary>
+        ///     Generates a configuration defined in the supplied
+        ///     HOCON (Human-Optimized Config Object Notation) string.
+        /// </summary>
         /// <param name="hocon">A string that contains configuration options to use.</param>
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
         public static Config ParseString(string hocon)
@@ -99,7 +112,7 @@ namespace Hocon
                 foreach(var extension in DefaultHoconFileExtensions)
                 {
                     var path = $"{filePath}.{extension}";
-                    if (File.Exists(path)) 
+                    if (File.Exists(path))
                         return ParseString(File.ReadAllText(path));
                 }
             } else

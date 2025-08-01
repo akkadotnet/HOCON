@@ -12,7 +12,62 @@ using Hocon.Extensions;
 
 namespace Hocon
 {
+
+    /// <summary>
+    /// The source of a hocon document along with optionally a source that
+    /// indicates where the document came from.
+    /// </summary>
+    public class HoconDocument
+    {
+        private readonly string text;
+        private readonly HoconDocumentSource source;
+
+        public HoconDocument(string text, HoconDocumentSource source)
+        {
+            this.text = text;
+            this.source = source;
+        }
+
+        public string Text => text;
+
+        public HoconDocumentSource Source => source;
+
+        public static HoconDocument FromFile(string path, string contents) =>
+            new(
+                text: contents,
+                source: new HoconDocumentSource(HoconCallbackType.File, path)
+            );
+
+        public static HoconDocument FromString(string contents) =>
+            new(text: contents, source: null);
+
+    }
+
+    /// <summary>
+    /// A description of where a hocon document came from or, in the case of
+    /// includes, where to load it from.
+    /// </summary>
+    public class HoconDocumentSource
+    {
+        private readonly HoconCallbackType type;
+        private readonly string what;
+
+        public HoconDocumentSource(HoconCallbackType type, string what)
+        {
+            this.type = type;
+            this.what = what;
+        }
+
+        public HoconCallbackType Type => type;
+
+        public string What => what;
+    }
+
     public delegate Task<string> HoconIncludeCallbackAsync(HoconCallbackType callbackType, string value);
+
+    public delegate Task<string> HoconIncludeDocumentCallbackAsync(
+        HoconDocumentSource include,
+        HoconDocument document);
 
     /// <summary>
     ///     This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)
@@ -21,12 +76,28 @@ namespace Hocon
     public sealed class HoconParser
     {
         private readonly List<HoconSubstitution> _substitutions = new List<HoconSubstitution>();
-        private HoconIncludeCallbackAsync _includeCallback = (type, value) => Task.FromResult("{}");
+        private HoconIncludeDocumentCallbackAsync _includeCallback = (i, p) => Task.FromResult("{}");
+        private HoconDocument _document = default;
         private HoconValue _root;
 
         private HoconTokenizerResult _tokens;
 
         private HoconPath Path { get; } = new HoconPath();
+
+        /// <summary>
+        ///     Parses the supplied HOCON configuration string into a root element.
+        /// </summary>
+        /// <param name="doc">The document that contains a HOCON configuration string.</param>
+        /// <param name="includeCallback">Callback used to resolve includes</param>
+        /// <returns>The root element created from the supplied HOCON configuration string.</returns>
+        /// <exception cref="HoconParserException">
+        ///     This exception is thrown when an unresolved substitution is encountered.
+        ///     It also occurs when any error is encountered while tokenizing or parsing the configuration string.
+        /// </exception>
+        public static HoconRoot Parse(HoconDocument doc, HoconIncludeDocumentCallbackAsync includeCallback = null)
+        {
+            return new HoconParser().ParseText(doc, true, includeCallback).Normalize();
+        }
 
         /// <summary>
         ///     Parses the supplied HOCON configuration string into a root element.
@@ -39,12 +110,14 @@ namespace Hocon
         ///     It also occurs when any error is encountered while tokenizing or parsing the configuration string.
         /// </exception>
         public static HoconRoot Parse(string text, HoconIncludeCallbackAsync includeCallback = null)
-        {
-            return new HoconParser().ParseText(text, true, includeCallback).Normalize();
-        }
+            => Parse(new HoconDocument(text, null), OldToNewCallback(includeCallback));
 
-        private HoconRoot ParseText(string text, bool resolveSubstitutions, HoconIncludeCallbackAsync includeCallback)
+        private static HoconIncludeDocumentCallbackAsync OldToNewCallback(HoconIncludeCallbackAsync old) =>
+            (old is null) ? null : (inc, _) => old.Invoke(inc.Type, inc.What);
+
+        private HoconRoot ParseText(HoconDocument doc, bool resolveSubstitutions, HoconIncludeDocumentCallbackAsync includeCallback)
         {
+            string text = doc.Text;
             if (string.IsNullOrWhiteSpace(text))
                 throw new HoconParserException(
                     $"Parameter {nameof(text)} is null or empty.\n" +
@@ -52,6 +125,7 @@ namespace Hocon
 
             if (includeCallback != null)
                 _includeCallback = includeCallback;
+            _document = doc;
 
             try
             {
@@ -409,7 +483,9 @@ namespace Hocon
             // Consume the last token
             _tokens.ToNextSignificant();
 
-            var includeHocon = _includeCallback(callbackType, fileName).ConfigureAwait(false).GetAwaiter().GetResult();
+            var include = new HoconDocumentSource(callbackType, fileName);
+
+            var includeHocon = _includeCallback(include, _document).ConfigureAwait(false).GetAwaiter().GetResult();
 
             if (string.IsNullOrWhiteSpace(includeHocon))
             {
@@ -419,7 +495,8 @@ namespace Hocon
                 return new HoconEmptyValue(null);
             }
 
-            var includeRoot = new HoconParser().ParseText(includeHocon, false, _includeCallback);
+            var includeDoc = new HoconDocument(includeHocon, include);
+            var includeRoot = new HoconParser().ParseText(includeDoc, false, _includeCallback);
             /*
             if (owner != null && owner.Type != HoconType.Empty && owner.Type != includeRoot.Value.Type)
                 throw HoconParserException.Create(includeToken, Path,

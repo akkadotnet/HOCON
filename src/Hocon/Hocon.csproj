@@ -3,5 +3,6 @@
     <TargetFrameworks>$(NetFrameworkVersion);$(NetStandardLibVersion)</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>HOCON (Human-Optimized Config Object Notation) core API implementation. For full access inside your application, install the Hocon.Configuration package.</Description>
+    <NoWarn>$(NoWarn);NU1506</NoWarn>
   </PropertyGroup>
 </Project>
