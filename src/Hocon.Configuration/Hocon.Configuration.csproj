@@ -5,6 +5,7 @@
     <RootNamespace>Hocon</RootNamespace>
     <PackageTags>$(HoconPackageTags)</PackageTags>
     <Description>HOCON (Human-Optimized Config Object Notation) parser and application-ready implementation.</Description>
+    <NoWarn>$(NoWarn);NU1506</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,7 @@
   <ItemGroup Condition=" '$(TargetFramework)' == '$(NetFrameworkVersion)' ">
     <Reference Include="System.Configuration" />
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardLibVersion)'">
     <PackageReference Include="System.Configuration.ConfigurationManager" />
   </ItemGroup>

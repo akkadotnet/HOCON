@@ -35,7 +35,7 @@ namespace Hocon
         /// <param name="required">Marks wether this substitution uses the ${? notation or not.</param>
         /// ///
         /// <param name="lineInfo">The <see cref="IHoconLineInfo" /> of this substitution, used for exception generation purposes.</param>
-        internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required)
+        internal HoconSubstitution(IHoconElement parent, HoconPath path, IHoconLineInfo lineInfo, bool required, string defaultValue)
         {
             if (parent == null)
                 throw new ArgumentNullException(nameof(parent), "HoconSubstitution parent can not be null.");
@@ -48,7 +48,8 @@ namespace Hocon
             LineNumber = lineInfo.LineNumber;
             Required = required;
             Path = path;
-            
+            DefaultValue = defaultValue;
+
             _parentsToResolveFor.Add(Parent as HoconValue);
         }
 
@@ -71,6 +72,8 @@ namespace Hocon
         ///     The full path to the value which should substitute this instance.
         /// </summary>
         public HoconPath Path { get; }
+
+        public string DefaultValue { get; }
 
         /// <summary>
         ///     The evaluated value from the Path property
