@@ -48,9 +48,9 @@ namespace Hocon
         /// <param name="document">A document that contains configuration options to use.</param>
         /// <param name="includeCallback">callback used to resolve includes</param>
         /// <returns>The configuration defined in the supplied HOCON string.</returns>
-        public static Config ParseDocument(HoconDocument document, HoconIncludeDocumentCallbackAsync includeCallback)
+        public static Config ParseDocument(HoconDocument document, HoconIncludeDocumentCallbackAsync includeCallback, HoconEnvironmentGetCallback envGetCallback = null)
         {
-            HoconRoot res = HoconParser.Parse(document, includeCallback);
+            HoconRoot res = HoconParser.Parse(document, includeCallback, envGetCallback);
             return new Config(res);
         }
 

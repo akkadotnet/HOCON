@@ -69,6 +69,8 @@ namespace Hocon
         HoconDocumentSource include,
         HoconDocument document);
 
+    public delegate string HoconEnvironmentGetCallback(string key, string defaultValue);
+
     /// <summary>
     ///     This class contains methods used to parse HOCON (Human-Optimized Config Object Notation)
     ///     configuration strings.
@@ -77,6 +79,7 @@ namespace Hocon
     {
         private readonly List<HoconSubstitution> _substitutions = new List<HoconSubstitution>();
         private HoconIncludeDocumentCallbackAsync _includeCallback = (i, p) => Task.FromResult("{}");
+        private HoconEnvironmentGetCallback _envGetCallback = (k, d) => Environment.GetEnvironmentVariable(k);
         private HoconDocument _document = default;
         private HoconValue _root;
 
@@ -94,9 +97,9 @@ namespace Hocon
         ///     This exception is thrown when an unresolved substitution is encountered.
         ///     It also occurs when any error is encountered while tokenizing or parsing the configuration string.
         /// </exception>
-        public static HoconRoot Parse(HoconDocument doc, HoconIncludeDocumentCallbackAsync includeCallback = null)
+        public static HoconRoot Parse(HoconDocument doc, HoconIncludeDocumentCallbackAsync includeCallback = null, HoconEnvironmentGetCallback envGetCallback = null)
         {
-            return new HoconParser().ParseText(doc, true, includeCallback).Normalize();
+            return new HoconParser().ParseText(doc, true, includeCallback, envGetCallback).Normalize();
         }
 
         /// <summary>
@@ -115,7 +118,11 @@ namespace Hocon
         private static HoconIncludeDocumentCallbackAsync OldToNewCallback(HoconIncludeCallbackAsync old) =>
             (old is null) ? null : (inc, _) => old.Invoke(inc.Type, inc.What);
 
-        private HoconRoot ParseText(HoconDocument doc, bool resolveSubstitutions, HoconIncludeDocumentCallbackAsync includeCallback)
+        private HoconRoot ParseText(
+            HoconDocument doc,
+            bool resolveSubstitutions,
+            HoconIncludeDocumentCallbackAsync includeCallback,
+            HoconEnvironmentGetCallback envGetCallback)
         {
             string text = doc.Text;
             if (string.IsNullOrWhiteSpace(text))
@@ -125,6 +132,8 @@ namespace Hocon
 
             if (includeCallback != null)
                 _includeCallback = includeCallback;
+            if (envGetCallback != null)
+                _envGetCallback = envGetCallback;
             _document = doc;
 
             try
@@ -179,7 +188,7 @@ namespace Hocon
                 string envValue = null;
                 try
                 {
-                    envValue = Environment.GetEnvironmentVariable(sub.Path.Value);
+                    envValue = _envGetCallback(sub.Path.Value, sub.DefaultValue);
                 }
                 catch (Exception)
                 {
@@ -259,7 +268,7 @@ namespace Hocon
         private bool IsValueCyclic(HoconField field, HoconSubstitution sub)
         {
             var pendingValues = new Stack<HoconValue>();
-            var visitedFields = new List<HoconField> {field};
+            var visitedFields = new List<HoconField> { field };
             var pendingSubs = new Stack<HoconSubstitution>();
             pendingSubs.Push(sub);
 
@@ -496,7 +505,7 @@ namespace Hocon
             }
 
             var includeDoc = new HoconDocument(includeHocon, include);
-            var includeRoot = new HoconParser().ParseText(includeDoc, false, _includeCallback);
+            var includeRoot = new HoconParser().ParseText(includeDoc, false, _includeCallback, _envGetCallback);
             /*
             if (owner != null && owner.Type != HoconType.Empty && owner.Type != includeRoot.Value.Type)
                 throw HoconParserException.Create(includeToken, Path,
@@ -768,9 +777,22 @@ namespace Hocon
                         if (value == null)
                             value = new HoconValue(owner);
 
-                        var pointerPath = HoconPath.Parse(_tokens.Current.Value);
+                        HoconPath pointerPath;
+                        string defaultValue;
+                        string refStr = _tokens.Current.Value;
+                        var colonIndex = refStr.IndexOf(":-");
+                        if (colonIndex == -1)
+                        {
+                            pointerPath = HoconPath.Parse(refStr);
+                            defaultValue = null;
+                        }
+                        else
+                        {
+                            pointerPath = HoconPath.Parse(refStr.Substring(0, colonIndex));
+                            defaultValue = refStr.Substring(colonIndex + 2);
+                        }
                         var sub = new HoconSubstitution(value, pointerPath, _tokens.Current,
-                            _tokens.Current.Type == TokenType.SubstituteRequired);
+                            _tokens.Current.Type == TokenType.SubstituteRequired, defaultValue);
                         _substitutions.Add(sub);
                         _tokens.Next();
                         value.Add(sub);
@@ -780,7 +802,7 @@ namespace Hocon
                         if (value == null)
                             value = new HoconValue(owner);
 
-                        var subAssign = new HoconSubstitution(value, new HoconPath(Path), _tokens.Current, false);
+                        var subAssign = new HoconSubstitution(value, new HoconPath(Path), _tokens.Current, false, null);
                         _substitutions.Add(subAssign);
                         value.Add(subAssign);
                         value.Add(ParsePlusEqualAssignArray(value));
@@ -851,7 +873,7 @@ namespace Hocon
                             "Invalid Hocon include. Hocon config substitution type must be the same as the field it's merged into. " +
                             $"Expected type: `{currentArray.Type}`, type returned by include callback: `{includeValue.Type}`");
 
-                    currentArray.Add((HoconValue) includeValue.Clone(currentArray));
+                    currentArray.Add((HoconValue)includeValue.Clone(currentArray));
                     break;
 
                 case TokenType.StartOfArray:
