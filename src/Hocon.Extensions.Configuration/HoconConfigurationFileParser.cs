@@ -19,7 +19,15 @@ namespace Hocon.Extensions.Configuration
         private readonly IDictionary<string, string> _data =
             new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        private readonly HoconIncludeCallbackAsync _includeCallback;
+        
         private string _currentPath;
+
+
+        public HoconConfigurationFileParser(HoconIncludeCallbackAsync includeCallback)
+        {
+            _includeCallback = includeCallback;
+        }
 
         public IDictionary<string, string> Parse(Stream input)
         {
@@ -28,7 +36,7 @@ namespace Hocon.Extensions.Configuration
             using (var textStream = new StreamReader(input))
             {
                 var content = textStream.ReadToEnd();
-                var hoconConfig = HoconParser.Parse(content);
+                var hoconConfig = HoconParser.Parse(content, _includeCallback ?? HoconConfigurationSource.DefaultIncludeCallback);
                 VisitHoconObject(hoconConfig.Value.GetObject());
             }
 

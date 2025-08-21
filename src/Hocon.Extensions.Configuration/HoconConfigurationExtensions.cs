@@ -72,9 +72,10 @@ namespace Hocon.Extensions.Configuration
         /// </param>
         /// <param name="optional">Whether the file is optional.</param>
         /// <param name="reloadOnChange">Whether the configuration should be reloaded if the file changes.</param>
+        /// <param name="includeCallback">Include callback.</param>
         /// <returns>The <see cref="IConfigurationBuilder" />.</returns>
         public static IConfigurationBuilder AddHoconFile(this IConfigurationBuilder builder, IFileProvider provider,
-            string path, bool optional, bool reloadOnChange)
+            string path, bool optional, bool reloadOnChange, HoconIncludeCallbackAsync includeCallback = null)
         {
             if (builder == null) throw new ArgumentNullException(nameof(builder));
             if (string.IsNullOrEmpty(path)) throw new ArgumentException(Resources.Error_InvalidFilePath, nameof(path));
@@ -85,6 +86,7 @@ namespace Hocon.Extensions.Configuration
                 s.Path = path;
                 s.Optional = optional;
                 s.ReloadOnChange = reloadOnChange;
+                s.IncludeCallback = includeCallback;
                 s.ResolveFileProvider();
             });
         }

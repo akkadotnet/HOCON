@@ -14,6 +14,16 @@ namespace Hocon.Extensions.Configuration
     public class HoconConfigurationSource : FileConfigurationSource
     {
         /// <summary>
+        ///     Default include callback.
+        /// </summary>
+        public static HoconIncludeCallbackAsync DefaultIncludeCallback { get; set; } = null;
+
+        /// <summary>
+        ///     Include callback for this source.
+        /// </summary>
+        public HoconIncludeCallbackAsync IncludeCallback { get; set; } = null;
+
+        /// <summary>
         ///     Builds the <see cref="HoconConfigurationProvider" /> for this source.
         /// </summary>
         /// <param name="builder">The <see cref="IConfigurationBuilder" />.</param>
