@@ -144,6 +144,12 @@ namespace Hocon
             return this; 
         }
 
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            return Clone(newParent);
+        }
+
         public bool Equals(IHoconElement other)
         {
             if (other is null) return false;

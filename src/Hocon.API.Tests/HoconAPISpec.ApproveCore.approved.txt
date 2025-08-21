@@ -18,6 +18,7 @@ namespace Hocon
         public Hocon.HoconType Type { get; }
         public void Add(Hocon.HoconValue value) { }
         public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public Hocon.IHoconElement Copy(Hocon.IHoconElement newParent) { }
         public bool Equals(Hocon.IHoconElement other) { }
         public override bool Equals(object obj) { }
         public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
@@ -79,6 +80,7 @@ namespace Hocon
         public Hocon.HoconType Type { get; }
         public Hocon.HoconValue Value { get; }
         public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public Hocon.IHoconElement Copy(Hocon.IHoconElement newParent) { }
         public bool Equals(Hocon.IHoconElement other) { }
         public override bool Equals(object obj) { }
         public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
@@ -107,6 +109,7 @@ namespace Hocon
         public abstract Hocon.HoconType Type { get; }
         public virtual string Value { get; }
         public abstract Hocon.IHoconElement Clone(Hocon.IHoconElement newParent);
+        public Hocon.IHoconElement Copy(Hocon.IHoconElement newParent) { }
         public bool Equals(Hocon.IHoconElement other) { }
         public override bool Equals(object obj) { }
         public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
@@ -153,7 +156,7 @@ namespace Hocon
         public override string Value { get; }
         public override Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
     }
-    public class HoconObject : System.Collections.Generic.Dictionary<string, Hocon.HoconField>, Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
+    public class HoconObject : System.Collections.Generic.SortedDictionary<string, Hocon.HoconField>, Hocon.IHoconElement, System.IEquatable<Hocon.IHoconElement>
     {
         public HoconObject(Hocon.IHoconElement parent) { }
         public static Hocon.HoconObject Empty { get; }
@@ -166,6 +169,7 @@ namespace Hocon
         public Hocon.HoconType Type { get; }
         public System.Collections.Generic.IDictionary<string, object> Unwrapped { get; }
         public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public Hocon.IHoconElement Copy(Hocon.IHoconElement newParent) { }
         public bool Equals(Hocon.IHoconElement other) { }
         public override bool Equals(object obj) { }
         public void FallbackMerge(Hocon.HoconObject other) { }
@@ -356,6 +360,7 @@ namespace Hocon
         public Hocon.HoconValue ResolvedValue { get; }
         public Hocon.HoconType Type { get; }
         public Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public Hocon.IHoconElement Copy(Hocon.IHoconElement newParent) { }
         public bool Equals(Hocon.IHoconElement other) { }
         public override bool Equals(object obj) { }
         public System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
@@ -401,6 +406,7 @@ namespace Hocon
     {
         public HoconValue(Hocon.IHoconElement parent) { }
         public System.Collections.ObjectModel.ReadOnlyCollection<Hocon.IHoconElement> Children { get; }
+        public bool IsEmpty { get; }
         public Hocon.IHoconElement Parent { get; }
         public virtual string Raw { get; }
         public Hocon.HoconType Type { get; }
@@ -409,6 +415,7 @@ namespace Hocon
         public Hocon.HoconRoot AtKey(string key) { }
         public new void Clear() { }
         public virtual Hocon.IHoconElement Clone(Hocon.IHoconElement newParent) { }
+        public Hocon.IHoconElement Copy(Hocon.IHoconElement newParent) { }
         public virtual bool Equals(Hocon.IHoconElement other) { }
         public override bool Equals(object obj) { }
         public virtual System.Collections.Generic.IList<Hocon.HoconValue> GetArray() { }
@@ -479,6 +486,7 @@ namespace Hocon
         string Raw { get; }
         Hocon.HoconType Type { get; }
         Hocon.IHoconElement Clone(Hocon.IHoconElement newParent);
+        Hocon.IHoconElement Copy(Hocon.IHoconElement newParent);
         System.Collections.Generic.IList<Hocon.HoconValue> GetArray();
         Hocon.HoconObject GetObject();
         string GetString();

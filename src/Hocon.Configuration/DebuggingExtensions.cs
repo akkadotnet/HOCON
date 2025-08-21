@@ -23,7 +23,7 @@ namespace Hocon
             var sb = new StringBuilder();
             if(!dumpAsFallbacks)
             {
-                sb.AppendLine(c.Root.ToString(1, 2));
+                sb.AppendLine(c.Root.GetObject().ToString(1, 2));
                 return sb.ToString();
             }
 
@@ -37,13 +37,16 @@ namespace Hocon
                     .AppendLine();
             }
 
-            AppendHocon(c.Value, hoconCount);
+            var currentConfig = c;
+            AppendHocon(currentConfig.Value, hoconCount);
 
-            foreach(var fallback in c.Fallbacks)
+            while (currentConfig.Fallback != null)
             {
+                currentConfig = currentConfig.Fallback;
+
                 // add a header here
                 sb.AppendLine().AppendLine("------------");
-                AppendHocon(fallback, ++hoconCount);
+                AppendHocon(currentConfig.Value, ++hoconCount);
             }
 
             return sb.ToString();

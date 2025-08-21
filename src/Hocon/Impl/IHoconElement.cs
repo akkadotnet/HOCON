@@ -50,6 +50,12 @@ namespace Hocon
         IHoconElement Clone(IHoconElement newParent);
 
         /// <summary>
+        ///     Do shallow copy of this element.
+        /// </summary>
+        /// <returns>A shallow company of this element.</returns>
+        IHoconElement Copy(IHoconElement newParent);
+
+        /// <summary>
         ///     Retrieves the string representation of this element, indented for pretty printing.
         /// </summary>
         /// <param name="indent">The number indents this element.</param>

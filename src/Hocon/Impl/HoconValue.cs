@@ -48,6 +48,8 @@ namespace Hocon
 
         public virtual HoconType Type { get; private set; } = HoconType.Empty;
 
+        public bool IsEmpty => Type == HoconType.Empty;
+
         /// <inheritdoc />
         public virtual HoconObject GetObject()
         {
@@ -201,6 +203,14 @@ namespace Hocon
             var clone = new HoconValue(newParent);
             foreach (var element in this) clone.Add(element.Clone(clone));
             return clone;
+        }
+
+        /// <inheritdoc/>
+        public IHoconElement Copy(IHoconElement newParent)
+        {
+            var copy = new HoconValue(newParent);
+            copy.AddRange(this);
+            return copy;
         }
 
         public new void Clear()

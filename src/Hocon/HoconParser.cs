@@ -177,6 +177,7 @@ namespace Hocon
             if (IsValueCyclic(subField, sub))
                 throw new HoconException("A cyclic substitution loop is detected in the Hocon file.");
 
+            // TODO: is a full clone needed? or will a copy suffice?
             // third case, regular substitution
             _root.GetObject().TryGetValue(sub.Path, out var field);
             return field?.Clone(field.Parent) as HoconValue;
@@ -773,6 +774,7 @@ namespace Hocon
                             "Invalid Hocon include. Hocon config substitution type must be the same as the field it's merged into. " +
                             $"Expected type: `{currentArray.Type}`, type returned by include callback: `{includeValue.Type}`");
 
+                    // TODO: Is a clone needed? an include object is supposed to be discardable, maybe a direct reference is more appropriate?
                     currentArray.Add((HoconValue) includeValue.Clone(currentArray));
                     break;
 
