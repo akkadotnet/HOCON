@@ -8,7 +8,7 @@
   <!-- App dependencies -->
   <ItemGroup>
     <PackageVersion Include="Akka" Version="$(AkkaVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.7" />
     <PackageVersion Include="System.Collections.Immutable" Version="1.7.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardLibVersion)'">
