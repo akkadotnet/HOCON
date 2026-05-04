@@ -12,7 +12,7 @@
     <PackageVersion Include="System.Collections.Immutable" Version="1.7.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetStandardLibVersion)'">
-    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="4.7.0"/>
+    <PackageVersion Include="System.Configuration.ConfigurationManager" Version="10.0.7"/>
   </ItemGroup>
   
   <!-- Test dependencies -->
