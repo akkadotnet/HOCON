@@ -36,7 +36,7 @@
 
   <!-- Example projects dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="3.1.4" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.7" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.4" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.4" />
     <PackageVersion Include="Microsoft.Extensions.FileProviders.Abstractions" Version="3.1.4" />
